@@ -119,30 +119,30 @@ export default function AdminDashboardView({
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-fade-in pb-28">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-fade-in pb-28 text-gray-800">
       
       {/* Admin Dashboard Header Banner */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel p-6 rounded-3xl border border-amber-500/20">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-amber-500/20 shadow-sm">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full gradient-badge text-amber-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Admin Control Panel (/admin)
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold uppercase tracking-wider mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-amber-700" /> Admin Control Panel (/admin)
           </div>
-          <h2 className="text-2xl font-black text-white flex items-center gap-2">
+          <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
             Kelola Produk, Harga & Laporan Keuangan
           </h2>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             Pantau omset harian, atur harga menu, dan ketersediaan stok cafe secara terpusat.
           </p>
         </div>
 
         {/* Admin Navigation Tabs */}
-        <div className="flex items-center gap-2 bg-gray-950/80 p-1.5 rounded-2xl border border-white/10 w-full md:w-auto overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-2 bg-amber-50/70 p-1.5 rounded-2xl border border-amber-500/20 w-full md:w-auto overflow-x-auto no-scrollbar">
           <button
             onClick={() => setAdminTab('financial')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
               adminTab === 'financial'
-                ? 'gradient-gold text-gray-950 font-black shadow-lg shadow-amber-500/20'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                ? 'gradient-gold text-white font-black shadow-md'
+                : 'text-gray-600 hover:text-amber-800 hover:bg-white'
             }`}
           >
             <BarChart3 className="w-4 h-4" />
@@ -153,8 +153,8 @@ export default function AdminDashboardView({
             onClick={() => setAdminTab('products')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
               adminTab === 'products'
-                ? 'gradient-gold text-gray-950 font-black shadow-lg shadow-amber-500/20'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                ? 'gradient-gold text-white font-black shadow-md'
+                : 'text-gray-600 hover:text-amber-800 hover:bg-white'
             }`}
           >
             <Package className="w-4 h-4" />
@@ -169,56 +169,56 @@ export default function AdminDashboardView({
           
           {/* Top Summary Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="glass-card p-5 rounded-3xl border border-amber-500/30 space-y-2">
-              <div className="flex justify-between items-center text-xs text-gray-400">
+            <div className="bg-white p-5 rounded-3xl border border-amber-500/20 space-y-2 shadow-sm">
+              <div className="flex justify-between items-center text-xs text-gray-600 font-semibold">
                 <span>Total Omset / Pendapatan</span>
-                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <div className="p-2 rounded-xl bg-amber-100 text-amber-800 border border-amber-300">
                   <DollarSign className="w-4 h-4" />
                 </div>
               </div>
-              <h3 className="text-2xl font-black text-amber-400 font-mono">
+              <h3 className="text-2xl font-black text-amber-800 font-mono">
                 {formatRupiah(totalRevenue)}
               </h3>
-              <p className="text-[11px] text-gray-400">Dari {totalOrdersCount} transaksi terverifikasi</p>
+              <p className="text-[11px] text-gray-500 font-medium">Dari {totalOrdersCount} transaksi terverifikasi</p>
             </div>
 
-            <div className="glass-card p-5 rounded-3xl border border-blue-500/30 space-y-2">
-              <div className="flex justify-between items-center text-xs text-gray-400">
+            <div className="bg-white p-5 rounded-3xl border border-blue-500/20 space-y-2 shadow-sm">
+              <div className="flex justify-between items-center text-xs text-gray-600 font-semibold">
                 <span>Rata-Rata Transaksi</span>
-                <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                <div className="p-2 rounded-xl bg-blue-100 text-blue-800 border border-blue-300">
                   <TrendingUp className="w-4 h-4" />
                 </div>
               </div>
-              <h3 className="text-2xl font-black text-blue-400 font-mono">
+              <h3 className="text-2xl font-black text-blue-800 font-mono">
                 {formatRupiah(avgOrderValue)}
               </h3>
-              <p className="text-[11px] text-gray-400">Rerata pembelanjaan per meja</p>
+              <p className="text-[11px] text-gray-500 font-medium">Rerata pembelanjaan per meja</p>
             </div>
 
-            <div className="glass-card p-5 rounded-3xl border border-emerald-500/30 space-y-2">
-              <div className="flex justify-between items-center text-xs text-gray-400">
+            <div className="bg-white p-5 rounded-3xl border border-emerald-500/20 space-y-2 shadow-sm">
+              <div className="flex justify-between items-center text-xs text-gray-600 font-semibold">
                 <span>Pembayaran Tunai (Cash)</span>
-                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <div className="p-2 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300">
                   <DollarSign className="w-4 h-4" />
                 </div>
               </div>
-              <h3 className="text-2xl font-black text-emerald-400 font-mono">
+              <h3 className="text-2xl font-black text-emerald-800 font-mono">
                 {formatRupiah(cashRevenue)}
               </h3>
-              <p className="text-[11px] text-gray-400">Pemasukan cash via Kasir</p>
+              <p className="text-[11px] text-gray-500 font-medium">Pemasukan cash via Kasir</p>
             </div>
 
-            <div className="glass-card p-5 rounded-3xl border border-purple-500/30 space-y-2">
-              <div className="flex justify-between items-center text-xs text-gray-400">
+            <div className="bg-white p-5 rounded-3xl border border-purple-500/20 space-y-2 shadow-sm">
+              <div className="flex justify-between items-center text-xs text-gray-600 font-semibold">
                 <span>Pembayaran Digital (QRIS)</span>
-                <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                <div className="p-2 rounded-xl bg-purple-100 text-purple-800 border border-purple-300">
                   <QrCode className="w-4 h-4" />
                 </div>
               </div>
-              <h3 className="text-2xl font-black text-purple-400 font-mono">
+              <h3 className="text-2xl font-black text-purple-800 font-mono">
                 {formatRupiah(qrisRevenue)}
               </h3>
-              <p className="text-[11px] text-gray-400">Pemasukan e-wallet / QRIS</p>
+              <p className="text-[11px] text-gray-500 font-medium">Pemasukan e-wallet / QRIS</p>
             </div>
           </div>
 
@@ -226,31 +226,31 @@ export default function AdminDashboardView({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Top Selling Menu Card */}
-            <div className="glass-panel p-6 rounded-3xl border border-white/10 space-y-4 lg:col-span-2">
-              <div className="flex justify-between items-center pb-3 border-b border-white/10">
-                <h3 className="font-bold text-white text-base flex items-center gap-2">
-                  <Coffee className="w-5 h-5 text-amber-400" /> Menu Terlaris (Top Selling Items)
+            <div className="bg-white p-6 rounded-3xl border border-amber-500/20 space-y-4 lg:col-span-2 shadow-sm">
+              <div className="flex justify-between items-center pb-3 border-b border-gray-100">
+                <h3 className="font-extrabold text-gray-900 text-base flex items-center gap-2">
+                  <Coffee className="w-5 h-5 text-amber-600" /> Menu Terlaris (Top Selling Items)
                 </h3>
-                <span className="text-xs text-amber-400 font-semibold">Total Terjual</span>
+                <span className="text-xs text-amber-800 font-bold">Total Terjual</span>
               </div>
 
               <div className="space-y-3 text-xs">
                 {topProducts.length === 0 ? (
-                  <p className="text-gray-500 italic py-6 text-center">Belum ada data penjualan menu.</p>
+                  <p className="text-gray-400 italic py-6 text-center">Belum ada data penjualan menu.</p>
                 ) : (
                   topProducts.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center bg-gray-950/80 p-3.5 rounded-2xl border border-white/5">
+                    <div key={idx} className="flex justify-between items-center bg-amber-50/40 p-3.5 rounded-2xl border border-amber-500/15">
                       <div className="flex items-center gap-3">
-                        <span className="w-7 h-7 rounded-xl gradient-gold text-gray-950 font-black flex items-center justify-center text-xs">
+                        <span className="w-7 h-7 rounded-xl gradient-gold text-white font-black flex items-center justify-center text-xs shadow-sm">
                           #{idx + 1}
                         </span>
                         <div>
-                          <h4 className="font-bold text-white text-sm">{item.name}</h4>
-                          <span className="text-[11px] text-gray-400">{item.qty} porsi terjual</span>
+                          <h4 className="font-bold text-gray-900 text-sm">{item.name}</h4>
+                          <span className="text-[11px] text-gray-500">{item.qty} porsi terjual</span>
                         </div>
                       </div>
 
-                      <span className="font-mono font-bold text-amber-400 text-sm">
+                      <span className="font-mono font-black text-amber-900 text-sm">
                         {formatRupiah(item.total)}
                       </span>
                     </div>
@@ -260,23 +260,23 @@ export default function AdminDashboardView({
             </div>
 
             {/* Tax & Financial Summary */}
-            <div className="glass-panel p-6 rounded-3xl border border-white/10 space-y-4">
-              <h3 className="font-bold text-white text-base flex items-center gap-2 border-b border-white/10 pb-3">
-                <FileSpreadsheet className="w-5 h-5 text-amber-400" /> Ringkasan Kas
+            <div className="bg-white p-6 rounded-3xl border border-amber-500/20 space-y-4 shadow-sm">
+              <h3 className="font-extrabold text-gray-900 text-base flex items-center gap-2 border-b border-gray-100 pb-3">
+                <FileSpreadsheet className="w-5 h-5 text-amber-600" /> Ringkasan Kas
               </h3>
 
-              <div className="space-y-3 text-xs text-gray-300">
-                <div className="flex justify-between py-1 border-b border-white/5">
-                  <span className="text-gray-400">Total Penjualan Kotor (Subtotal)</span>
-                  <span className="font-mono text-white font-bold">{formatRupiah(totalSubtotal)}</span>
+              <div className="space-y-3 text-xs text-gray-700">
+                <div className="flex justify-between py-1 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">Total Penjualan Kotor (Subtotal)</span>
+                  <span className="font-mono text-gray-900 font-bold">{formatRupiah(totalSubtotal)}</span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-white/5">
-                  <span className="text-gray-400">Total Pajak Restoran (PB1 10%)</span>
-                  <span className="font-mono text-amber-400 font-bold">{formatRupiah(totalTax)}</span>
+                <div className="flex justify-between py-1 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">Total Pajak Restoran (PB1 10%)</span>
+                  <span className="font-mono text-amber-800 font-bold">{formatRupiah(totalTax)}</span>
                 </div>
-                <div className="flex justify-between py-2 font-black text-sm text-white border-t border-amber-500/30 pt-3">
+                <div className="flex justify-between py-2 font-black text-sm text-gray-900 border-t border-amber-500/20 pt-3">
                   <span>Pemasukan Bersih Resto</span>
-                  <span className="text-amber-400 font-mono">{formatRupiah(totalRevenue)}</span>
+                  <span className="text-amber-800 font-black font-mono text-base">{formatRupiah(totalRevenue)}</span>
                 </div>
               </div>
             </div>
@@ -284,42 +284,42 @@ export default function AdminDashboardView({
           </div>
 
           {/* Transactions History Table */}
-          <div className="glass-panel p-6 rounded-3xl border border-white/10 space-y-4">
-            <div className="flex justify-between items-center pb-3 border-b border-white/10">
-              <h3 className="font-bold text-white text-base flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-amber-400" /> Riwayat Seluruh Transaksi ({orders.length})
+          <div className="bg-white p-6 rounded-3xl border border-amber-500/20 space-y-4 shadow-sm">
+            <div className="flex justify-between items-center pb-3 border-b border-gray-100">
+              <h3 className="font-extrabold text-gray-900 text-base flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-amber-600" /> Riwayat Seluruh Transaksi ({orders.length})
               </h3>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-gray-300">
-                <thead className="bg-gray-950 text-gray-400 uppercase font-mono text-[10px] tracking-wider border-b border-white/10">
+              <table className="w-full text-left text-xs text-gray-800">
+                <thead className="bg-amber-100/70 text-amber-950 uppercase font-mono text-[10px] tracking-wider border-b border-amber-500/20">
                   <tr>
-                    <th className="p-3">No. Nota</th>
-                    <th className="p-3">Tanggal & Waktu</th>
-                    <th className="p-3">Meja</th>
-                    <th className="p-3">Pelanggan</th>
-                    <th className="p-3">Metode</th>
-                    <th className="p-3">Total Tagihan</th>
-                    <th className="p-3">Status</th>
+                    <th className="p-3.5">No. Nota</th>
+                    <th className="p-3.5">Tanggal & Waktu</th>
+                    <th className="p-3.5">Meja</th>
+                    <th className="p-3.5">Pelanggan</th>
+                    <th className="p-3.5">Metode</th>
+                    <th className="p-3.5">Total Tagihan</th>
+                    <th className="p-3.5">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-gray-100">
                   {orders.map(ord => (
-                    <tr key={ord.id} className="hover:bg-white/5 transition">
-                      <td className="p-3 font-mono font-bold text-amber-400">{ord.orderNumber}</td>
-                      <td className="p-3 text-gray-400">{formatDateTime(ord.createdAt)}</td>
-                      <td className="p-3 font-bold text-white">Meja {ord.tableNumber}</td>
-                      <td className="p-3">{ord.customerName}</td>
-                      <td className="p-3 uppercase font-mono text-[11px] font-bold text-gray-300">{ord.paymentMethod}</td>
-                      <td className="p-3 font-mono font-bold text-white">{formatRupiah(ord.total)}</td>
-                      <td className="p-3">
+                    <tr key={ord.id} className="hover:bg-amber-50/50 transition">
+                      <td className="p-3.5 font-mono font-bold text-amber-800">{ord.orderNumber}</td>
+                      <td className="p-3.5 text-gray-500 font-medium">{formatDateTime(ord.createdAt)}</td>
+                      <td className="p-3.5 font-bold text-gray-900">Meja {ord.tableNumber}</td>
+                      <td className="p-3.5 font-bold text-gray-900">{ord.customerName}</td>
+                      <td className="p-3.5 uppercase font-mono text-[11px] font-bold text-amber-900">{ord.paymentMethod}</td>
+                      <td className="p-3.5 font-mono font-black text-gray-900">{formatRupiah(ord.total)}</td>
+                      <td className="p-3.5">
                         {ord.paymentStatus === 'paid' ? (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
                             LUNAS
                           </span>
                         ) : (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300">
                             MENUNGGU BAYAR
                           </span>
                         )}
@@ -344,10 +344,10 @@ export default function AdminDashboardView({
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition ${
+                  className={`px-4 py-2 rounded-2xl text-xs font-extrabold whitespace-nowrap transition ${
                     selectedCategory === cat.id
-                      ? 'gradient-gold text-gray-950 font-black shadow-lg shadow-amber-500/20'
-                      : 'glass-panel text-gray-400 hover:text-white'
+                      ? 'gradient-gold text-white font-black shadow-md'
+                      : 'bg-white text-gray-700 border border-amber-500/20 hover:bg-amber-50'
                   }`}
                 >
                   {cat.name}
@@ -361,12 +361,12 @@ export default function AdminDashboardView({
                 placeholder="Cari nama produk..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full md:w-64 glass-input rounded-2xl px-4 py-2.5 text-xs text-gray-100"
+                className="w-full md:w-64 bg-white border border-amber-500/30 rounded-2xl px-4 py-2.5 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-600 shadow-sm"
               />
 
               <button
                 onClick={openAddModal}
-                className="gradient-gold text-gray-950 font-black px-4 py-2.5 rounded-2xl text-xs shadow-lg shadow-amber-500/25 flex items-center gap-2 whitespace-nowrap transition transform active:scale-95"
+                className="gradient-gold text-white font-black px-5 py-2.5 rounded-2xl text-xs shadow-md flex items-center gap-2 whitespace-nowrap transition transform active:scale-95"
               >
                 <Plus className="w-4 h-4" />
                 <span>Tambah Produk Baru</span>
@@ -374,10 +374,10 @@ export default function AdminDashboardView({
             </div>
           </div>
 
-          <div className="glass-panel rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+          <div className="bg-white rounded-3xl overflow-hidden border border-amber-500/20 shadow-sm">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-gray-300">
-                <thead className="bg-gray-950 text-gray-400 uppercase font-mono text-[10px] tracking-wider border-b border-white/10">
+              <table className="w-full text-left text-xs text-gray-800">
+                <thead className="bg-amber-100/70 text-amber-950 uppercase font-mono text-[10px] tracking-wider border-b border-amber-500/20">
                   <tr>
                     <th className="p-4">Produk</th>
                     <th className="p-4">Kategori</th>
@@ -386,41 +386,41 @@ export default function AdminDashboardView({
                     <th className="p-4 text-center">Aksi Edit / Hapus</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-gray-100">
                   {filteredProducts.map(prod => (
-                    <tr key={prod.id} className="hover:bg-white/5 transition">
+                    <tr key={prod.id} className="hover:bg-amber-50/50 transition">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <img
                             src={prod.imageUrl}
                             alt={prod.name}
-                            className="w-12 h-12 rounded-2xl object-cover border border-amber-500/20 shadow-md"
+                            className="w-12 h-12 rounded-2xl object-cover border border-amber-500/20 shadow-sm"
                           />
                           <div>
-                            <h4 className="font-bold text-white text-sm">{prod.name}</h4>
-                            <p className="text-[11px] text-gray-400 line-clamp-1">{prod.description}</p>
+                            <h4 className="font-bold text-gray-900 text-sm">{prod.name}</h4>
+                            <p className="text-[11px] text-gray-500 line-clamp-1">{prod.description}</p>
                           </div>
                         </div>
                       </td>
 
-                      <td className="p-4 uppercase font-mono text-[11px] text-amber-400 font-bold">
+                      <td className="p-4 uppercase font-mono text-[11px] text-amber-800 font-bold">
                         {prod.categoryId}
                       </td>
 
-                      <td className="p-4 font-mono font-bold text-white text-sm">
+                      <td className="p-4 font-mono font-black text-amber-900 text-sm">
                         {formatRupiah(prod.price)}
                       </td>
 
                       <td className="p-4">
                         <button
                           onClick={() => toggleProductAvailability(prod.id)}
-                          className={`px-3 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1.5 transition ${
+                          className={`px-3 py-1.5 rounded-full text-[11px] font-extrabold flex items-center gap-1.5 transition ${
                             prod.isAvailable
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                              : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              : 'bg-red-100 text-red-800 border border-red-300'
                           }`}
                         >
-                          {prod.isAvailable ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                          {prod.isAvailable ? <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> : <XCircle className="w-3.5 h-3.5 text-red-600" />}
                           <span>{prod.isAvailable ? 'Tersedia' : 'Stok Habis'}</span>
                         </button>
                       </td>
@@ -429,7 +429,7 @@ export default function AdminDashboardView({
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => openEditModal(prod)}
-                            className="p-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/40 rounded-xl transition"
+                            className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl transition"
                             title="Edit Produk & Harga"
                           >
                             <Edit3 className="w-4 h-4" />
@@ -441,7 +441,7 @@ export default function AdminDashboardView({
                                 deleteProduct(prod.id);
                               }
                             }}
-                            className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 rounded-xl transition"
+                            className="p-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-300 rounded-xl transition"
                             title="Hapus Produk"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -460,39 +460,39 @@ export default function AdminDashboardView({
 
       {/* ADD / EDIT PRODUCT MODAL */}
       {productModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="glass-panel border border-amber-500/30 text-gray-100 w-full max-w-lg rounded-3xl p-6 space-y-5 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white border border-amber-500/30 text-gray-900 w-full max-w-lg rounded-3xl p-6 space-y-5 shadow-2xl">
             
-            <div className="flex justify-between items-center pb-3 border-b border-white/10">
-              <h3 className="font-black text-lg text-white flex items-center gap-2">
-                <Package className="w-5 h-5 text-amber-400" />
+            <div className="flex justify-between items-center pb-3 border-b border-gray-100">
+              <h3 className="font-black text-lg text-gray-900 flex items-center gap-2">
+                <Package className="w-5 h-5 text-amber-600" />
                 {editingProduct ? 'Edit Data Produk & Harga' : 'Tambah Produk Baru'}
               </h3>
-              <button onClick={() => setProductModal(false)} className="text-gray-400 hover:text-white p-1">
+              <button onClick={() => setProductModal(false)} className="text-gray-400 hover:text-gray-900 p-1 font-bold">
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
               <div>
-                <label className="font-bold text-gray-300 block mb-1">Nama Produk / Menu</label>
+                <label className="font-extrabold text-gray-800 block mb-1">Nama Produk / Menu</label>
                 <input
                   type="text"
                   required
                   placeholder="Contoh: Caramel Latte Special"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full glass-input rounded-2xl p-3 text-xs text-white"
+                  className="w-full bg-white border border-amber-500/30 rounded-2xl p-3 text-xs text-gray-900"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-gray-300 block mb-1">Kategori</label>
+                  <label className="font-extrabold text-gray-800 block mb-1">Kategori</label>
                   <select
                     value={formData.categoryId}
                     onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
-                    className="w-full bg-gray-950 border border-gray-700 rounded-2xl p-3 text-xs text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-amber-500/30 rounded-2xl p-3 text-xs text-gray-900 font-medium focus:outline-none focus:border-amber-600"
                   >
                     <option value="coffee">Espresso & Coffee</option>
                     <option value="non-coffee">Non-Coffee</option>
@@ -502,37 +502,37 @@ export default function AdminDashboardView({
                 </div>
 
                 <div>
-                  <label className="font-bold text-gray-300 block mb-1">Harga (Rp)</label>
+                  <label className="font-extrabold text-gray-800 block mb-1">Harga (Rp)</label>
                   <input
                     type="number"
                     required
                     placeholder="Contoh: 35000"
                     value={formData.price}
                     onChange={e => setFormData({ ...formData, price: e.target.value })}
-                    className="w-full glass-input rounded-2xl p-3 text-xs text-white font-mono font-bold"
+                    className="w-full bg-white border border-amber-500/30 rounded-2xl p-3 text-xs text-amber-900 font-mono font-bold"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-bold text-gray-300 block mb-1">Deskripsi Singkat</label>
+                <label className="font-extrabold text-gray-800 block mb-1">Deskripsi Singkat</label>
                 <textarea
                   rows="2"
                   placeholder="Deskripsi bahan dan cita rasa menu..."
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full glass-input rounded-2xl p-3 text-xs text-white"
+                  className="w-full bg-white border border-amber-500/30 rounded-2xl p-3 text-xs text-gray-900"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-gray-300 block mb-1">URL Gambar (Unsplash / Online Image)</label>
+                <label className="font-extrabold text-gray-800 block mb-1">URL Gambar (Unsplash / Online Image)</label>
                 <input
                   type="text"
                   placeholder="https://images.unsplash.com/..."
                   value={formData.imageUrl}
                   onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                  className="w-full glass-input rounded-2xl p-3 text-xs text-white"
+                  className="w-full bg-white border border-amber-500/30 rounded-2xl p-3 text-xs text-gray-900"
                 />
               </div>
 
@@ -542,24 +542,24 @@ export default function AdminDashboardView({
                   id="availCheck"
                   checked={formData.isAvailable}
                   onChange={e => setFormData({ ...formData, isAvailable: e.target.checked })}
-                  className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500"
+                  className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
                 />
-                <label htmlFor="availCheck" className="text-xs font-bold text-gray-200">
+                <label htmlFor="availCheck" className="text-xs font-bold text-gray-800">
                   Produk Tersedia (Stok Ready)
                 </label>
               </div>
 
-              <div className="pt-3 border-t border-white/10 flex justify-end gap-3">
+              <div className="pt-3 border-t border-gray-100 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setProductModal(false)}
-                  className="px-4 py-2.5 rounded-2xl bg-gray-900 text-gray-400 hover:text-white border border-white/10 font-bold"
+                  className="px-4 py-2.5 rounded-2xl bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 font-bold"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="gradient-gold text-gray-950 font-black px-5 py-2.5 rounded-2xl shadow-lg shadow-amber-500/25"
+                  className="gradient-gold text-white font-black px-5 py-2.5 rounded-2xl shadow-md"
                 >
                   Simpan Produk
                 </button>

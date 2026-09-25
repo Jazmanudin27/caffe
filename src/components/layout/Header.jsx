@@ -66,12 +66,12 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
               {/* Cart Button */}
               <button
                 onClick={openCart}
-                className="relative flex items-center gap-2.5 gradient-gold text-gray-950 font-extrabold px-4 py-2 rounded-xl text-xs shadow-lg shadow-amber-500/20 hover:opacity-95 transition-all transform hover:scale-[1.03]"
+                className="relative flex items-center gap-2.5 gradient-gold text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-lg shadow-amber-500/20 hover:opacity-95 transition-all transform hover:scale-[1.03]"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span className="hidden sm:inline">Keranjang</span>
                 {cartCount > 0 && (
-                  <span className="bg-gray-950 text-amber-400 font-black text-[11px] w-5 h-5 rounded-full flex items-center justify-center border border-amber-500/40">
+                  <span className="bg-white text-amber-900 font-black text-[11px] w-5 h-5 rounded-full flex items-center justify-center border border-amber-300 shadow-sm">
                     {cartCount}
                   </span>
                 )}
@@ -80,22 +80,22 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
           )}
 
           {activeView === 'cashier' && (
-            <div className="gradient-badge px-3.5 py-1.5 rounded-xl text-xs font-semibold text-emerald-400 border border-emerald-500/30 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <div className="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
               <span>Halaman Kasir Aktif</span>
             </div>
           )}
 
           {activeView === 'kitchen' && (
-            <div className="gradient-badge px-3.5 py-1.5 rounded-xl text-xs font-semibold text-purple-400 border border-purple-500/30 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
+            <div className="bg-purple-100 text-purple-800 border border-purple-300 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-purple-600 animate-ping" />
               <span>Halaman Dapur Aktif</span>
             </div>
           )}
 
           {activeView === 'admin' && (
-            <div className="gradient-badge px-3.5 py-1.5 rounded-xl text-xs font-semibold text-amber-300 border border-amber-500/30 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-amber-400" />
+            <div className="bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-amber-700" />
               <span>Session Admin</span>
             </div>
           )}

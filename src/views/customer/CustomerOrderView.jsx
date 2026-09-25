@@ -1115,8 +1115,8 @@ export default function CustomerOrderView({
         </div>
       )}
 
-      {/* MOBILE BOTTOM NAVIGATION BAR (KHUSUS MOBILE) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#090807]/95 backdrop-blur-xl border-t border-amber-500/20 py-2 px-6 flex justify-around items-center md:hidden shadow-[0_-10px_25px_rgba(0,0,0,0.8)]">
+      {/* MOBILE BOTTOM NAVIGATION BAR (BRIGHT LIGHT THEME) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-amber-500/20 py-2 px-6 flex justify-around items-center md:hidden shadow-[0_-8px_25px_rgba(180,83,9,0.1)]">
         
         {/* 1. BERANDA (Home/Catalog) */}
         <button
@@ -1126,64 +1126,56 @@ export default function CustomerOrderView({
           }}
           className={`flex flex-col items-center gap-1 transition-all ${
             activeMobileTab === 'home'
-              ? 'text-amber-400 font-extrabold scale-105'
-              : 'text-gray-400 hover:text-gray-200 font-medium'
+              ? 'text-amber-700 font-black scale-105'
+              : 'text-gray-400 hover:text-gray-700 font-medium'
           }`}
         >
-          <div className={`p-1.5 rounded-xl transition-all ${activeMobileTab === 'home' ? 'bg-amber-500/20 border border-amber-500/40 shadow-lg shadow-amber-500/10' : ''}`}>
+          <div className={`p-1.5 rounded-xl transition-all ${activeMobileTab === 'home' ? 'bg-amber-500/15 border border-amber-500/30 text-amber-700 shadow-sm' : ''}`}>
             <Home className="w-5 h-5" />
           </div>
           <span className="text-[10px] tracking-tight">Beranda</span>
         </button>
 
-        {/* 2. PESANAN (Cart / Active Orders) */}
+        {/* 2. PESANAN (Histori Pesanan Pelanggan) */}
         <button
           onClick={() => {
             setActiveMobileTab('orders');
-            setCartOpen(true);
           }}
           className={`flex flex-col items-center gap-1 relative transition-all ${
-            activeMobileTab === 'orders' || cartOpen
-              ? 'text-amber-400 font-extrabold scale-105'
-              : 'text-gray-400 hover:text-gray-200 font-medium'
+            activeMobileTab === 'orders'
+              ? 'text-amber-700 font-black scale-105'
+              : 'text-gray-400 hover:text-gray-700 font-medium'
           }`}
         >
-          <div className={`p-1.5 rounded-xl relative transition-all ${activeMobileTab === 'orders' || cartOpen ? 'bg-amber-500/20 border border-amber-500/40 shadow-lg shadow-amber-500/10' : ''}`}>
-            <ShoppingBag className="w-5 h-5" />
-            {cart.reduce((a, b) => a + b.quantity, 0) > 0 && (
-              <span className="absolute -top-1 -right-1 bg-amber-500 text-gray-950 font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-gray-950">
-                {cart.reduce((a, b) => a + b.quantity, 0)}
+          <div className={`p-1.5 rounded-xl relative transition-all ${activeMobileTab === 'orders' ? 'bg-amber-500/15 border border-amber-500/30 text-amber-700 shadow-sm' : ''}`}>
+            <Clock className="w-5 h-5" />
+            {customerOrders.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-amber-600 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-white">
+                {customerOrders.length}
               </span>
             )}
           </div>
           <span className="text-[10px] tracking-tight">Pesanan</span>
         </button>
 
-        {/* 3. AKUN (User Profile / Auth) */}
+        {/* 3. AKUN (Halaman Akun Pelanggan) */}
         <button
           onClick={() => {
             setActiveMobileTab('account');
-            if (currentUser) {
-              setProfileModal(true);
-            } else {
-              setAuthStep('phone');
-              setAuthError('');
-              setAuthModal(true);
-            }
           }}
           className={`flex flex-col items-center gap-1 relative transition-all ${
-            activeMobileTab === 'account' || profileModal || authModal
-              ? 'text-amber-400 font-extrabold scale-105'
-              : 'text-gray-400 hover:text-gray-200 font-medium'
+            activeMobileTab === 'account'
+              ? 'text-amber-700 font-black scale-105'
+              : 'text-gray-400 hover:text-gray-700 font-medium'
           }`}
         >
-          <div className={`p-1.5 rounded-xl relative transition-all ${activeMobileTab === 'account' || profileModal || authModal ? 'bg-amber-500/20 border border-amber-500/40 shadow-lg shadow-amber-500/10' : ''}`}>
+          <div className={`p-1.5 rounded-xl relative transition-all ${activeMobileTab === 'account' ? 'bg-amber-500/15 border border-amber-500/30 text-amber-700 shadow-sm' : ''}`}>
             <User className="w-5 h-5" />
             {currentUser && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-400 rounded-full ring-2 ring-gray-950 animate-pulse" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white animate-pulse" />
             )}
           </div>
-          <span className="text-[10px] tracking-tight">{currentUser ? 'Akun Saya' : 'Masuk'}</span>
+          <span className="text-[10px] tracking-tight">{currentUser ? 'Akun Saya' : 'Akun'}</span>
         </button>
 
       </nav>

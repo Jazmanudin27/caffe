@@ -20,20 +20,22 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
               <h1 className="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
                 CAFFE<span className="text-amber-500">POS</span>
               </h1>
-              <span className="gradient-badge text-[10px] font-bold px-2.5 py-0.5 rounded-full text-amber-300 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-amber-400" /> 
-                {activeView === 'customer' && 'QR SELF-ORDER'}
-                {activeView === 'cashier' && 'KASIR POS'}
-                {activeView === 'kitchen' && 'DAPUR KDS'}
-                {activeView === 'admin' && 'ADMIN CONTROL PANEL'}
-              </span>
+              {activeView !== 'customer' && (
+                <span className="gradient-badge text-[10px] font-bold px-2.5 py-0.5 rounded-full text-amber-300 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-400" /> 
+                  {activeView === 'cashier' && 'KASIR POS'}
+                  {activeView === 'kitchen' && 'DAPUR KDS'}
+                  {activeView === 'admin' && 'ADMIN CONTROL PANEL'}
+                </span>
+              )}
             </div>
-            <p className="text-[11px] text-gray-400 font-medium">
-              {activeView === 'customer' && 'Artisan Coffee & Smart Table Ordering'}
-              {activeView === 'cashier' && 'Sistem Pembayaran & Kasir Restoran'}
-              {activeView === 'kitchen' && 'Display Antrean Barista & Dapur'}
-              {activeView === 'admin' && 'Kelola Produk, Harga & Laporan Omset'}
-            </p>
+            {activeView !== 'customer' && (
+              <p className="text-[11px] text-gray-400 font-medium">
+                {activeView === 'cashier' && 'Sistem Pembayaran & Kasir Restoran'}
+                {activeView === 'kitchen' && 'Display Antrean Barista & Dapur'}
+                {activeView === 'admin' && 'Kelola Produk, Harga & Laporan Omset'}
+              </p>
+            )}
           </div>
         </div>
 

@@ -293,10 +293,10 @@ export default function CustomerOrderView({
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${
+                    className={`flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all duration-300 ${
                       isSelected
-                        ? 'gradient-gold text-white shadow-lg shadow-amber-600/20 scale-[1.03]'
-                        : 'glass-panel text-gray-600 hover:text-amber-800 hover:border-amber-500/30'
+                        ? 'gradient-gold text-white shadow-md border border-amber-600 scale-[1.03]'
+                        : 'bg-white text-gray-700 border border-amber-500/20 hover:bg-amber-50 hover:text-amber-900 shadow-sm'
                     }`}
                   >
                     {getCategoryIcon(cat.icon)}
@@ -313,7 +313,7 @@ export default function CustomerOrderView({
                 placeholder="Cari kopi, makanan..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full glass-input rounded-2xl pl-4 pr-10 py-2 sm:py-2.5 text-xs text-gray-800 placeholder-gray-400"
+                className="w-full bg-white border border-amber-500/30 rounded-2xl pl-4 pr-10 py-2.5 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-600 shadow-sm"
               />
             </div>
           </div>
@@ -328,7 +328,7 @@ export default function CustomerOrderView({
               return (
                 <div
                   key={product.id}
-                  className="glass-card rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-between group relative border border-amber-500/15 hover:border-amber-500/40"
+                  className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-between group relative border border-amber-500/20 hover:border-amber-500/50 shadow-sm hover:shadow-md transition-all duration-300"
                 >
                   <div>
                     {/* Product Image Header */}
@@ -338,34 +338,34 @@ export default function CustomerOrderView({
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-70" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
                       
                       {/* Price Badge */}
-                      <div className="absolute top-2 left-2 sm:top-3.5 sm:left-3.5 glass-panel bg-white/90 backdrop-blur-md px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black text-amber-800 border border-amber-500/30 font-mono shadow-md">
+                      <div className="absolute top-2 left-2 sm:top-3.5 sm:left-3.5 bg-white/95 text-gray-900 px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-[10px] sm:text-xs font-black font-mono shadow-md border border-amber-500/20">
                         {formatRupiah(product.price)}
                       </div>
 
                       {/* Quantity In Cart Badge */}
                       {inCartQty > 0 && (
-                        <div className="absolute top-2 right-2 sm:top-3.5 sm:right-3.5 gradient-gold text-white font-black px-2.5 py-1 rounded-xl text-[10px] sm:text-xs shadow-md flex items-center gap-1 animate-pulse">
+                        <div className="absolute top-2 right-2 sm:top-3.5 sm:right-3.5 gradient-gold text-white font-black px-2.5 py-1 rounded-xl text-[10px] sm:text-xs shadow-md flex items-center gap-1 animate-pulse border border-amber-300">
                           <span>{inCartQty}x</span> di Keranjang
                         </div>
                       )}
 
                       {/* Tag Badge */}
                       {inCartQty === 0 && (
-                        <div className="hidden sm:flex absolute top-3.5 right-3.5 bg-amber-500/20 text-amber-900 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase border border-amber-500/30 items-center gap-1">
-                          <Flame className="w-3 h-3 text-amber-700" /> Best Seller
+                        <div className="flex absolute top-2 right-2 sm:top-3.5 sm:right-3.5 gradient-gold text-white px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md items-center gap-1 border border-amber-300/40">
+                          <Flame className="w-3 h-3 text-white fill-white" /> Best Seller
                         </div>
                       )}
                     </div>
 
                     {/* Product Details */}
                     <div className="p-3 sm:p-5 space-y-1 sm:space-y-2">
-                      <h3 className="font-bold text-gray-900 text-xs sm:text-lg group-hover:text-amber-700 transition-colors line-clamp-1 sm:line-clamp-none">
+                      <h3 className="font-extrabold text-gray-900 text-xs sm:text-base group-hover:text-amber-700 transition-colors line-clamp-1 sm:line-clamp-none">
                         {product.name}
                       </h3>
-                      <p className="text-[11px] sm:text-xs text-gray-500 leading-relaxed line-clamp-2">
+                      <p className="text-[11px] sm:text-xs text-gray-600 font-medium leading-relaxed line-clamp-2">
                         {product.description}
                       </p>
                     </div>
@@ -375,13 +375,9 @@ export default function CustomerOrderView({
                   <div className="p-3 sm:p-5 pt-0">
                     <button
                       onClick={() => openCustomization(product)}
-                      className={`w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-extrabold text-[11px] sm:text-xs transition-all duration-300 shadow-sm ${
-                        inCartQty > 0
-                          ? 'gradient-badge text-amber-900 border border-amber-500/40 hover:bg-amber-600 hover:text-white'
-                          : 'bg-amber-500/10 hover:bg-amber-600 text-amber-800 hover:text-white border border-amber-500/30 shadow-sm'
-                      }`}
+                      className="w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm gradient-gold text-white shadow-md hover:shadow-lg transition transform active:scale-95 border border-amber-500/40"
                     >
-                      <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <Plus className="w-4 h-4 text-white stroke-[3]" />
                       <span>{inCartQty > 0 ? `Tambah (${inCartQty}x)` : 'Tambah'}</span>
                     </button>
                   </div>

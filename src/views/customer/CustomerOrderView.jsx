@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Coffee, CupSoda, Milk, Utensils, Cookie, Plus, ShoppingBag, 
   QrCode, AlertCircle, Clock, ChevronRight, X, Sparkles, DollarSign,
-  Flame, ShieldCheck, CheckCircle2, User, Phone, UserCheck, UserPlus, LogOut
+  Flame, ShieldCheck, CheckCircle2, User, Phone, UserCheck, UserPlus, LogOut, Home
 } from 'lucide-react';
 import { CATEGORIES } from '../../data/mockData';
 import { formatRupiah } from '../../utils/formatters';
@@ -23,6 +23,10 @@ export default function CustomerOrderView({
 }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Mobile Bottom Navbar & Profile Modal State
+  const [activeMobileTab, setActiveMobileTab] = useState('home');
+  const [profileModal, setProfileModal] = useState(false);
   
   // Logged-in Customer User State
   const [currentUser, setCurrentUser] = useState(() => {
@@ -811,9 +815,9 @@ export default function CustomerOrderView({
         </div>
       )}
 
-      {/* Floating Bottom Cart Bar */}
+      {/* Floating Bottom Cart Bar (Positioned above bottom navbar on mobile) */}
       {cart.length > 0 && !cartOpen && (
-        <div className="fixed bottom-5 left-4 right-4 z-40 max-w-md mx-auto">
+        <div className="fixed bottom-20 md:bottom-5 left-4 right-4 z-40 max-w-md mx-auto">
           <button
             onClick={() => setCartOpen(true)}
             className="w-full gradient-gold text-gray-950 p-3.5 sm:p-4 rounded-2xl shadow-2xl flex items-center justify-between border border-amber-300/40 hover:scale-[1.02] transition transform active:scale-95"
@@ -833,6 +837,140 @@ export default function CustomerOrderView({
               <ChevronRight className="w-5 h-5 text-gray-950" />
             </div>
           </button>
+        </div>
+      )}
+
+      {/* MOBILE BOTTOM NAVIGATION BAR (KHUSUS MOBILE) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#090807]/95 backdrop-blur-xl border-t border-amber-500/20 py-2 px-6 flex justify-around items-center md:hidden shadow-[0_-10px_25px_rgba(0,0,0,0.8)]">
+        
+        {/* 1. BERANDA (Home/Catalog) */}
+        <button
+          onClick={() => {
+            setActiveMobileTab('home');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className={`flex flex-col items-center gap-1 transition-all ${
+            activeMobileTab === 'home'
+              ? 'text-amber-400 font-extrabold scale-105'
+              : 'text-gray-400 hover:text-gray-200 font-medium'
+          }`}
+        >
+          <div className={`p-1.5 rounded-xl transition-all ${activeMobileTab === 'home' ? 'bg-amber-500/20 border border-amber-500/40 shadow-lg shadow-amber-500/10' : ''}`}>
+            <Home className="w-5 h-5" />
+          </div>
+          <span className="text-[10px] tracking-tight">Beranda</span>
+        </button>
+
+        {/* 2. PESANAN (Cart / Active Orders) */}
+        <button
+          onClick={() => {
+            setActiveMobileTab('orders');
+            setCartOpen(true);
+          }}
+          className={`flex flex-col items-center gap-1 relative transition-all ${
+            activeMobileTab === 'orders' || cartOpen
+              ? 'text-amber-400 font-extrabold scale-105'
+              : 'text-gray-400 hover:text-gray-200 font-medium'
+          }`}
+        >
+          <div className={`p-1.5 rounded-xl relative transition-all ${activeMobileTab === 'orders' || cartOpen ? 'bg-amber-500/20 border border-amber-500/40 shadow-lg shadow-amber-500/10' : ''}`}>
+            <ShoppingBag className="w-5 h-5" />
+            {cart.reduce((a, b) => a + b.quantity, 0) > 0 && (
+              <span className="absolute -top-1 -right-1 bg-amber-500 text-gray-950 font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-gray-950">
+                {cart.reduce((a, b) => a + b.quantity, 0)}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] tracking-tight">Pesanan</span>
+        </button>
+
+        {/* 3. AKUN (User Profile / Auth) */}
+        <button
+          onClick={() => {
+            setActiveMobileTab('account');
+            if (currentUser) {
+              setProfileModal(true);
+            } else {
+              setAuthStep('phone');
+              setAuthError('');
+              setAuthModal(true);
+            }
+          }}
+          className={`flex flex-col items-center gap-1 relative transition-all ${
+            activeMobileTab === 'account' || profileModal || authModal
+              ? 'text-amber-400 font-extrabold scale-105'
+              : 'text-gray-400 hover:text-gray-200 font-medium'
+          }`}
+        >
+          <div className={`p-1.5 rounded-xl relative transition-all ${activeMobileTab === 'account' || profileModal || authModal ? 'bg-amber-500/20 border border-amber-500/40 shadow-lg shadow-amber-500/10' : ''}`}>
+            <User className="w-5 h-5" />
+            {currentUser && (
+              <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-400 rounded-full ring-2 ring-gray-950 animate-pulse" />
+            )}
+          </div>
+          <span className="text-[10px] tracking-tight">{currentUser ? 'Akun Saya' : 'Masuk'}</span>
+        </button>
+
+      </nav>
+
+      {/* CUSTOMER PROFILE MODAL */}
+      {profileModal && currentUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="glass-panel border border-amber-500/30 text-gray-100 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl relative">
+            <button
+              onClick={() => setProfileModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/5"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+              <div className="w-12 h-12 rounded-2xl gradient-gold flex items-center justify-center text-gray-950 font-black text-xl shadow-lg">
+                {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'P'}
+              </div>
+              <div>
+                <h3 className="font-extrabold text-lg text-white">{currentUser.name}</h3>
+                <p className="text-xs text-amber-400 font-mono flex items-center gap-1">
+                  <Phone className="w-3.5 h-3.5" /> {currentUser.phone}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="bg-gray-950/80 p-3.5 rounded-2xl border border-white/5 flex justify-between items-center">
+                <span className="text-gray-400">Sesi Meja Saat Ini:</span>
+                <span className="font-bold text-white bg-amber-500/20 text-amber-300 px-3 py-1 rounded-xl border border-amber-500/30">
+                  Meja {selectedTable.number}
+                </span>
+              </div>
+
+              <div className="bg-gray-950/80 p-3.5 rounded-2xl border border-white/5 flex justify-between items-center">
+                <span className="text-gray-400">Item di Keranjang:</span>
+                <span className="font-mono font-bold text-amber-400">
+                  {cart.reduce((a, b) => a + b.quantity, 0)} Porsi
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-2 flex gap-3">
+              <button
+                onClick={() => {
+                  setProfileModal(false);
+                  handleLogoutCustomer();
+                }}
+                className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 font-bold py-3.5 rounded-2xl text-xs border border-red-500/30 flex items-center justify-center gap-2"
+              >
+                <LogOut className="w-4 h-4" /> Keluar / Ganti Akun
+              </button>
+
+              <button
+                onClick={() => setProfileModal(false)}
+                className="flex-1 gradient-badge text-amber-300 font-bold py-3.5 rounded-2xl text-xs border border-amber-500/40"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

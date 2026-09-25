@@ -7,6 +7,7 @@ import KitchenDisplayView from './views/kitchen/KitchenDisplayView';
 import AdminDashboardView from './views/admin/AdminDashboardView';
 import { INITIAL_TABLES } from './data/mockData';
 import { storageService } from './services/storageService';
+import { apiService } from './services/apiService';
 
 export default function App() {
   // Path Router helper
@@ -32,12 +33,31 @@ export default function App() {
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
 
-  // Sync products to localStorage
+  // Fetch initial products and orders from Express/MySQL API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const fetchedProducts = await apiService.getProducts();
+        if (fetchedProducts && fetchedProducts.length > 0) {
+          setProducts(fetchedProducts);
+        }
+        const fetchedOrders = await apiService.getOrders();
+        if (fetchedOrders && fetchedOrders.length > 0) {
+          setOrders(fetchedOrders);
+        }
+      } catch (err) {
+        console.warn('Menggunakan fallback data lokal', err);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Sync products to localStorage fallback
   useEffect(() => {
     storageService.saveProducts(products);
   }, [products]);
 
-  // Sync orders to localStorage
+  // Sync orders to localStorage fallback
   useEffect(() => {
     storageService.saveOrders(orders);
   }, [orders]);
@@ -52,20 +72,24 @@ export default function App() {
   }, []);
 
   // Product CRUD Operations
-  const addProduct = (newProduct) => {
+  const addProduct = async (newProduct) => {
     setProducts(prev => [newProduct, ...prev]);
+    await apiService.createProduct(newProduct);
   };
 
-  const updateProduct = (id, updatedFields) => {
+  const updateProduct = async (id, updatedFields) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updatedFields } : p));
+    await apiService.updateProduct(id, updatedFields);
   };
 
-  const deleteProduct = (id) => {
+  const deleteProduct = async (id) => {
     setProducts(prev => prev.filter(p => p.id !== id));
+    await apiService.deleteProduct(id);
   };
 
-  const toggleProductAvailability = (id) => {
+  const toggleProductAvailability = async (id) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, isAvailable: !p.isAvailable } : p));
+    await apiService.toggleProductAvailability(id);
   };
 
   // Cart operations (Does NOT auto-open cart sidebar)
@@ -106,17 +130,19 @@ export default function App() {
   const clearCart = () => setCart([]);
 
   // Order Handlers
-  const createOrder = (newOrder) => {
+  const createOrder = async (newOrder) => {
     setOrders((prev) => [newOrder, ...prev]);
+    await apiService.createOrder(newOrder);
   };
 
-  const updateOrderStatus = (orderId, newStatus) => {
+  const updateOrderStatus = async (orderId, newStatus) => {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
+    await apiService.updateOrderStatus(orderId, newStatus);
   };
 
-  const updateOrderPayment = (orderId, paymentDetails) => {
+  const updateOrderPayment = async (orderId, paymentDetails) => {
     setOrders((prev) =>
       prev.map((o) =>
         o.id === orderId
@@ -130,6 +156,7 @@ export default function App() {
           : o
       )
     );
+    await apiService.payCash(orderId, paymentDetails.amountPaid, paymentDetails.changeAmount);
   };
 
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);

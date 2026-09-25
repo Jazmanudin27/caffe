@@ -9,6 +9,7 @@ import productsRouter from './routes/products.js';
 import tablesRouter from './routes/tables.js';
 import ordersRouter from './routes/orders.js';
 import reportsRouter from './routes/reports.js';
+import authRouter from './routes/auth.js';
 import { runMigration } from './migrate.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -30,6 +31,9 @@ app.use((req, res, next) => {
 });
 
 // API Routes (Registered with both /api/ and / for Nginx proxy flexibility)
+app.use('/api/auth', authRouter);
+app.use('/auth', authRouter);
+
 app.use('/api/categories', categoriesRouter);
 app.use('/categories', categoriesRouter);
 

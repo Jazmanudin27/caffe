@@ -3,6 +3,36 @@ import { storageService } from './storageService';
 const API_BASE_URL = '/api';
 
 export const apiService = {
+  // Check if Phone exists or login
+  checkPhone: async (phone) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/check-phone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+      return await res.json();
+    } catch (e) {
+      console.warn('API Offline, using local session fallback', e);
+      return { registered: false, phone };
+    }
+  },
+
+  // Register new customer
+  registerCustomer: async (name, phone) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/register-customer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone })
+      });
+      return await res.json();
+    } catch (e) {
+      console.warn('API Offline, using local session fallback', e);
+      return { success: true, user: { id: 'usr-' + Date.now(), name, phone, role: 'customer' } };
+    }
+  },
+
   // Fetch Products from MySQL API
   getProducts: async () => {
     try {

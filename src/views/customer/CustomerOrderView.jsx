@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Coffee, CupSoda, Milk, Utensils, Cookie, Plus, ShoppingBag, 
   QrCode, AlertCircle, Clock, ChevronRight, X, Sparkles, DollarSign,
-  Flame, ShieldCheck, CheckCircle2
+  Flame, ShieldCheck, CheckCircle2, User, Phone, UserCheck, UserPlus, LogOut
 } from 'lucide-react';
 import { CATEGORIES } from '../../data/mockData';
 import { formatRupiah } from '../../utils/formatters';
+import { apiService } from '../../services/apiService';
 
 export default function CustomerOrderView({ 
   products = [],
@@ -23,6 +24,24 @@ export default function CustomerOrderView({
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Logged-in Customer User State
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('caffe_current_customer');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  // Auth Modal States
+  const [authModal, setAuthModal] = useState(false);
+  const [authStep, setAuthStep] = useState('phone'); // 'phone' or 'register'
+  const [inputPhone, setInputPhone] = useState('');
+  const [inputName, setInputName] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+
   // Customization modal state
   const [activeProduct, setActiveProduct] = useState(null);
   const [selectedVariants, setSelectedVariants] = useState({});
@@ -34,9 +53,85 @@ export default function CustomerOrderView({
 
   // Checkout modal state
   const [checkoutModal, setCheckoutModal] = useState(false);
-  const [customerName, setCustomerName] = useState('');
+  const [customerName, setCustomerName] = useState(currentUser ? currentUser.name : '');
   const [paymentMethod, setPaymentMethod] = useState('qris');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Update customer name when currentUser changes
+  useEffect(() => {
+    if (currentUser) {
+      setCustomerName(currentUser.name);
+    }
+  }, [currentUser]);
+
+  // Auth Handlers: Check Phone (Login or Step to Register)
+  const handleCheckPhone = async (e) => {
+    if (e) e.preventDefault();
+    if (!inputPhone.trim()) {
+      setAuthError('Silakan masukkan Nomor HP Anda');
+      return;
+    }
+
+    setAuthLoading(true);
+    setAuthError('');
+
+    try {
+      const res = await apiService.checkPhone(inputPhone.trim());
+      if (res.registered && res.user) {
+        // User registered: Login immediately
+        setCurrentUser(res.user);
+        localStorage.setItem('caffe_current_customer', JSON.stringify(res.user));
+        setAuthModal(false);
+        setToastMessage(`Selamat datang kembali, ${res.user.name}!`);
+        setTimeout(() => setToastMessage(null), 3000);
+      } else {
+        // User not registered: Proceed to name registration step
+        setAuthStep('register');
+      }
+    } catch (err) {
+      setAuthError('Terjadi kesalahan saat memeriksa Nomor HP');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // Auth Handlers: Register Customer (Name + Phone)
+  const handleRegisterCustomer = async (e) => {
+    if (e) e.preventDefault();
+    if (!inputName.trim()) {
+      setAuthError('Silakan masukkan Nama Lengkap Anda');
+      return;
+    }
+
+    setAuthLoading(true);
+    setAuthError('');
+
+    try {
+      const res = await apiService.registerCustomer(inputName.trim(), inputPhone.trim());
+      if (res.user) {
+        setCurrentUser(res.user);
+        localStorage.setItem('caffe_current_customer', JSON.stringify(res.user));
+        setAuthModal(false);
+        setToastMessage(`Akun berhasil dibuat! Selamat datang, ${res.user.name}`);
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    } catch (err) {
+      setAuthError('Gagal membuat akun pelanggan');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // Logout / Change Account
+  const handleLogoutCustomer = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('caffe_current_customer');
+    setInputPhone('');
+    setInputName('');
+    setAuthStep('phone');
+    setToastMessage('Anda telah keluar dari akun pelanggan');
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   // Category Icon Resolver
   const getCategoryIcon = (iconName) => {
@@ -58,8 +153,15 @@ export default function CustomerOrderView({
     return matchesCat && matchesSearch;
   });
 
-  // Open product customization modal
+  // Open product customization modal (Enforces Login First)
   const openCustomization = (product) => {
+    if (!currentUser) {
+      setAuthStep('phone');
+      setAuthError('');
+      setAuthModal(true);
+      return;
+    }
+
     setActiveProduct(product);
     setItemQty(1);
     setItemNotes('');
@@ -181,6 +283,37 @@ export default function CustomerOrderView({
             <p className="text-xs sm:text-sm text-gray-300 font-medium leading-relaxed">
               Nikmati racikan kopi artisan dan hidangan spesial. Pesan langsung dari meja tanpa perlu mengantri di kasir.
             </p>
+
+            {/* Customer User Account Status Badge */}
+            <div className="pt-2">
+              {currentUser ? (
+                <div className="inline-flex items-center gap-3 bg-gray-950/80 border border-emerald-500/40 px-3.5 py-2 rounded-2xl text-xs">
+                  <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-left">
+                    <span className="text-gray-300">Pemesan: <strong className="text-white font-extrabold">{currentUser.name}</strong></span>
+                    <span className="text-amber-400 font-mono text-[11px]">({currentUser.phone})</span>
+                  </div>
+                  <button
+                    onClick={handleLogoutCustomer}
+                    className="ml-2 text-[10px] text-gray-400 hover:text-amber-400 flex items-center gap-1 font-bold border-l border-white/10 pl-2.5"
+                  >
+                    <LogOut className="w-3 h-3" /> Ganti Akun
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setAuthStep('phone');
+                    setAuthError('');
+                    setAuthModal(true);
+                  }}
+                  className="inline-flex items-center gap-2 gradient-gold text-gray-950 font-black px-4 py-2 rounded-2xl text-xs shadow-lg shadow-amber-500/20 hover:scale-[1.03] transition transform active:scale-95"
+                >
+                  <Phone className="w-4 h-4" />
+                  <span>Masuk / Daftar dengan No HP</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="glass-panel p-3.5 sm:p-4 rounded-2xl border border-amber-500/20 space-y-2 w-full md:w-auto min-w-[220px]">
@@ -700,6 +833,155 @@ export default function CustomerOrderView({
               <ChevronRight className="w-5 h-5 text-gray-950" />
             </div>
           </button>
+        </div>
+      )}
+
+      {/* CUSTOMER LOGIN & AUTO-REGISTRATION MODAL */}
+      {authModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="glass-panel border border-amber-500/30 text-gray-100 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl relative">
+            
+            <button
+              onClick={() => setAuthModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/5"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {authStep === 'phone' ? (
+              /* STEP 1: Phone Login */
+              <form onSubmit={handleCheckPhone} className="space-y-4">
+                <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+                  <div className="w-10 h-10 rounded-2xl gradient-badge border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base sm:text-lg text-white">Masuk / Pesan Akun</h3>
+                    <p className="text-[11px] text-gray-400">Masukkan Nomor HP Anda untuk mulai memesan</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="font-bold text-gray-300 block text-xs uppercase tracking-wider">
+                    Nomor HP / WhatsApp
+                  </label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 text-amber-400 absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+                    <input
+                      type="tel"
+                      required
+                      placeholder="Contoh: 08123456789"
+                      value={inputPhone}
+                      onChange={e => setInputPhone(e.target.value)}
+                      className="w-full glass-input rounded-2xl pl-10 pr-4 py-3 text-xs text-gray-100 font-mono tracking-wide"
+                    />
+                  </div>
+                  <p className="text-[10px] text-gray-400 italic">
+                    *Jika Nomor HP belum terdaftar, Anda akan langsung diarahkan ke pendaftaran akun baru.
+                  </p>
+                </div>
+
+                {authError && (
+                  <div className="bg-red-500/10 border border-red-500/30 p-3 rounded-xl text-red-300 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                    <span>{authError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  className="w-full gradient-gold text-gray-950 font-black py-3.5 rounded-2xl text-xs sm:text-sm shadow-xl shadow-amber-500/25 transition transform active:scale-95 flex items-center justify-center gap-2"
+                >
+                  {authLoading ? (
+                    <span>Memeriksa Nomor HP...</span>
+                  ) : (
+                    <>
+                      <span>Lanjutkan</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            ) : (
+              /* STEP 2: New Customer Registration */
+              <form onSubmit={handleRegisterCustomer} className="space-y-4">
+                <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+                  <div className="w-10 h-10 rounded-2xl gradient-badge border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+                    <UserPlus className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base sm:text-lg text-white">Registrasi Pelanggan Baru</h3>
+                    <p className="text-[11px] text-amber-400">Nomor HP belum terdaftar di sistem</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="font-bold text-gray-300 block text-xs uppercase tracking-wider mb-1">
+                      Nomor HP
+                    </label>
+                    <input
+                      type="text"
+                      disabled
+                      value={inputPhone}
+                      className="w-full glass-input rounded-2xl px-4 py-2.5 text-xs text-amber-400 font-mono opacity-80 cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-gray-300 block text-xs uppercase tracking-wider mb-1">
+                      Nama Lengkap Anda
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 text-amber-400 absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="Contoh: Budi Santoso"
+                        value={inputName}
+                        onChange={e => setInputName(e.target.value)}
+                        className="w-full glass-input rounded-2xl pl-10 pr-4 py-3 text-xs text-gray-100"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {authError && (
+                  <div className="bg-red-500/10 border border-red-500/30 p-3 rounded-xl text-red-300 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                    <span>{authError}</span>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthStep('phone');
+                      setAuthError('');
+                    }}
+                    className="w-1/3 bg-gray-900 text-gray-300 hover:text-white font-bold py-3.5 rounded-2xl text-xs border border-white/10"
+                  >
+                    Ubah No HP
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={authLoading}
+                    className="flex-1 gradient-gold text-gray-950 font-black py-3.5 rounded-2xl text-xs sm:text-sm shadow-xl shadow-amber-500/25 transition transform active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    {authLoading ? (
+                      <span>Mendaftarkan...</span>
+                    ) : (
+                      <span>Daftar & Lanjut Pesan</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
+
+          </div>
         </div>
       )}
 

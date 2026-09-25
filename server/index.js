@@ -23,15 +23,24 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// API Routes
+// API Routes (Registered with both /api/ and / for Nginx proxy flexibility)
 app.use('/api/categories', categoriesRouter);
+app.use('/categories', categoriesRouter);
+
 app.use('/api/products', productsRouter);
+app.use('/products', productsRouter);
+
 app.use('/api/tables', tablesRouter);
+app.use('/tables', tablesRouter);
+
 app.use('/api/orders', ordersRouter);
+app.use('/orders', ordersRouter);
+
 app.use('/api/reports', reportsRouter);
+app.use('/reports', reportsRouter);
 
 // Health Check Endpoint
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({ status: 'ok', service: 'Caffe POS API', timestamp: new Date() });
 });
 

@@ -286,20 +286,22 @@ export default function CustomerOrderView({
           {/* CATEGORIES SLIDER & SEARCH BAR */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Category Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 no-scrollbar">
+            <div className="flex items-center gap-2.5 overflow-x-auto w-full md:w-auto pb-1.5 md:pb-0 no-scrollbar">
               {CATEGORIES.map(cat => {
                 const isSelected = selectedCategory === cat.id;
                 return (
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-xs font-extrabold whitespace-nowrap transition-all duration-300 ${
+                    className={`flex items-center gap-2.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-black whitespace-nowrap transition-all duration-300 tracking-tight font-heading ${
                       isSelected
-                        ? 'gradient-gold text-white shadow-md border border-amber-600 scale-[1.03]'
-                        : 'bg-white text-gray-700 border border-amber-500/20 hover:bg-amber-50 hover:text-amber-900 shadow-sm'
+                        ? 'gradient-gold text-white shadow-lg shadow-amber-600/30 border border-amber-400 scale-[1.04]'
+                        : 'bg-white text-gray-800 border border-amber-500/25 hover:bg-amber-50 hover:text-amber-900 shadow-sm hover:border-amber-500/50'
                     }`}
                   >
-                    {getCategoryIcon(cat.icon)}
+                    <div className={`p-1.5 rounded-xl transition-all ${isSelected ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-800'}`}>
+                      {getCategoryIcon(cat.icon)}
+                    </div>
                     <span>{cat.name}</span>
                   </button>
                 );

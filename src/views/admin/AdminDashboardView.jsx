@@ -344,10 +344,10 @@ export default function AdminDashboardView({
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-4 py-2 rounded-2xl text-xs font-extrabold whitespace-nowrap transition ${
+                  className={`px-4.5 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all font-heading tracking-tight ${
                     selectedCategory === cat.id
-                      ? 'gradient-gold text-white font-black shadow-md'
-                      : 'bg-white text-gray-700 border border-amber-500/20 hover:bg-amber-50'
+                      ? 'gradient-gold text-white shadow-md border border-amber-400'
+                      : 'bg-white text-gray-800 border border-amber-500/25 hover:bg-amber-50 hover:text-amber-900 shadow-sm'
                   }`}
                 >
                   {cat.name}

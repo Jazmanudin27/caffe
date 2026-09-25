@@ -6,10 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "node server/index.js",
+    "migrate": "node server/migrate.js --run"
   },
   "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.3",
+    "express": "^5.2.1",
     "lucide-react": "^0.469.0",
+    "mysql2": "^3.24.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

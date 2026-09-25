@@ -103,7 +103,7 @@ export default function CustomerOrderView({
     const productName = activeProduct.name;
     setActiveProduct(null);
 
-    // Show smooth Toast Toast Notification
+    // Show smooth Toast Notification
     setToastMessage(`"${productName}" (${itemQty}x) ditambahkan ke keranjang`);
     setTimeout(() => {
       setToastMessage(null);
@@ -153,36 +153,36 @@ export default function CustomerOrderView({
   const activeTableOrders = orders.filter(o => o.tableNumber === selectedTable.number);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-fade-in pb-28 relative">
+    <div className="max-w-7xl mx-auto px-4 py-6 md:py-8 space-y-6 md:space-y-8 animate-fade-in pb-28 relative">
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 glass-panel bg-emerald-950/90 text-emerald-300 px-5 py-3 rounded-2xl border border-emerald-500/40 shadow-2xl flex items-center gap-3 animate-fade-in text-xs font-bold">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-          <span>{toastMessage}</span>
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 glass-panel bg-emerald-950/90 text-emerald-300 px-5 py-3 rounded-2xl border border-emerald-500/40 shadow-2xl flex items-center gap-3 animate-fade-in text-xs font-bold w-[90%] max-w-sm justify-center">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          <span className="truncate">{toastMessage}</span>
         </div>
       )}
 
       {/* HERO BANNER: Artisan Cafe & Table Session */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-950/80 via-gray-950 to-amber-900/40 border border-amber-500/20 p-6 md:p-8 shadow-2xl">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-950/80 via-gray-950 to-amber-900/40 border border-amber-500/20 p-5 md:p-8 shadow-2xl">
         <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
           <div className="space-y-2 max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full gradient-badge text-amber-300 text-xs font-bold uppercase tracking-wider">
-              <ShieldCheck className="w-4 h-4 text-amber-400" /> TERVERIFIKASI QR CODE MEJA
+            <div className="inline-flex items-center gap-2 px-3 py-0.5 sm:px-3.5 sm:py-1 rounded-full gradient-badge text-amber-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" /> TERVERIFIKASI QR CODE MEJA
             </div>
             
-            <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
               Selamat Datang di <span className="gradient-text font-black">Meja {selectedTable.number}</span>
             </h2>
             
-            <p className="text-sm text-gray-300 font-medium leading-relaxed">
+            <p className="text-xs sm:text-sm text-gray-300 font-medium leading-relaxed">
               Nikmati racikan kopi artisan dan hidangan spesial. Pesan langsung dari meja tanpa perlu mengantri di kasir.
             </p>
           </div>
 
-          <div className="glass-panel p-4 rounded-2xl border border-amber-500/20 space-y-2 min-w-[240px]">
+          <div className="glass-panel p-3.5 sm:p-4 rounded-2xl border border-amber-500/20 space-y-2 w-full md:w-auto min-w-[220px]">
             <div className="flex items-center justify-between text-xs text-gray-400">
               <span>Status Meja:</span>
               <span className="text-emerald-400 font-bold flex items-center gap-1">
@@ -204,37 +204,37 @@ export default function CustomerOrderView({
       {/* ACTIVE ORDERS STATUS TRACKER */}
       {activeTableOrders.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-            <Clock className="w-5 h-5 text-amber-400" />
+          <h3 className="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
             Pesanan Meja Ini Yang Sedang Berjalan ({activeTableOrders.length})
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {activeTableOrders.map(order => (
-              <div key={order.id} className="glass-card rounded-2xl p-5 border border-amber-500/30 space-y-4">
+              <div key={order.id} className="glass-card rounded-2xl p-4 sm:p-5 border border-amber-500/30 space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
                     <span className="text-xs font-mono text-amber-400 font-bold">{order.orderNumber}</span>
-                    <h4 className="font-bold text-white text-base">{order.customerName}</h4>
+                    <h4 className="font-bold text-white text-sm sm:text-base">{order.customerName}</h4>
                   </div>
                   
                   {order.status === 'pending_payment' && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
                       Menunggu Bayar Kasir
                     </span>
                   )}
                   {order.status === 'preparing' && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 animate-pulse">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 animate-pulse">
                       Sedang Dibuat Barista
                     </span>
                   )}
                   {order.status === 'ready' && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
                       Siap Disajikan
                     </span>
                   )}
                   {order.status === 'completed' && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                       Selesai
                     </span>
                   )}
@@ -250,8 +250,8 @@ export default function CustomerOrderView({
                 </div>
 
                 <div className="flex justify-between items-center text-xs text-gray-400 border-t border-white/5 pt-3">
-                  <span>{order.items.length} Menu • Total: <strong className="text-amber-400 font-mono text-sm">{formatRupiah(order.total)}</strong></span>
-                  <span className="uppercase font-mono text-[10px] bg-gray-950 px-2.5 py-1 rounded-lg border border-white/10 font-bold text-gray-300">
+                  <span>{order.items.length} Menu • Total: <strong className="text-amber-400 font-mono text-xs sm:text-sm">{formatRupiah(order.total)}</strong></span>
+                  <span className="uppercase font-mono text-[10px] bg-gray-950 px-2 py-0.5 rounded-lg border border-white/10 font-bold text-gray-300">
                     {order.paymentMethod}
                   </span>
                 </div>
@@ -264,14 +264,14 @@ export default function CustomerOrderView({
       {/* CATEGORIES SLIDER & SEARCH BAR */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Category Pills */}
-        <div className="flex items-center gap-2.5 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
+        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 no-scrollbar">
           {CATEGORIES.map(cat => {
             const isSelected = selectedCategory === cat.id;
             return (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${
+                className={`flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${
                   isSelected
                     ? 'gradient-gold text-gray-950 shadow-lg shadow-amber-500/25 scale-[1.03]'
                     : 'glass-panel text-gray-400 hover:text-white hover:border-amber-500/30'
@@ -291,21 +291,21 @@ export default function CustomerOrderView({
             placeholder="Cari kopi, makanan..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full glass-input rounded-2xl pl-4 pr-10 py-2.5 text-xs text-gray-100 placeholder-gray-500"
+            className="w-full glass-input rounded-2xl pl-4 pr-10 py-2 sm:py-2.5 text-xs text-gray-100 placeholder-gray-500"
           />
         </div>
       </div>
 
-      {/* PRODUCT GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* PRODUCT GRID - 2 COLUMNS ON MOBILE */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3.5 sm:gap-6">
         {filteredProducts.map(product => (
           <div
             key={product.id}
-            className="glass-card rounded-3xl overflow-hidden flex flex-col justify-between group"
+            className="glass-card rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-between group"
           >
             <div>
               {/* Product Image Header */}
-              <div className="relative h-52 overflow-hidden">
+              <div className="relative h-36 sm:h-52 overflow-hidden">
                 <img
                   src={product.imageUrl}
                   alt={product.name}
@@ -314,35 +314,35 @@ export default function CustomerOrderView({
                 <div className="absolute inset-0 bg-gradient-to-t from-[#181412] via-transparent to-black/30 opacity-90" />
                 
                 {/* Price Badge */}
-                <div className="absolute top-3.5 left-3.5 glass-panel bg-gray-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-black text-amber-400 border border-amber-500/30 font-mono shadow-lg">
+                <div className="absolute top-2 left-2 sm:top-3.5 sm:left-3.5 glass-panel bg-gray-950/80 backdrop-blur-md px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black text-amber-400 border border-amber-500/30 font-mono shadow-lg">
                   {formatRupiah(product.price)}
                 </div>
 
                 {/* Tag Badge */}
-                <div className="absolute top-3.5 right-3.5 bg-amber-500/20 text-amber-300 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase border border-amber-500/40 flex items-center gap-1">
+                <div className="hidden sm:flex absolute top-3.5 right-3.5 bg-amber-500/20 text-amber-300 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase border border-amber-500/40 items-center gap-1">
                   <Flame className="w-3 h-3 text-amber-400" /> Best Seller
                 </div>
               </div>
 
               {/* Product Details */}
-              <div className="p-5 space-y-2">
-                <h3 className="font-bold text-gray-100 text-lg group-hover:text-amber-400 transition-colors">
+              <div className="p-3 sm:p-5 space-y-1 sm:space-y-2">
+                <h3 className="font-bold text-gray-100 text-xs sm:text-lg group-hover:text-amber-400 transition-colors line-clamp-1 sm:line-clamp-none">
                   {product.name}
                 </h3>
-                <p className="text-xs text-gray-400 leading-relaxed line-clamp-2">
+                <p className="text-[11px] sm:text-xs text-gray-400 leading-relaxed line-clamp-2">
                   {product.description}
                 </p>
               </div>
             </div>
 
             {/* CTA Button */}
-            <div className="p-5 pt-0">
+            <div className="p-3 sm:p-5 pt-0">
               <button
                 onClick={() => openCustomization(product)}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600/20 to-amber-500/20 hover:from-amber-600 hover:to-amber-500 text-amber-400 hover:text-gray-950 border border-amber-500/40 py-3 rounded-2xl font-extrabold text-xs transition-all duration-300 shadow-lg hover:shadow-amber-500/25"
+                className="w-full flex items-center justify-center gap-1 sm:gap-2 bg-gradient-to-r from-amber-600/20 to-amber-500/20 hover:from-amber-600 hover:to-amber-500 text-amber-400 hover:text-gray-950 border border-amber-500/40 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-extrabold text-[11px] sm:text-xs transition-all duration-300 shadow-lg hover:shadow-amber-500/25"
               >
-                <Plus className="w-4 h-4" />
-                <span>Pilih & Kustomisasi</span>
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span>Pilih & Pesan</span>
               </button>
             </div>
           </div>
@@ -355,7 +355,7 @@ export default function CustomerOrderView({
           <div className="glass-panel text-gray-100 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl space-y-4 max-h-[90vh] flex flex-col border border-amber-500/30">
             
             {/* Modal Image Header */}
-            <div className="relative h-56 overflow-hidden shrink-0">
+            <div className="relative h-48 sm:h-56 overflow-hidden shrink-0">
               <img src={activeProduct.imageUrl} alt={activeProduct.name} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#181412] via-gray-950/50 to-transparent" />
               <button
@@ -365,7 +365,7 @@ export default function CustomerOrderView({
                 <X className="w-5 h-5" />
               </button>
               <div className="absolute bottom-4 left-5 right-5 space-y-1">
-                <h3 className="text-2xl font-black text-white">{activeProduct.name}</h3>
+                <h3 className="text-xl sm:text-2xl font-black text-white">{activeProduct.name}</h3>
                 <p className="text-xs text-amber-400 font-extrabold font-mono">
                   Harga dasar: {formatRupiah(activeProduct.price)}
                 </p>
@@ -373,7 +373,7 @@ export default function CustomerOrderView({
             </div>
 
             {/* Options List */}
-            <div className="p-5 space-y-5 overflow-y-auto flex-1 text-xs">
+            <div className="p-4 sm:p-5 space-y-4 sm:space-y-5 overflow-y-auto flex-1 text-xs">
               {activeProduct.variants && activeProduct.variants.length > 0 ? (
                 activeProduct.variants.map((vGroup, idx) => (
                   <div key={idx} className="space-y-2">
@@ -387,7 +387,7 @@ export default function CustomerOrderView({
                           <button
                             key={optIdx}
                             onClick={() => setSelectedVariants({ ...selectedVariants, [vGroup.group]: opt })}
-                            className={`p-3 rounded-2xl border text-left flex justify-between items-center transition-all ${
+                            className={`p-2.5 sm:p-3 rounded-2xl border text-left flex justify-between items-center transition-all ${
                               isSelected
                                 ? 'gradient-badge border-amber-500 text-amber-300 font-extrabold shadow-lg shadow-amber-500/20'
                                 : 'bg-gray-950/60 border-white/10 text-gray-400 hover:border-white/20'
@@ -423,18 +423,18 @@ export default function CustomerOrderView({
             </div>
 
             {/* Modal Footer */}
-            <div className="p-5 bg-gray-950 border-t border-white/10 flex items-center justify-between gap-4 shrink-0">
-              <div className="flex items-center gap-3 bg-gray-900 rounded-2xl p-1.5 border border-white/10">
+            <div className="p-4 sm:p-5 bg-gray-950 border-t border-white/10 flex items-center justify-between gap-3 sm:gap-4 shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 bg-gray-900 rounded-2xl p-1.5 border border-white/10">
                 <button
                   onClick={() => setItemQty(Math.max(1, itemQty - 1))}
-                  className="w-8 h-8 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center font-extrabold text-gray-200 text-sm"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center font-extrabold text-gray-200 text-xs sm:text-sm"
                 >
                   -
                 </button>
-                <span className="font-extrabold text-sm w-5 text-center">{itemQty}</span>
+                <span className="font-extrabold text-xs sm:text-sm w-4 sm:w-5 text-center">{itemQty}</span>
                 <button
                   onClick={() => setItemQty(itemQty + 1)}
-                  className="w-8 h-8 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center font-extrabold text-gray-200 text-sm"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center font-extrabold text-gray-200 text-xs sm:text-sm"
                 >
                   +
                 </button>
@@ -442,10 +442,10 @@ export default function CustomerOrderView({
 
               <button
                 onClick={handleAddToCart}
-                className="flex-1 flex items-center justify-between gradient-gold text-gray-950 font-black py-3.5 px-5 rounded-2xl text-xs shadow-xl shadow-amber-500/25 transition transform active:scale-95"
+                className="flex-1 flex items-center justify-between gradient-gold text-gray-950 font-black py-3 sm:py-3.5 px-4 sm:px-5 rounded-2xl text-xs shadow-xl shadow-amber-500/25 transition transform active:scale-95"
               >
                 <span>Tambah ke Keranjang</span>
-                <span className="font-mono text-sm">{formatRupiah(calculateCustomizedPrice() * itemQty)}</span>
+                <span className="font-mono text-xs sm:text-sm">{formatRupiah(calculateCustomizedPrice() * itemQty)}</span>
               </button>
             </div>
 
@@ -456,7 +456,7 @@ export default function CustomerOrderView({
       {/* CART DRAWER MODAL */}
       {cartOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="glass-panel border-l border-amber-500/20 w-full max-w-md h-full flex flex-col justify-between p-6 space-y-4 shadow-2xl">
+          <div className="glass-panel border-l border-amber-500/20 w-full max-w-md h-full flex flex-col justify-between p-5 sm:p-6 space-y-4 shadow-2xl">
             
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div className="flex items-center gap-2.5 text-white font-extrabold text-base">
@@ -476,7 +476,7 @@ export default function CustomerOrderView({
                 </div>
               ) : (
                 cart.map((item, idx) => (
-                  <div key={idx} className="bg-gray-950/80 p-4 rounded-2xl border border-white/10 space-y-2 text-xs">
+                  <div key={idx} className="bg-gray-950/80 p-3.5 sm:p-4 rounded-2xl border border-white/10 space-y-2 text-xs">
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-bold text-white">{item.productName}</h4>
@@ -555,10 +555,10 @@ export default function CustomerOrderView({
       {/* CHECKOUT & PAYMENT METHOD MODAL */}
       {checkoutModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="glass-panel border border-amber-500/30 text-gray-100 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl">
+          <div className="glass-panel border border-amber-500/30 text-gray-100 w-full max-w-md rounded-3xl p-5 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl">
             
             <div className="flex justify-between items-center pb-3 border-b border-white/10">
-              <h3 className="font-extrabold text-lg text-white flex items-center gap-2">
+              <h3 className="font-extrabold text-base sm:text-lg text-white flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-amber-400" /> Konfirmasi Pembayaran
               </h3>
               <button onClick={() => setCheckoutModal(false)} className="text-gray-400 hover:text-white p-1 rounded-lg">
@@ -617,7 +617,7 @@ export default function CustomerOrderView({
                 <div className="bg-gray-950/90 p-4 rounded-2xl border border-white/10 text-center space-y-2">
                   <p className="text-[11px] text-gray-400 font-medium">Scan Kode QRIS di bawah ini:</p>
                   <div className="bg-white p-3 rounded-2xl inline-block shadow-2xl border border-amber-500/40">
-                    <div className="w-36 h-36 bg-gray-950 rounded-xl flex items-center justify-center p-2">
+                    <div className="w-32 h-32 sm:w-36 sm:h-36 bg-gray-950 rounded-xl flex items-center justify-center p-2">
                       <QrCode className="w-full h-full text-white" />
                     </div>
                   </div>
@@ -638,7 +638,7 @@ export default function CustomerOrderView({
             <button
               disabled={isProcessing}
               onClick={() => handleFinalCheckout(paymentMethod === 'qris')}
-              className="w-full gradient-gold text-gray-950 font-black py-4 rounded-2xl text-xs shadow-xl shadow-amber-500/25 transition transform active:scale-95 flex items-center justify-center gap-2"
+              className="w-full gradient-gold text-gray-950 font-black py-3.5 sm:py-4 rounded-2xl text-xs shadow-xl shadow-amber-500/25 transition transform active:scale-95 flex items-center justify-center gap-2"
             >
               {isProcessing ? (
                 <span>Memproses Pesanan...</span>
@@ -658,19 +658,19 @@ export default function CustomerOrderView({
         <div className="fixed bottom-5 left-4 right-4 z-40 max-w-md mx-auto">
           <button
             onClick={() => setCartOpen(true)}
-            className="w-full gradient-gold text-gray-950 p-4 rounded-2xl shadow-2xl flex items-center justify-between border border-amber-300/40 hover:scale-[1.02] transition transform active:scale-95"
+            className="w-full gradient-gold text-gray-950 p-3.5 sm:p-4 rounded-2xl shadow-2xl flex items-center justify-between border border-amber-300/40 hover:scale-[1.02] transition transform active:scale-95"
           >
             <div className="flex items-center gap-3">
-              <div className="bg-gray-950/80 text-amber-400 w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm border border-amber-500/30">
+              <div className="bg-gray-950/80 text-amber-400 w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm border border-amber-500/30">
                 {cart.reduce((a, b) => a + b.quantity, 0)}
               </div>
               <div className="text-left">
                 <p className="font-black text-xs text-gray-950">Lihat Pesanan Meja {selectedTable.number}</p>
-                <p className="text-[11px] text-gray-900 font-semibold">{cart.length} Jenis Menu dipilih</p>
+                <p className="text-[10px] sm:text-[11px] text-gray-900 font-semibold">{cart.length} Jenis Menu dipilih</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 font-black text-base font-mono">
+            <div className="flex items-center gap-2 font-black text-sm sm:text-base font-mono">
               <span>{formatRupiah(cartTotal)}</span>
               <ChevronRight className="w-5 h-5 text-gray-950" />
             </div>

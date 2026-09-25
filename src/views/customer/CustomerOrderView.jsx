@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Coffee, CupSoda, Milk, Utensils, Cookie, Plus, ShoppingBag, 
   QrCode, AlertCircle, Clock, ChevronRight, X, Sparkles, DollarSign,
-  Flame, ShieldCheck
+  Flame, ShieldCheck, CheckCircle2
 } from 'lucide-react';
 import { CATEGORIES, PRODUCTS } from '../../data/mockData';
 import { formatRupiah } from '../../utils/formatters';
@@ -28,10 +28,13 @@ export default function CustomerOrderView({
   const [itemNotes, setItemNotes] = useState('');
   const [itemQty, setItemQty] = useState(1);
 
+  // Toast notification state
+  const [toastMessage, setToastMessage] = useState(null);
+
   // Checkout modal state
   const [checkoutModal, setCheckoutModal] = useState(false);
   const [customerName, setCustomerName] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('qris'); // 'qris' or 'cash'
+  const [paymentMethod, setPaymentMethod] = useState('qris');
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Category Icon Resolver
@@ -81,7 +84,7 @@ export default function CustomerOrderView({
     return total;
   };
 
-  // Add customized item to cart
+  // Add customized item to cart (Without auto-opening cart)
   const handleAddToCart = () => {
     if (!activeProduct) return;
     const variantLabels = Object.values(selectedVariants).map(v => v.label);
@@ -97,7 +100,14 @@ export default function CustomerOrderView({
       imageUrl: activeProduct.imageUrl
     });
 
+    const productName = activeProduct.name;
     setActiveProduct(null);
+
+    // Show smooth Toast Toast Notification
+    setToastMessage(`"${productName}" (${itemQty}x) ditambahkan ke keranjang`);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
   };
 
   // Cart Totals
@@ -143,8 +153,16 @@ export default function CustomerOrderView({
   const activeTableOrders = orders.filter(o => o.tableNumber === selectedTable.number);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-fade-in pb-28">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-fade-in pb-28 relative">
       
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 glass-panel bg-emerald-950/90 text-emerald-300 px-5 py-3 rounded-2xl border border-emerald-500/40 shadow-2xl flex items-center gap-3 animate-fade-in text-xs font-bold">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* HERO BANNER: Artisan Cafe & Table Session */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-950/80 via-gray-950 to-amber-900/40 border border-amber-500/20 p-6 md:p-8 shadow-2xl">
         <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />

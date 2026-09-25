@@ -68,7 +68,7 @@ export default function App() {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, isAvailable: !p.isAvailable } : p));
   };
 
-  // Cart operations
+  // Cart operations (Does NOT auto-open cart sidebar)
   const addToCart = (item) => {
     setCart((prev) => {
       const existingIndex = prev.findIndex(
@@ -85,7 +85,6 @@ export default function App() {
       }
       return [...prev, item];
     });
-    setCartOpen(true);
   };
 
   const removeFromCart = (index) => {

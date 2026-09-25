@@ -16,6 +16,19 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
   // Receipt view state
   const [receiptOrder, setReceiptOrder] = useState(null);
 
+  // Helper functions for Rupiah formatting
+  const formatRupiahInput = (val) => {
+    if (val === null || val === undefined) return '';
+    const numberString = val.toString().replace(/\D/g, '');
+    if (!numberString) return '';
+    return new Intl.NumberFormat('id-ID').format(parseInt(numberString, 10));
+  };
+
+  const getNumericValue = (val) => {
+    if (!val) return 0;
+    return parseInt(val.toString().replace(/\D/g, ''), 10) || 0;
+  };
+
   // Filter orders
   const filteredOrders = orders.filter(order => {
     const matchesFilter = filterStatus === 'all' || 
@@ -32,7 +45,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
   });
 
   // Calculate change
-  const numericCash = parseFloat(cashReceived) || 0;
+  const numericCash = getNumericValue(cashReceived);
   const changeAmount = cashModalOrder ? Math.max(0, numericCash - cashModalOrder.total) : 0;
   const isEnoughCash = cashModalOrder ? numericCash >= cashModalOrder.total : false;
 
@@ -220,7 +233,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                     <button
                       onClick={() => {
                         setCashModalOrder(order);
-                        setCashReceived(order.total.toString());
+                        setCashReceived(formatRupiahInput(order.total));
                       }}
                       className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-amber-600/30 transition"
                     >
@@ -285,13 +298,18 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
 
               <div>
                 <label className="font-bold text-gray-300 block mb-1">Uang Tunai Diterima (Rp)</label>
-                <input
-                  type="number"
-                  placeholder="Contoh: 100000"
-                  value={cashReceived}
-                  onChange={e => setCashReceived(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl p-3 text-base font-bold font-mono text-amber-400 focus:outline-none focus:border-amber-500"
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-3 text-amber-400 font-bold font-mono text-base pointer-events-none">
+                    Rp
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="0"
+                    value={cashReceived}
+                    onChange={e => setCashReceived(formatRupiahInput(e.target.value))}
+                    className="w-full bg-gray-950 border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-base font-bold font-mono text-amber-400 text-right focus:outline-none focus:border-amber-500 shadow-inner"
+                  />
+                </div>
               </div>
 
               {/* Quick Cash Presets */}
@@ -304,7 +322,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                 ].map((preset, pIdx) => (
                   <button
                     key={pIdx}
-                    onClick={() => setCashReceived(preset.val.toString())}
+                    onClick={() => setCashReceived(formatRupiahInput(preset.val))}
                     className="p-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl text-[11px] font-semibold text-gray-300"
                   >
                     {preset.label}

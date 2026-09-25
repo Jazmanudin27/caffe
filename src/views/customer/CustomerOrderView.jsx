@@ -173,7 +173,8 @@ export default function CustomerOrderView({
     const initialVariants = {};
     if (product.variants) {
       product.variants.forEach(vGroup => {
-        if (vGroup.options.length > 0) {
+        const isOptionalGroup = vGroup.group.toLowerCase().includes('topping') || vGroup.required === false;
+        if (!isOptionalGroup && vGroup.options && vGroup.options.length > 0) {
           initialVariants[vGroup.group] = vGroup.options[0];
         }
       });
@@ -194,7 +195,7 @@ export default function CustomerOrderView({
   // Add customized item to cart (Without auto-opening cart)
   const handleAddToCart = () => {
     if (!activeProduct) return;
-    const variantLabels = Object.values(selectedVariants).map(v => v.label);
+    const variantLabels = Object.values(selectedVariants).filter(Boolean).map(v => v.label);
     const customizedPrice = calculateCustomizedPrice();
     
     addToCart({
@@ -721,37 +722,51 @@ export default function CustomerOrderView({
             {/* Options List */}
             <div className="p-4 sm:p-5 space-y-4 sm:space-y-5 overflow-y-auto flex-1 text-xs">
               {activeProduct.variants && activeProduct.variants.length > 0 ? (
-                activeProduct.variants.map((vGroup, idx) => (
-                  <div key={idx} className="space-y-2">
-                    <label className="font-extrabold text-gray-900 block text-xs tracking-wide uppercase flex items-center justify-between">
-                      <span>{vGroup.name}</span>
-                      <span className="text-[10px] text-amber-700 font-normal">Pilih salah satu</span>
-                    </label>
-                    <div className="grid grid-cols-2 gap-2.5">
-                      {vGroup.options.map((opt, optIdx) => {
-                        const isSelected = selectedVariants[vGroup.group]?.label === opt.label;
-                        return (
-                          <button
-                            key={optIdx}
-                            onClick={() => setSelectedVariants({ ...selectedVariants, [vGroup.group]: opt })}
-                            className={`p-2.5 sm:p-3 rounded-2xl border text-left flex justify-between items-center transition-all ${
-                              isSelected
-                                ? 'gradient-gold text-white font-extrabold shadow-md border-amber-600 scale-[1.02]'
-                                : 'bg-amber-50/40 border-amber-500/20 text-gray-800 hover:bg-amber-100/60'
-                            }`}
-                          >
-                            <span className="font-bold">{opt.label}</span>
-                            {opt.extraPrice > 0 && (
-                              <span className={`text-[10px] font-mono ${isSelected ? 'text-amber-100 font-bold' : 'text-amber-800 font-bold'}`}>
-                                +{formatRupiah(opt.extraPrice)}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
+                activeProduct.variants.map((vGroup, idx) => {
+                  const isOptionalGroup = vGroup.group.toLowerCase().includes('topping') || vGroup.required === false;
+                  
+                  return (
+                    <div key={idx} className="space-y-2">
+                      <label className="font-extrabold text-gray-900 block text-xs tracking-wide uppercase flex items-center justify-between">
+                        <span>{vGroup.name}</span>
+                        <span className={`text-[10px] font-semibold ${isOptionalGroup ? 'text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300' : 'text-amber-700 font-normal'}`}>
+                          {isOptionalGroup ? 'Opsional (Bisa dilewati)' : 'Pilih salah satu'}
+                        </span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {vGroup.options.map((opt, optIdx) => {
+                          const isSelected = selectedVariants[vGroup.group]?.label === opt.label;
+                          return (
+                            <button
+                              key={optIdx}
+                              onClick={() => {
+                                if (isSelected && isOptionalGroup) {
+                                  const updated = { ...selectedVariants };
+                                  delete updated[vGroup.group];
+                                  setSelectedVariants(updated);
+                                } else {
+                                  setSelectedVariants({ ...selectedVariants, [vGroup.group]: opt });
+                                }
+                              }}
+                              className={`p-2.5 sm:p-3 rounded-2xl border text-left flex justify-between items-center transition-all ${
+                                isSelected
+                                  ? 'gradient-gold text-white font-extrabold shadow-md border-amber-600 scale-[1.02]'
+                                  : 'bg-amber-50/40 border-amber-500/20 text-gray-800 hover:bg-amber-100/60'
+                              }`}
+                            >
+                              <span className="font-bold">{opt.label}</span>
+                              {opt.extraPrice > 0 && (
+                                <span className={`text-[10px] font-mono ${isSelected ? 'text-amber-100 font-bold' : 'text-amber-800 font-bold'}`}>
+                                  +{formatRupiah(opt.extraPrice)}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <p className="text-xs text-gray-500 italic">Menu ini siap disajikan tanpa opsi varian tambahan.</p>
               )}

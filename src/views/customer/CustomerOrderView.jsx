@@ -4,10 +4,11 @@ import {
   QrCode, AlertCircle, Clock, ChevronRight, X, Sparkles, DollarSign,
   Flame, ShieldCheck, CheckCircle2
 } from 'lucide-react';
-import { CATEGORIES, PRODUCTS } from '../../data/mockData';
+import { CATEGORIES } from '../../data/mockData';
 import { formatRupiah } from '../../utils/formatters';
 
 export default function CustomerOrderView({ 
+  products = [],
   selectedTable, 
   cart, 
   addToCart, 
@@ -49,11 +50,11 @@ export default function CustomerOrderView({
     }
   };
 
-  // Filter products
-  const filteredProducts = PRODUCTS.filter((product) => {
+  // Filter products dynamically from MySQL database
+  const filteredProducts = (products || []).filter((product) => {
     const matchesCat = selectedCategory === 'all' || product.categoryId === selectedCategory;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          product.description.toLowerCase().includes(searchQuery.toLowerCase());
+                          (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCat && matchesSearch;
   });
 

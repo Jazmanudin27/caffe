@@ -178,6 +178,7 @@ export default function App() {
       <main className="flex-1">
         {activeView === 'customer' && (
           <CustomerOrderView
+            products={products}
             selectedTable={selectedTable}
             cart={cart}
             addToCart={addToCart}

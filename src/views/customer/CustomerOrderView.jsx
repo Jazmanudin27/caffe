@@ -259,250 +259,525 @@ export default function CustomerOrderView({
   // Active orders for current table
   const activeTableOrders = orders.filter(o => o.tableNumber === selectedTable.number);
 
+  // Customer Orders (Filtered for logged-in user or active table)
+  const customerOrders = orders.filter(o => {
+    if (currentUser && currentUser.phone) {
+      return o.customerPhone === currentUser.phone || o.customerName === currentUser.name || o.tableNumber === selectedTable.number;
+    }
+    return o.tableNumber === selectedTable.number;
+  });
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 md:py-8 space-y-6 md:space-y-8 animate-fade-in pb-28 relative">
+    <div className="max-w-7xl mx-auto px-4 py-6 md:py-8 space-y-6 md:space-y-8 animate-fade-in pb-28 relative text-gray-800">
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 glass-panel bg-emerald-950/90 text-emerald-300 px-5 py-3 rounded-2xl border border-emerald-500/40 shadow-2xl flex items-center gap-3 animate-fade-in text-xs font-bold w-[90%] max-w-sm justify-center">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 glass-panel bg-emerald-900/90 text-emerald-100 px-5 py-3 rounded-2xl border border-emerald-500/40 shadow-2xl flex items-center gap-3 animate-fade-in text-xs font-bold w-[90%] max-w-sm justify-center">
+          <CheckCircle2 className="w-5 h-5 text-emerald-300 shrink-0" />
           <span className="truncate">{toastMessage}</span>
         </div>
       )}
 
-      {/* HERO BANNER: Artisan Cafe & Table Session */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-950/80 via-gray-950 to-amber-900/40 border border-amber-500/20 p-5 md:p-8 shadow-2xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
-          <div className="space-y-2 max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-0.5 sm:px-3.5 sm:py-1 rounded-full gradient-badge text-amber-300 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" /> TERVERIFIKASI QR CODE MEJA
-            </div>
-            
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
-              Selamat Datang di <span className="gradient-text font-black">Meja {selectedTable.number}</span>
-            </h2>
-            
-            <p className="text-xs sm:text-sm text-gray-300 font-medium leading-relaxed">
-              Nikmati racikan kopi artisan dan hidangan spesial. Pesan langsung dari meja tanpa perlu mengantri di kasir.
-            </p>
-
-            {/* Customer User Account Status Badge */}
-            <div className="pt-2">
-              {currentUser ? (
-                <div className="inline-flex items-center gap-3 bg-gray-950/80 border border-emerald-500/40 px-3.5 py-2 rounded-2xl text-xs">
-                  <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-left">
-                    <span className="text-gray-300">Pemesan: <strong className="text-white font-extrabold">{currentUser.name}</strong></span>
-                    <span className="text-amber-400 font-mono text-[11px]">({currentUser.phone})</span>
-                  </div>
-                  <button
-                    onClick={handleLogoutCustomer}
-                    className="ml-2 text-[10px] text-gray-400 hover:text-amber-400 flex items-center gap-1 font-bold border-l border-white/10 pl-2.5"
-                  >
-                    <LogOut className="w-3 h-3" /> Ganti Akun
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setAuthStep('phone');
-                    setAuthError('');
-                    setAuthModal(true);
-                  }}
-                  className="inline-flex items-center gap-2 gradient-gold text-gray-950 font-black px-4 py-2 rounded-2xl text-xs shadow-lg shadow-amber-500/20 hover:scale-[1.03] transition transform active:scale-95"
-                >
-                  <Phone className="w-4 h-4" />
-                  <span>Masuk / Daftar dengan No HP</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="glass-panel p-3.5 sm:p-4 rounded-2xl border border-amber-500/20 space-y-2 w-full md:w-auto min-w-[220px]">
-            <div className="flex items-center justify-between text-xs text-gray-400">
-              <span>Status Meja:</span>
-              <span className="text-emerald-400 font-bold flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" /> Terhubung
-              </span>
-            </div>
-            <div className="text-xs text-gray-300 font-semibold flex justify-between border-t border-white/5 pt-2">
-              <span>Token QR:</span>
-              <span className="font-mono text-amber-400 font-bold">{selectedTable.token}</span>
-            </div>
-            <div className="text-[11px] text-gray-400 flex justify-between">
-              <span>Kapasitas:</span>
-              <span className="text-white font-medium">{selectedTable.capacity} Kursi</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ACTIVE ORDERS STATUS TRACKER */}
-      {activeTableOrders.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
-            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
-            Pesanan Meja Ini Yang Sedang Berjalan ({activeTableOrders.length})
-          </h3>
+      {/* VIEW TAB 1: BERANDA / KATALOG MENU */}
+      {activeMobileTab === 'home' && (
+        <div className="space-y-6 md:space-y-8 animate-fade-in">
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeTableOrders.map(order => (
-              <div key={order.id} className="glass-card rounded-2xl p-4 sm:p-5 border border-amber-500/30 space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-xs font-mono text-amber-400 font-bold">{order.orderNumber}</span>
-                    <h4 className="font-bold text-white text-sm sm:text-base">{order.customerName}</h4>
-                  </div>
-                  
-                  {order.status === 'pending_payment' && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                      Menunggu Bayar Kasir
-                    </span>
-                  )}
-                  {order.status === 'preparing' && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40 animate-pulse">
-                      Sedang Dibuat Barista
-                    </span>
-                  )}
-                  {order.status === 'ready' && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
-                      Siap Disajikan
-                    </span>
-                  )}
-                  {order.status === 'completed' && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                      Selesai
-                    </span>
-                  )}
+          {/* HERO BANNER: Artisan Cafe & Table Session */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-700 via-amber-800 to-amber-950 text-white p-5 md:p-8 shadow-xl border border-amber-600/30">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
+              <div className="space-y-2 max-w-xl">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-amber-200 text-[10px] sm:text-xs font-bold uppercase tracking-wider border border-white/20">
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-300" /> TERVERIFIKASI QR CODE MEJA
                 </div>
+                
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                  Selamat Datang di <span className="text-amber-300 font-black">Meja {selectedTable.number}</span>
+                </h2>
+                
+                <p className="text-xs sm:text-sm text-amber-100/90 font-medium leading-relaxed">
+                  Nikmati racikan kopi artisan dan hidangan spesial. Pesan langsung dari meja tanpa perlu mengantri di kasir.
+                </p>
 
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-900 h-2.5 rounded-full overflow-hidden p-0.5 border border-white/5">
-                  <div className={`h-full rounded-full transition-all duration-700 ${
-                    order.status === 'pending_payment' ? 'w-1/4 gradient-gold' :
-                    order.status === 'preparing' ? 'w-2/4 bg-blue-500' :
-                    order.status === 'ready' ? 'w-3/4 bg-purple-500' : 'w-full bg-emerald-500'
-                  }`} />
-                </div>
-
-                <div className="flex justify-between items-center text-xs text-gray-400 border-t border-white/5 pt-3">
-                  <span>{order.items.length} Menu • Total: <strong className="text-amber-400 font-mono text-xs sm:text-sm">{formatRupiah(order.total)}</strong></span>
-                  <span className="uppercase font-mono text-[10px] bg-gray-950 px-2 py-0.5 rounded-lg border border-white/10 font-bold text-gray-300">
-                    {order.paymentMethod}
-                  </span>
+                {/* Customer User Account Status Badge */}
+                <div className="pt-2">
+                  {currentUser ? (
+                    <div className="inline-flex items-center gap-3 bg-white/15 backdrop-blur-md border border-white/25 px-3.5 py-2 rounded-2xl text-xs text-white">
+                      <UserCheck className="w-4 h-4 text-emerald-300 shrink-0" />
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-left">
+                        <span>Pemesan: <strong className="font-extrabold text-white">{currentUser.name}</strong></span>
+                        <span className="text-amber-200 font-mono text-[11px]">({currentUser.phone})</span>
+                      </div>
+                      <button
+                        onClick={handleLogoutCustomer}
+                        className="ml-2 text-[10px] text-amber-200 hover:text-white flex items-center gap-1 font-bold border-l border-white/20 pl-2.5"
+                      >
+                        <LogOut className="w-3 h-3" /> Ganti Akun
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setActiveMobileTab('account');
+                      }}
+                      className="inline-flex items-center gap-2 bg-white text-amber-900 font-black px-4 py-2 rounded-2xl text-xs shadow-lg hover:bg-amber-100 transition transform active:scale-95"
+                    >
+                      <Phone className="w-4 h-4 text-amber-700" />
+                      <span>Masuk / Daftar dengan No HP</span>
+                    </button>
+                  )}
                 </div>
               </div>
-            ))}
+
+              <div className="bg-black/20 backdrop-blur-md p-4 rounded-2xl border border-white/15 space-y-2 w-full md:w-auto min-w-[220px] text-white">
+                <div className="flex items-center justify-between text-xs text-amber-100">
+                  <span>Status Meja:</span>
+                  <span className="text-emerald-300 font-bold flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" /> Terhubung
+                  </span>
+                </div>
+                <div className="text-xs text-amber-100 font-semibold flex justify-between border-t border-white/10 pt-2">
+                  <span>Token QR:</span>
+                  <span className="font-mono text-amber-300 font-bold">{selectedTable.token}</span>
+                </div>
+                <div className="text-[11px] text-amber-200 flex justify-between">
+                  <span>Kapasitas:</span>
+                  <span className="font-medium">{selectedTable.capacity} Kursi</span>
+                </div>
+              </div>
+            </div>
           </div>
+
+          {/* CATEGORIES SLIDER & SEARCH BAR */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            {/* Category Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 no-scrollbar">
+              {CATEGORIES.map(cat => {
+                const isSelected = selectedCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${
+                      isSelected
+                        ? 'gradient-gold text-white shadow-lg shadow-amber-600/20 scale-[1.03]'
+                        : 'glass-panel text-gray-600 hover:text-amber-800 hover:border-amber-500/30'
+                    }`}
+                  >
+                    {getCategoryIcon(cat.icon)}
+                    <span>{cat.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full md:w-72">
+              <input
+                type="text"
+                placeholder="Cari kopi, makanan..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full glass-input rounded-2xl pl-4 pr-10 py-2 sm:py-2.5 text-xs text-gray-800 placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          {/* PRODUCT GRID - 2 COLUMNS ON MOBILE */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3.5 sm:gap-6">
+            {filteredProducts.map(product => {
+              const inCartQty = cart
+                .filter(i => i.productId === product.id)
+                .reduce((total, i) => total + i.quantity, 0);
+
+              return (
+                <div
+                  key={product.id}
+                  className="glass-card rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-between group relative border border-amber-500/15 hover:border-amber-500/40"
+                >
+                  <div>
+                    {/* Product Image Header */}
+                    <div className="relative h-36 sm:h-52 overflow-hidden">
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-70" />
+                      
+                      {/* Price Badge */}
+                      <div className="absolute top-2 left-2 sm:top-3.5 sm:left-3.5 glass-panel bg-white/90 backdrop-blur-md px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black text-amber-800 border border-amber-500/30 font-mono shadow-md">
+                        {formatRupiah(product.price)}
+                      </div>
+
+                      {/* Quantity In Cart Badge */}
+                      {inCartQty > 0 && (
+                        <div className="absolute top-2 right-2 sm:top-3.5 sm:right-3.5 gradient-gold text-white font-black px-2.5 py-1 rounded-xl text-[10px] sm:text-xs shadow-md flex items-center gap-1 animate-pulse">
+                          <span>{inCartQty}x</span> di Keranjang
+                        </div>
+                      )}
+
+                      {/* Tag Badge */}
+                      {inCartQty === 0 && (
+                        <div className="hidden sm:flex absolute top-3.5 right-3.5 bg-amber-500/20 text-amber-900 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase border border-amber-500/30 items-center gap-1">
+                          <Flame className="w-3 h-3 text-amber-700" /> Best Seller
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Product Details */}
+                    <div className="p-3 sm:p-5 space-y-1 sm:space-y-2">
+                      <h3 className="font-bold text-gray-900 text-xs sm:text-lg group-hover:text-amber-700 transition-colors line-clamp-1 sm:line-clamp-none">
+                        {product.name}
+                      </h3>
+                      <p className="text-[11px] sm:text-xs text-gray-500 leading-relaxed line-clamp-2">
+                        {product.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* CTA Button */}
+                  <div className="p-3 sm:p-5 pt-0">
+                    <button
+                      onClick={() => openCustomization(product)}
+                      className={`w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-extrabold text-[11px] sm:text-xs transition-all duration-300 shadow-sm ${
+                        inCartQty > 0
+                          ? 'gradient-badge text-amber-900 border border-amber-500/40 hover:bg-amber-600 hover:text-white'
+                          : 'bg-amber-500/10 hover:bg-amber-600 text-amber-800 hover:text-white border border-amber-500/30 shadow-sm'
+                      }`}
+                    >
+                      <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span>{inCartQty > 0 ? `Tambah Lagi (${inCartQty}x)` : 'Pilih Varian & Pesan'}</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
         </div>
       )}
 
-      {/* CATEGORIES SLIDER & SEARCH BAR */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 no-scrollbar">
-          {CATEGORIES.map(cat => {
-            const isSelected = selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 ${
-                  isSelected
-                    ? 'gradient-gold text-gray-950 shadow-lg shadow-amber-500/25 scale-[1.03]'
-                    : 'glass-panel text-gray-400 hover:text-white hover:border-amber-500/30'
-                }`}
-              >
-                {getCategoryIcon(cat.icon)}
-                <span>{cat.name}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Search Input */}
-        <div className="relative w-full md:w-72">
-          <input
-            type="text"
-            placeholder="Cari kopi, makanan..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full glass-input rounded-2xl pl-4 pr-10 py-2 sm:py-2.5 text-xs text-gray-100 placeholder-gray-500"
-          />
-        </div>
-      </div>      {/* PRODUCT GRID - 2 COLUMNS ON MOBILE */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3.5 sm:gap-6">
-        {filteredProducts.map(product => {
-          const inCartQty = cart
-            .filter(i => i.productId === product.id)
-            .reduce((total, i) => total + i.quantity, 0);
-
-          return (
-            <div
-              key={product.id}
-              className="glass-card rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-between group relative border border-white/5 hover:border-amber-500/40"
+      {/* VIEW TAB 2: HISTORI PESANAN PELANGGAN (ORDER HISTORY & TRACKER) */}
+      {activeMobileTab === 'orders' && (
+        <div className="space-y-6 animate-fade-in">
+          <div className="flex items-center justify-between pb-3 border-b border-amber-500/20">
+            <div>
+              <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
+                <Clock className="w-6 h-6 text-amber-600" /> Status & Histori Pesanan Saya
+              </h2>
+              <p className="text-xs text-gray-500">Pantau proses pesanan Anda di Meja {selectedTable.number} secara real-time</p>
+            </div>
+            
+            <button
+              onClick={() => setActiveMobileTab('home')}
+              className="text-xs font-bold text-amber-700 hover:underline flex items-center gap-1"
             >
-              <div>
-                {/* Product Image Header */}
-                <div className="relative h-36 sm:h-52 overflow-hidden">
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#181412] via-transparent to-black/30 opacity-90" />
-                  
-                  {/* Price Badge */}
-                  <div className="absolute top-2 left-2 sm:top-3.5 sm:left-3.5 glass-panel bg-gray-950/80 backdrop-blur-md px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black text-amber-400 border border-amber-500/30 font-mono shadow-lg">
-                    {formatRupiah(product.price)}
+              + Tambah Menu Lain
+            </button>
+          </div>
+
+          {customerOrders.length === 0 ? (
+            <div className="glass-panel rounded-3xl p-10 text-center space-y-4 max-w-lg mx-auto border border-amber-500/20">
+              <Clock className="w-16 h-16 text-amber-400 opacity-40 mx-auto" />
+              <div className="space-y-1">
+                <h3 className="font-extrabold text-gray-900 text-lg">Belum Ada Pesanan Aktif</h3>
+                <p className="text-xs text-gray-500 max-w-xs mx-auto">
+                  Anda belum melakukan pemesanan di Meja {selectedTable.number}. Silakan pilih menu di katalog Beranda!
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveMobileTab('home')}
+                className="gradient-gold text-white font-extrabold px-6 py-3 rounded-2xl text-xs shadow-lg inline-flex items-center gap-2"
+              >
+                <span>Lihat Katalog Menu</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {customerOrders.map(order => (
+                <div key={order.id} className="glass-card rounded-2xl p-5 border border-amber-500/20 space-y-4 bg-white shadow-sm">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-xs font-mono text-amber-700 font-extrabold">{order.orderNumber}</span>
+                      <h4 className="font-bold text-gray-900 text-base">{order.customerName}</h4>
+                      <p className="text-[11px] text-gray-400">Meja {order.tableNumber} • {new Date(order.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                    
+                    {order.status === 'pending_payment' && (
+                      <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-300">
+                        Menunggu Bayar Kasir
+                      </span>
+                    )}
+                    {order.status === 'preparing' && (
+                      <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-blue-100 text-blue-800 border border-blue-300 animate-pulse">
+                        Sedang Dibuat Barista
+                      </span>
+                    )}
+                    {order.status === 'ready' && (
+                      <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-purple-100 text-purple-800 border border-purple-300">
+                        Siap Disajikan
+                      </span>
+                    )}
+                    {order.status === 'completed' && (
+                      <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        Selesai
+                      </span>
+                    )}
                   </div>
 
-                  {/* Quantity In Cart Badge */}
-                  {inCartQty > 0 && (
-                    <div className="absolute top-2 right-2 sm:top-3.5 sm:right-3.5 gradient-gold text-gray-950 font-black px-2.5 py-1 rounded-xl text-[10px] sm:text-xs shadow-xl border border-amber-300/50 flex items-center gap-1 animate-pulse">
-                      <span>{inCartQty}x</span> di Keranjang
+                  {/* Realtime Progress Bar */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[11px] font-bold text-gray-600">
+                      <span>Proses Pesanan:</span>
+                      <span className="text-amber-700">
+                        {order.status === 'pending_payment' ? '25% (Menunggu Pembayaran)' :
+                         order.status === 'preparing' ? '50% (Sedang Dibuat)' :
+                         order.status === 'ready' ? '75% (Siap Disajikan)' : '100% (Selesai)'}
+                      </span>
                     </div>
-                  )}
+                    <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden p-0.5 border border-amber-500/20">
+                      <div className={`h-full rounded-full transition-all duration-700 ${
+                        order.status === 'pending_payment' ? 'w-1/4 gradient-gold' :
+                        order.status === 'preparing' ? 'w-2/4 bg-blue-500' :
+                        order.status === 'ready' ? 'w-3/4 bg-purple-500' : 'w-full bg-emerald-500'
+                      }`} />
+                    </div>
+                  </div>
 
-                  {/* Tag Badge */}
-                  {inCartQty === 0 && (
-                    <div className="hidden sm:flex absolute top-3.5 right-3.5 bg-amber-500/20 text-amber-300 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase border border-amber-500/40 items-center gap-1">
-                      <Flame className="w-3 h-3 text-amber-400" /> Best Seller
+                  {/* Order Items Breakdown */}
+                  <div className="bg-amber-50/60 p-3 rounded-2xl space-y-2 border border-amber-500/10">
+                    <p className="text-[11px] font-bold text-amber-900 uppercase tracking-wider">Item Yang Dipesan:</p>
+                    <div className="space-y-1.5 text-xs">
+                      {order.items.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-start text-gray-700">
+                          <div>
+                            <span className="font-bold text-gray-900">{item.quantity}x {item.productName}</span>
+                            {item.selectedVariants && item.selectedVariants.length > 0 && (
+                              <p className="text-[10px] text-amber-700 font-medium">{item.selectedVariants.join(' • ')}</p>
+                            )}
+                            {item.notes && <p className="text-[10px] text-gray-500 italic">"{item.notes}"</p>}
+                          </div>
+                          <span className="font-mono text-gray-900 font-semibold">{formatRupiah(item.unitPrice * item.quantity)}</span>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs text-gray-600 border-t border-gray-100 pt-3">
+                    <span>Metode: <strong className="uppercase font-mono text-gray-900">{order.paymentMethod}</strong></span>
+                    <span className="text-gray-900 font-bold">Total: <strong className="text-amber-700 font-mono text-sm">{formatRupiah(order.total)}</strong></span>
+                  </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
-                {/* Product Details */}
-                <div className="p-3 sm:p-5 space-y-1 sm:space-y-2">
-                  <h3 className="font-bold text-gray-100 text-xs sm:text-lg group-hover:text-amber-400 transition-colors line-clamp-1 sm:line-clamp-none">
-                    {product.name}
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-gray-400 leading-relaxed line-clamp-2">
-                    {product.description}
+      {/* VIEW TAB 3: HALAMAN AKUN PELANGGAN (DEDICATED VIEW PAGE) */}
+      {activeMobileTab === 'account' && (
+        <div className="max-w-xl mx-auto space-y-6 animate-fade-in">
+          <div className="pb-3 border-b border-amber-500/20">
+            <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
+              <User className="w-6 h-6 text-amber-600" /> Halaman Akun Pelanggan
+            </h2>
+            <p className="text-xs text-gray-500">Kelola identitas dan sesi pemesanan Anda di Caffe POS</p>
+          </div>
+
+          {currentUser ? (
+            <div className="glass-panel rounded-3xl p-6 border border-amber-500/20 space-y-6 bg-white shadow-md">
+              {/* Profile Card Header */}
+              <div className="flex items-center gap-4 pb-5 border-b border-gray-100">
+                <div className="w-16 h-16 rounded-3xl gradient-gold flex items-center justify-center text-white font-black text-2xl shadow-lg">
+                  {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'P'}
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-xl text-gray-900">{currentUser.name}</h3>
+                  <p className="text-xs text-amber-700 font-mono font-bold flex items-center gap-1 mt-0.5">
+                    <Phone className="w-3.5 h-3.5" /> {currentUser.phone}
                   </p>
+                  <span className="inline-block mt-1.5 px-3 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    Pelanggan Terverifikasi
+                  </span>
                 </div>
               </div>
 
-              {/* CTA Button */}
-              <div className="p-3 sm:p-5 pt-0">
+              {/* Account Info Details */}
+              <div className="space-y-3 text-xs">
+                <div className="bg-amber-50/60 p-4 rounded-2xl border border-amber-500/15 flex justify-between items-center">
+                  <span className="text-gray-600 font-medium">Sesi Meja Anda:</span>
+                  <span className="font-extrabold text-amber-900 bg-amber-200/60 px-3 py-1 rounded-xl border border-amber-400/30">
+                    Meja {selectedTable.number}
+                  </span>
+                </div>
+
+                <div className="bg-amber-50/60 p-4 rounded-2xl border border-amber-500/15 flex justify-between items-center">
+                  <span className="text-gray-600 font-medium">Total Pesanan Aktif:</span>
+                  <span className="font-mono font-extrabold text-amber-800 text-sm">
+                    {customerOrders.length} Pesanan
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 space-y-3">
                 <button
-                  onClick={() => openCustomization(product)}
-                  className={`w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-extrabold text-[11px] sm:text-xs transition-all duration-300 shadow-lg ${
-                    inCartQty > 0
-                      ? 'gradient-badge text-amber-300 border border-amber-500/60 hover:bg-amber-500 hover:text-gray-950'
-                      : 'bg-gradient-to-r from-amber-600/20 to-amber-500/20 hover:from-amber-600 hover:to-amber-500 text-amber-400 hover:text-gray-950 border border-amber-500/40 hover:shadow-amber-500/25'
-                  }`}
+                  onClick={() => setActiveMobileTab('orders')}
+                  className="w-full gradient-gold text-white font-extrabold py-3.5 rounded-2xl text-xs shadow-lg flex items-center justify-center gap-2"
                 >
-                  <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span>{inCartQty > 0 ? `Tambah Lagi (${inCartQty}x)` : 'Pilih Varian & Pesan'}</span>
+                  <Clock className="w-4 h-4" />
+                  <span>Lihat Histori & Status Pesanan</span>
+                </button>
+
+                <button
+                  onClick={handleLogoutCustomer}
+                  className="w-full bg-red-50 hover:bg-red-100 text-red-700 font-extrabold py-3.5 rounded-2xl text-xs border border-red-200 flex items-center justify-center gap-2 transition"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Keluar / Ganti Akun Pelanggan</span>
                 </button>
               </div>
             </div>
-          );
-        })}
-      </div>
+          ) : (
+            /* IF NOT LOGGED IN: DISPLAY LOGIN / REGISTER FORM ON PAGE */
+            <div className="glass-panel rounded-3xl p-6 border border-amber-500/20 bg-white shadow-md space-y-5">
+              {authStep === 'phone' ? (
+                <form onSubmit={handleCheckPhone} className="space-y-4">
+                  <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+                    <div className="w-10 h-10 rounded-2xl gradient-badge flex items-center justify-center text-amber-700 shrink-0">
+                      <Phone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-base text-gray-900">Masuk Akun Pemesan</h3>
+                      <p className="text-[11px] text-gray-500">Masukkan Nomor HP Anda untuk mulai memesan</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="font-bold text-gray-700 block text-xs uppercase tracking-wider">
+                      Nomor HP / WhatsApp
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-4 h-4 text-amber-600 absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+                      <input
+                        type="tel"
+                        required
+                        placeholder="Contoh: 08123456789"
+                        value={inputPhone}
+                        onChange={e => setInputPhone(e.target.value)}
+                        className="w-full glass-input rounded-2xl pl-10 pr-4 py-3 text-xs text-gray-900 font-mono tracking-wide"
+                      />
+                    </div>
+                    <p className="text-[10px] text-gray-500 italic">
+                      *Jika Nomor HP belum terdaftar, Anda akan langsung diarahkan ke pendaftaran akun baru.
+                    </p>
+                  </div>
+
+                  {authError && (
+                    <div className="bg-red-50 border border-red-200 p-3 rounded-xl text-red-700 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                      <span>{authError}</span>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={authLoading}
+                    className="w-full gradient-gold text-white font-black py-3.5 rounded-2xl text-xs sm:text-sm shadow-md transition transform active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    {authLoading ? (
+                      <span>Memeriksa Nomor HP...</span>
+                    ) : (
+                      <>
+                        <span>Lanjutkan Masuk</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleRegisterCustomer} className="space-y-4">
+                  <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+                    <div className="w-10 h-10 rounded-2xl gradient-badge flex items-center justify-center text-amber-700 shrink-0">
+                      <UserPlus className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-base text-gray-900">Registrasi Pelanggan Baru</h3>
+                      <p className="text-[11px] text-amber-700">Nomor HP belum terdaftar di sistem</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="font-bold text-gray-700 block text-xs uppercase tracking-wider mb-1">
+                        Nomor HP
+                      </label>
+                      <input
+                        type="text"
+                        disabled
+                        value={inputPhone}
+                        className="w-full glass-input rounded-2xl px-4 py-2.5 text-xs text-amber-800 font-mono bg-amber-50/50 cursor-not-allowed"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-gray-700 block text-xs uppercase tracking-wider mb-1">
+                        Nama Lengkap Anda
+                      </label>
+                      <div className="relative">
+                        <User className="w-4 h-4 text-amber-600 absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+                        <input
+                          type="text"
+                          required
+                          placeholder="Contoh: Budi Santoso"
+                          value={inputName}
+                          onChange={e => setInputName(e.target.value)}
+                          className="w-full glass-input rounded-2xl pl-10 pr-4 py-3 text-xs text-gray-900"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {authError && (
+                    <div className="bg-red-50 border border-red-200 p-3 rounded-xl text-red-700 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                      <span>{authError}</span>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthStep('phone');
+                        setAuthError('');
+                      }}
+                      className="w-1/3 bg-gray-100 text-gray-700 hover:bg-gray-200 font-bold py-3.5 rounded-2xl text-xs border border-gray-200"
+                    >
+                      Ubah No HP
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={authLoading}
+                      className="flex-1 gradient-gold text-white font-black py-3.5 rounded-2xl text-xs sm:text-sm shadow-md transition transform active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      {authLoading ? (
+                        <span>Mendaftarkan...</span>
+                      ) : (
+                        <span>Daftar & Lanjut Pesan</span>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* PRODUCT CUSTOMIZATION MODAL */}
       {activeProduct && (

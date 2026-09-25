@@ -162,7 +162,7 @@ export default function App() {
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-[#090807] text-gray-100 flex flex-col font-sans selection:bg-amber-500 selection:text-gray-950">
+    <div className="min-h-screen bg-[#FAF7F2] text-gray-800 flex flex-col font-sans selection:bg-amber-500 selection:text-white">
       
       {/* Global Navigation Header */}
       <Header

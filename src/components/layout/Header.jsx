@@ -17,12 +17,12 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
 
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
-                CAFFE<span className="text-amber-500">POS</span>
+              <h1 className="text-xl font-extrabold tracking-tight text-gray-900 flex items-center gap-1.5">
+                CAFFE<span className="text-amber-600">POS</span>
               </h1>
               {activeView !== 'customer' && (
-                <span className="gradient-badge text-[10px] font-bold px-2.5 py-0.5 rounded-full text-amber-300 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-amber-400" /> 
+                <span className="gradient-badge text-[10px] font-bold px-2.5 py-0.5 rounded-full text-amber-800 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-amber-600" /> 
                   {activeView === 'cashier' && 'KASIR POS'}
                   {activeView === 'kitchen' && 'DAPUR KDS'}
                   {activeView === 'admin' && 'ADMIN CONTROL PANEL'}
@@ -30,7 +30,7 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
               )}
             </div>
             {activeView !== 'customer' && (
-              <p className="text-[11px] text-gray-400 font-medium">
+              <p className="text-[11px] text-gray-500 font-medium">
                 {activeView === 'cashier' && 'Sistem Pembayaran & Kasir Restoran'}
                 {activeView === 'kitchen' && 'Display Antrean Barista & Dapur'}
                 {activeView === 'admin' && 'Kelola Produk, Harga & Laporan Omset'}
@@ -44,19 +44,19 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
           {activeView === 'customer' && (
             <>
               {/* Table Selector Dropdown */}
-              <div className="hidden sm:flex items-center gap-2 bg-gray-950/90 border border-amber-500/30 px-3.5 py-1.5 rounded-xl shadow-inner">
-                <CircleDot className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                <span className="text-[11px] text-gray-400 font-medium">Meja:</span>
+              <div className="hidden sm:flex items-center gap-2 bg-white border border-amber-500/30 px-3.5 py-1.5 rounded-xl shadow-sm">
+                <CircleDot className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                <span className="text-[11px] text-gray-500 font-medium">Meja:</span>
                 <select
                   value={selectedTable.id}
                   onChange={(e) => {
                     const found = tables.find(t => t.id === e.target.value);
                     if (found) setSelectedTable(found);
                   }}
-                  className="bg-transparent text-amber-400 font-bold text-xs focus:outline-none cursor-pointer pr-1"
+                  className="bg-transparent text-amber-700 font-bold text-xs focus:outline-none cursor-pointer pr-1"
                 >
                   {tables.map((tbl) => (
-                    <option key={tbl.id} value={tbl.id} className="bg-gray-900 text-gray-100">
+                    <option key={tbl.id} value={tbl.id} className="bg-white text-gray-900">
                       Meja {tbl.number} ({tbl.capacity} Kursi)
                     </option>
                   ))}

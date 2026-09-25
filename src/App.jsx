@@ -3,15 +3,22 @@ import Header from './components/Header';
 import CustomerOrderView from './components/CustomerOrderView';
 import CashierPosView from './components/CashierPosView';
 import KitchenDisplayView from './components/KitchenDisplayView';
-import DatabaseSchemaView from './components/DatabaseSchemaView';
 import { INITIAL_TABLES, INITIAL_ORDERS } from './data/mockData';
 
 export default function App() {
-  const [activeView, setActiveView] = useState('customer'); // 'customer' | 'cashier' | 'kitchen' | 'database'
+  // Path Router helper
+  const getInitialView = () => {
+    const path = window.location.pathname.toLowerCase();
+    if (path.startsWith('/kasir')) return 'cashier';
+    if (path.startsWith('/dapur')) return 'kitchen';
+    return 'customer';
+  };
+
+  const [activeView, setActiveView] = useState(getInitialView);
   const [tables] = useState(INITIAL_TABLES);
   const [selectedTable, setSelectedTable] = useState(INITIAL_TABLES[2]); // Default Meja M-03
   
-  // Orders State (Persisted in localStorage if available)
+  // Orders State (Persisted in localStorage)
   const [orders, setOrders] = useState(() => {
     const saved = localStorage.getItem('caffe_pos_orders');
     return saved ? JSON.parse(saved) : INITIAL_ORDERS;
@@ -26,10 +33,30 @@ export default function App() {
     localStorage.setItem('caffe_pos_orders', JSON.stringify(orders));
   }, [orders]);
 
+  // Sync route on popstate (Browser Back/Forward buttons)
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveView(getInitialView());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Custom Navigation function
+  const navigateTo = (path) => {
+    window.history.pushState(null, '', path);
+    if (path.startsWith('/kasir')) {
+      setActiveView('cashier');
+    } else if (path.startsWith('/dapur')) {
+      setActiveView('kitchen');
+    } else {
+      setActiveView('customer');
+    }
+  };
+
   // Cart operations
   const addToCart = (item) => {
     setCart((prev) => {
-      // Check if item with exact same product and variants already exists
       const existingIndex = prev.findIndex(
         (i) =>
           i.productId === item.productId &&
@@ -95,12 +122,12 @@ export default function App() {
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-[#0F0D0C] text-gray-100 flex flex-col font-sans selection:bg-amber-500 selection:text-gray-950">
+    <div className="min-h-screen bg-[#090807] text-gray-100 flex flex-col font-sans selection:bg-amber-500 selection:text-gray-950">
       
       {/* Global Navigation Header */}
       <Header
         activeView={activeView}
-        setActiveView={setActiveView}
+        navigateTo={navigateTo}
         selectedTable={selectedTable}
         setSelectedTable={setSelectedTable}
         tables={tables}
@@ -140,18 +167,14 @@ export default function App() {
             updateOrderStatus={updateOrderStatus}
           />
         )}
-
-        {activeView === 'database' && (
-          <DatabaseSchemaView />
-        )}
       </main>
 
       {/* Global Footer */}
-      <footer className="border-t border-gray-900 bg-gray-950 py-4 px-4 text-center text-xs text-gray-500">
+      <footer className="border-t border-white/5 bg-gray-950/80 py-4 px-4 text-center text-xs text-gray-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>&copy; 2026 CaffePOS System. Full-stack QR Order & Cashier App.</span>
-          <div className="flex items-center gap-3 text-amber-500 font-mono text-[11px]">
-            <span>PostgreSQL Ready</span> • <span>QRIS Midtrans Ready</span> • <span>React JS</span>
+          <span>&copy; 2026 CaffePOS System. Full-stack QR Order & Cashier System.</span>
+          <div className="flex items-center gap-3 text-amber-400 font-mono text-[11px]">
+            <span>caffe.aspartech.com</span> • <span>/kasir</span> • <span>/dapur</span>
           </div>
         </div>
       </footer>

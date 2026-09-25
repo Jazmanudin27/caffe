@@ -1,15 +1,15 @@
 import React from 'react';
-import { Coffee, QrCode, Monitor, UtensilsCrossed, Database, ShoppingBag, Sparkles, ChevronDown, CircleDot } from 'lucide-react';
+import { Coffee, QrCode, Monitor, UtensilsCrossed, ShoppingBag, Sparkles, CircleDot } from 'lucide-react';
 
-export default function Header({ activeView, setActiveView, selectedTable, setSelectedTable, tables, cartCount, openCart }) {
+export default function Header({ activeView, navigateTo, selectedTable, setSelectedTable, tables, cartCount, openCart }) {
   return (
     <header className="glass-panel sticky top-0 z-40 border-b border-amber-500/10 px-4 py-3">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-3">
         
         {/* Brand & Subtitle */}
         <div className="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-start">
-          <div className="flex items-center gap-3">
-            <div className="relative group cursor-pointer">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigateTo('/')}>
+            <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-700 rounded-2xl blur opacity-50 group-hover:opacity-100 transition duration-300" />
               <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-950 via-gray-900 to-amber-900 border border-amber-500/40 flex items-center justify-center shadow-2xl">
                 <Coffee className="w-6 h-6 text-amber-400 transform group-hover:rotate-12 transition duration-300" />
@@ -45,10 +45,10 @@ export default function Header({ activeView, setActiveView, selectedTable, setSe
           )}
         </div>
 
-        {/* Navigation Mode Switcher Tabs */}
-        <nav className="flex items-center gap-1 bg-gray-950/80 p-1.5 rounded-2xl border border-white/5 w-full lg:w-auto overflow-x-auto no-scrollbar">
+        {/* Navigation URL Switcher */}
+        <nav className="flex items-center gap-1.5 bg-gray-950/80 p-1.5 rounded-2xl border border-white/5 w-full lg:w-auto overflow-x-auto no-scrollbar">
           <button
-            onClick={() => setActiveView('customer')}
+            onClick={() => navigateTo('/')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-300 ${
               activeView === 'customer'
                 ? 'gradient-gold text-gray-950 font-extrabold shadow-lg shadow-amber-500/25 scale-[1.02]'
@@ -56,11 +56,11 @@ export default function Header({ activeView, setActiveView, selectedTable, setSe
             }`}
           >
             <QrCode className="w-4 h-4" />
-            <span>Pelanggan (Scan Meja)</span>
+            <span>Menu Pelanggan</span>
           </button>
 
           <button
-            onClick={() => setActiveView('cashier')}
+            onClick={() => navigateTo('/kasir')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-300 ${
               activeView === 'cashier'
                 ? 'gradient-gold text-gray-950 font-extrabold shadow-lg shadow-amber-500/25 scale-[1.02]'
@@ -68,11 +68,11 @@ export default function Header({ activeView, setActiveView, selectedTable, setSe
             }`}
           >
             <Monitor className="w-4 h-4" />
-            <span>Kasir (POS)</span>
+            <span>Kasir (/kasir)</span>
           </button>
 
           <button
-            onClick={() => setActiveView('kitchen')}
+            onClick={() => navigateTo('/dapur')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-300 ${
               activeView === 'kitchen'
                 ? 'gradient-gold text-gray-950 font-extrabold shadow-lg shadow-amber-500/25 scale-[1.02]'
@@ -80,19 +80,7 @@ export default function Header({ activeView, setActiveView, selectedTable, setSe
             }`}
           >
             <UtensilsCrossed className="w-4 h-4" />
-            <span>Dapur / Barista</span>
-          </button>
-
-          <button
-            onClick={() => setActiveView('database')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-300 ${
-              activeView === 'database'
-                ? 'gradient-gold text-gray-950 font-extrabold shadow-lg shadow-amber-500/25 scale-[1.02]'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Database className="w-4 h-4" />
-            <span>Rancangan DB</span>
+            <span>Dapur Barista (/dapur)</span>
           </button>
         </nav>
 
@@ -103,7 +91,7 @@ export default function Header({ activeView, setActiveView, selectedTable, setSe
               {/* Table Selector Dropdown */}
               <div className="flex items-center gap-2 bg-gray-950/90 border border-amber-500/30 px-3.5 py-1.5 rounded-xl shadow-inner">
                 <CircleDot className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                <span className="text-[11px] text-gray-400 font-medium">Pilih Meja:</span>
+                <span className="text-[11px] text-gray-400 font-medium">Simulasi QR:</span>
                 <select
                   value={selectedTable.id}
                   onChange={(e) => {
@@ -139,7 +127,14 @@ export default function Header({ activeView, setActiveView, selectedTable, setSe
           {activeView === 'cashier' && (
             <div className="gradient-badge px-3.5 py-1.5 rounded-xl text-xs font-semibold text-emerald-400 border border-emerald-500/30 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>Shift Kasir: <strong>Kasir #01 (Aktif)</strong></span>
+              <span>Session: <strong>caffe.aspartech.com/kasir</strong></span>
+            </div>
+          )}
+
+          {activeView === 'kitchen' && (
+            <div className="gradient-badge px-3.5 py-1.5 rounded-xl text-xs font-semibold text-purple-400 border border-purple-500/30 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
+              <span>Session: <strong>caffe.aspartech.com/dapur</strong></span>
             </div>
           )}
         </div>

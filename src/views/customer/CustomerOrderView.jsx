@@ -381,7 +381,7 @@ export default function CustomerOrderView({
                       }`}
                     >
                       <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span>{inCartQty > 0 ? `Tambah Lagi (${inCartQty}x)` : 'Pilih Varian & Pesan'}</span>
+                      <span>{inCartQty > 0 ? `Tambah (${inCartQty}x)` : 'Tambah'}</span>
                     </button>
                   </div>
                 </div>
@@ -395,13 +395,10 @@ export default function CustomerOrderView({
       {/* VIEW TAB 2: HISTORI PESANAN PELANGGAN (ORDER HISTORY & TRACKER) */}
       {activeMobileTab === 'orders' && (
         <div className="space-y-6 animate-fade-in">
-          <div className="flex items-center justify-between pb-3 border-b border-amber-500/20">
-            <div>
-              <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
-                <Clock className="w-6 h-6 text-amber-600" /> Pesanan
-              </h2>
-              <p className="text-xs text-gray-500">Pantau proses pesanan Anda di Meja {selectedTable.number} secara real-time</p>
-            </div>
+          <div className="pb-3 border-b border-amber-500/20">
+            <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
+              <Clock className="w-6 h-6 text-amber-600" /> Pesanan
+            </h2>
           </div>
 
           {customerOrders.length === 0 ? (
@@ -506,13 +503,6 @@ export default function CustomerOrderView({
       {/* VIEW TAB 3: HALAMAN AKUN PELANGGAN (DEDICATED VIEW PAGE) */}
       {activeMobileTab === 'account' && (
         <div className="max-w-xl mx-auto space-y-6 animate-fade-in">
-          <div className="pb-3 border-b border-amber-500/20">
-            <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
-              <User className="w-6 h-6 text-amber-600" /> Halaman Akun Pelanggan
-            </h2>
-            <p className="text-xs text-gray-500">Kelola identitas dan sesi pemesanan Anda di Caffe POS</p>
-          </div>
-
           {currentUser ? (
             <div className="glass-panel rounded-3xl p-6 border border-amber-500/20 space-y-6 bg-white shadow-md">
               {/* Profile Card Header */}
@@ -705,24 +695,24 @@ export default function CustomerOrderView({
         </div>
       )}
 
-      {/* PRODUCT CUSTOMIZATION MODAL */}
+      {/* PRODUCT CUSTOMIZATION MODAL (LIGHT THEME ELEGANT) */}
       {activeProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="glass-panel text-gray-100 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl space-y-4 max-h-[90vh] flex flex-col border border-amber-500/30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white text-gray-900 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl space-y-4 max-h-[90vh] flex flex-col border border-amber-500/20">
             
             {/* Modal Image Header */}
             <div className="relative h-48 sm:h-56 overflow-hidden shrink-0">
               <img src={activeProduct.imageUrl} alt={activeProduct.name} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#181412] via-gray-950/50 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 via-gray-900/30 to-transparent" />
               <button
                 onClick={() => setActiveProduct(null)}
-                className="absolute top-4 right-4 bg-gray-950/80 p-2 rounded-full text-gray-300 hover:text-white border border-white/10"
+                className="absolute top-4 right-4 bg-white/80 hover:bg-white p-2 rounded-full text-gray-800 shadow-md transition"
               >
                 <X className="w-5 h-5" />
               </button>
               <div className="absolute bottom-4 left-5 right-5 space-y-1">
-                <h3 className="text-xl sm:text-2xl font-black text-white">{activeProduct.name}</h3>
-                <p className="text-xs text-amber-400 font-extrabold font-mono">
+                <h3 className="text-xl sm:text-2xl font-black text-white drop-shadow">{activeProduct.name}</h3>
+                <p className="text-xs text-amber-300 font-extrabold font-mono drop-shadow">
                   Harga dasar: {formatRupiah(activeProduct.price)}
                 </p>
               </div>
@@ -733,9 +723,9 @@ export default function CustomerOrderView({
               {activeProduct.variants && activeProduct.variants.length > 0 ? (
                 activeProduct.variants.map((vGroup, idx) => (
                   <div key={idx} className="space-y-2">
-                    <label className="font-extrabold text-gray-200 block text-xs tracking-wide uppercase flex items-center justify-between">
+                    <label className="font-extrabold text-gray-900 block text-xs tracking-wide uppercase flex items-center justify-between">
                       <span>{vGroup.name}</span>
-                      <span className="text-[10px] text-amber-400 font-normal">Pilih salah satu</span>
+                      <span className="text-[10px] text-amber-700 font-normal">Pilih salah satu</span>
                     </label>
                     <div className="grid grid-cols-2 gap-2.5">
                       {vGroup.options.map((opt, optIdx) => {
@@ -746,13 +736,15 @@ export default function CustomerOrderView({
                             onClick={() => setSelectedVariants({ ...selectedVariants, [vGroup.group]: opt })}
                             className={`p-2.5 sm:p-3 rounded-2xl border text-left flex justify-between items-center transition-all ${
                               isSelected
-                                ? 'gradient-badge border-amber-500 text-amber-300 font-extrabold shadow-lg shadow-amber-500/20 scale-[1.02]'
-                                : 'bg-gray-950/60 border-white/10 text-gray-400 hover:border-white/20'
+                                ? 'gradient-gold text-white font-extrabold shadow-md border-amber-600 scale-[1.02]'
+                                : 'bg-amber-50/40 border-amber-500/20 text-gray-800 hover:bg-amber-100/60'
                             }`}
                           >
-                            <span>{opt.label}</span>
+                            <span className="font-bold">{opt.label}</span>
                             {opt.extraPrice > 0 && (
-                              <span className="text-[10px] text-amber-400 font-mono">+{formatRupiah(opt.extraPrice)}</span>
+                              <span className={`text-[10px] font-mono ${isSelected ? 'text-amber-100 font-bold' : 'text-amber-800 font-bold'}`}>
+                                +{formatRupiah(opt.extraPrice)}
+                              </span>
                             )}
                           </button>
                         );
@@ -765,8 +757,8 @@ export default function CustomerOrderView({
               )}
 
               {/* Notes */}
-              <div className="space-y-2 pt-3 border-t border-white/10">
-                <label className="font-extrabold text-gray-200 block text-xs uppercase tracking-wide">
+              <div className="space-y-2 pt-3 border-t border-gray-100">
+                <label className="font-extrabold text-gray-900 block text-xs uppercase tracking-wide">
                   Catatan Khusus (Optional)
                 </label>
                 <input
@@ -774,28 +766,28 @@ export default function CustomerOrderView({
                   placeholder="Misal: Kurangi es, tanpa sedotan..."
                   value={itemNotes}
                   onChange={e => setItemNotes(e.target.value)}
-                  className="w-full glass-input rounded-2xl p-3 text-xs text-gray-200"
+                  className="w-full glass-input rounded-2xl p-3 text-xs text-gray-900 bg-amber-50/40 border border-amber-500/20"
                 />
               </div>
             </div>
 
             {/* Modal Footer with Clear Quantity Selector */}
-            <div className="p-4 sm:p-5 bg-gray-950 border-t border-white/10 flex flex-col gap-3 shrink-0">
+            <div className="p-4 sm:p-5 bg-amber-50/70 border-t border-amber-500/20 flex flex-col gap-3 shrink-0">
               
               {/* Quantity Selector Header */}
-              <div className="flex items-center justify-between bg-gray-900/80 p-2.5 rounded-2xl border border-white/10">
-                <span className="text-xs font-extrabold text-gray-200 uppercase tracking-wider">Jumlah Pesanan (Qty):</span>
+              <div className="flex items-center justify-between bg-white p-2.5 rounded-2xl border border-amber-500/20 shadow-sm">
+                <span className="text-xs font-extrabold text-gray-900 uppercase tracking-wider">Jumlah Pesanan (Qty):</span>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setItemQty(Math.max(1, itemQty - 1))}
-                    className="w-8 h-8 rounded-xl bg-gray-800 hover:bg-amber-500 hover:text-gray-950 flex items-center justify-center font-black text-gray-200 text-sm transition-all border border-white/10"
+                    className="w-8 h-8 rounded-xl bg-amber-100 hover:bg-amber-600 hover:text-white text-amber-900 flex items-center justify-center font-black text-sm transition-all border border-amber-300"
                   >
                     -
                   </button>
-                  <span className="font-black text-sm w-6 text-center text-amber-400 font-mono text-base">{itemQty}</span>
+                  <span className="font-black text-sm w-6 text-center text-amber-900 font-mono text-base">{itemQty}</span>
                   <button
                     onClick={() => setItemQty(itemQty + 1)}
-                    className="w-8 h-8 rounded-xl bg-gray-800 hover:bg-amber-500 hover:text-gray-950 flex items-center justify-center font-black text-gray-200 text-sm transition-all border border-white/10"
+                    className="w-8 h-8 rounded-xl bg-amber-100 hover:bg-amber-600 hover:text-white text-amber-900 flex items-center justify-center font-black text-sm transition-all border border-amber-300"
                   >
                     +
                   </button>
@@ -805,7 +797,7 @@ export default function CustomerOrderView({
               {/* Add to Cart Submit Button */}
               <button
                 onClick={handleAddToCart}
-                className="w-full flex items-center justify-between gradient-gold text-gray-950 font-black py-3.5 px-5 rounded-2xl text-xs sm:text-sm shadow-xl shadow-amber-500/25 transition transform active:scale-95"
+                className="w-full flex items-center justify-between gradient-gold text-white font-black py-3.5 px-5 rounded-2xl text-xs sm:text-sm shadow-xl shadow-amber-600/25 transition transform active:scale-95"
               >
                 <span>Tambah {itemQty}x ke Keranjang</span>
                 <span className="font-mono text-sm">{formatRupiah(calculateCustomizedPrice() * itemQty)}</span>
@@ -816,57 +808,57 @@ export default function CustomerOrderView({
         </div>
       )}
 
-      {/* CART DRAWER MODAL */}
+      {/* CART DRAWER MODAL (CLEAN LIGHT THEME) */}
       {cartOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="glass-panel border-l border-amber-500/20 w-full max-w-md h-full flex flex-col justify-between p-5 sm:p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white border-l border-amber-500/20 w-full max-w-md h-full flex flex-col justify-between p-5 sm:p-6 space-y-4 shadow-2xl text-gray-900">
             
-            <div className="flex items-center justify-between pb-4 border-b border-white/10">
-              <div className="flex items-center gap-2.5 text-white font-extrabold text-base">
-                <ShoppingBag className="w-5 h-5 text-amber-400" />
+            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+              <div className="flex items-center gap-2.5 text-gray-900 font-extrabold text-base">
+                <ShoppingBag className="w-5 h-5 text-amber-600" />
                 <span>Keranjang Pesanan (Meja {selectedTable.number})</span>
               </div>
-              <button onClick={() => setCartOpen(false)} className="p-1.5 text-gray-400 hover:text-white rounded-xl hover:bg-white/5">
+              <button onClick={() => setCartOpen(false)} className="p-1.5 text-gray-400 hover:text-gray-900 rounded-xl hover:bg-amber-50">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-3 pr-1">
               {cart.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-gray-500 space-y-3">
-                  <ShoppingBag className="w-16 h-16 opacity-20 text-amber-400" />
-                  <p className="text-xs font-semibold text-gray-400">Keranjang Anda masih kosong</p>
+                <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-3">
+                  <ShoppingBag className="w-16 h-16 opacity-30 text-amber-500" />
+                  <p className="text-xs font-semibold text-gray-500">Keranjang Anda masih kosong</p>
                 </div>
               ) : (
                 cart.map((item, idx) => (
-                  <div key={idx} className="bg-gray-950/80 p-3.5 sm:p-4 rounded-2xl border border-white/10 space-y-2 text-xs">
+                  <div key={idx} className="bg-amber-50/50 p-4 rounded-2xl border border-amber-500/20 space-y-2 text-xs shadow-sm">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-bold text-white">{item.productName}</h4>
+                        <h4 className="font-bold text-gray-900 text-sm">{item.productName}</h4>
                         {item.selectedVariants && item.selectedVariants.length > 0 && (
-                          <p className="text-[10px] text-amber-400">{item.selectedVariants.join(' • ')}</p>
+                          <p className="text-[11px] text-amber-800 font-medium">{item.selectedVariants.join(' • ')}</p>
                         )}
                         {item.notes && (
-                          <p className="text-[10px] text-gray-400 italic">"{item.notes}"</p>
+                          <p className="text-[11px] text-gray-500 italic">"{item.notes}"</p>
                         )}
                       </div>
-                      <span className="font-bold font-mono text-amber-400 text-sm">
+                      <span className="font-black font-mono text-amber-900 text-sm">
                         {formatRupiah(item.unitPrice * item.quantity)}
                       </span>
                     </div>
 
-                    <div className="flex justify-between items-center pt-2 border-t border-white/5">
+                    <div className="flex justify-between items-center pt-2 border-t border-amber-500/10">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => updateQuantity(idx, -1)}
-                          className="w-6 h-6 rounded-lg bg-gray-800 text-gray-300 flex items-center justify-center font-bold"
+                          className="w-7 h-7 rounded-lg bg-white border border-amber-300 text-amber-900 flex items-center justify-center font-bold shadow-sm hover:bg-amber-500 hover:text-white"
                         >
                           -
                         </button>
-                        <span className="font-bold text-white text-xs">{item.quantity}</span>
+                        <span className="font-black text-gray-900 text-xs px-1">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(idx, 1)}
-                          className="w-6 h-6 rounded-lg bg-gray-800 text-gray-300 flex items-center justify-center font-bold"
+                          className="w-7 h-7 rounded-lg bg-white border border-amber-300 text-amber-900 flex items-center justify-center font-bold shadow-sm hover:bg-amber-500 hover:text-white"
                         >
                           +
                         </button>
@@ -874,7 +866,7 @@ export default function CustomerOrderView({
 
                       <button
                         onClick={() => removeFromCart(idx)}
-                        className="text-[11px] text-red-400 hover:text-red-300 font-semibold"
+                        className="text-xs text-red-600 hover:text-red-700 font-bold hover:underline"
                       >
                         Hapus
                       </button>
@@ -885,25 +877,25 @@ export default function CustomerOrderView({
             </div>
 
             {cart.length > 0 && (
-              <div className="pt-4 border-t border-white/10 space-y-4 text-xs">
-                <div className="space-y-2 text-gray-400 font-medium">
+              <div className="pt-4 border-t border-gray-100 space-y-4 text-xs">
+                <div className="bg-amber-50/80 p-4 rounded-2xl border border-amber-500/20 space-y-2 text-gray-700 font-medium">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>{formatRupiah(cartSubtotal)}</span>
+                    <span className="font-mono text-gray-900 font-semibold">{formatRupiah(cartSubtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Pajak Restoran (PB1 10%)</span>
-                    <span>{formatRupiah(cartTax)}</span>
+                    <span className="font-mono text-gray-900 font-semibold">{formatRupiah(cartTax)}</span>
                   </div>
-                  <div className="flex justify-between font-black text-lg text-white pt-2 border-t border-white/10">
+                  <div className="flex justify-between font-black text-base text-gray-900 pt-2 border-t border-amber-500/20">
                     <span>Total Pembayaran</span>
-                    <span className="text-amber-400 font-mono">{formatRupiah(cartTotal)}</span>
+                    <span className="text-amber-800 font-black font-mono text-xl">{formatRupiah(cartTotal)}</span>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setCheckoutModal(true)}
-                  className="w-full gradient-gold text-gray-950 font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-amber-500/25 text-sm transition transform active:scale-95"
+                  className="w-full gradient-gold text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-amber-600/25 text-sm transition transform active:scale-95"
                 >
                   <span>Lanjut ke Pembayaran</span>
                   <ChevronRight className="w-5 h-5" />
@@ -915,83 +907,83 @@ export default function CustomerOrderView({
         </div>
       )}
 
-      {/* CHECKOUT & PAYMENT METHOD MODAL */}
+      {/* CHECKOUT & PAYMENT METHOD MODAL (CLEAN LIGHT THEME) */}
       {checkoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-          <div className="glass-panel border border-amber-500/30 text-gray-100 w-full max-w-md rounded-3xl p-5 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white border border-amber-500/30 text-gray-900 w-full max-w-md rounded-3xl p-5 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl">
             
-            <div className="flex justify-between items-center pb-3 border-b border-white/10">
-              <h3 className="font-extrabold text-base sm:text-lg text-white flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-400" /> Konfirmasi Pembayaran
+            <div className="flex justify-between items-center pb-3 border-b border-gray-100">
+              <h3 className="font-extrabold text-base sm:text-lg text-gray-900 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-600" /> Konfirmasi Pembayaran
               </h3>
-              <button onClick={() => setCheckoutModal(false)} className="text-gray-400 hover:text-white p-1 rounded-lg">
+              <button onClick={() => setCheckoutModal(false)} className="text-gray-400 hover:text-gray-900 p-1 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4 text-xs">
               <div>
-                <label className="font-bold text-gray-300 block mb-1.5 uppercase text-[10px] tracking-wider">Nama Pemesan</label>
+                <label className="font-extrabold text-gray-800 block mb-1.5 uppercase text-[10px] tracking-wider">Nama Pemesan</label>
                 <input
                   type="text"
                   placeholder="Masukkan nama Anda..."
                   value={customerName}
                   onChange={e => setCustomerName(e.target.value)}
-                  className="w-full glass-input rounded-2xl p-3 text-xs text-gray-100"
+                  className="w-full glass-input rounded-2xl p-3 text-xs text-gray-900 bg-amber-50/40 border border-amber-500/20"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-gray-300 block mb-1.5 uppercase text-[10px] tracking-wider">Metode Pembayaran</label>
+                <label className="font-extrabold text-gray-800 block mb-1.5 uppercase text-[10px] tracking-wider">Metode Pembayaran</label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => setPaymentMethod('qris')}
                     className={`p-3.5 rounded-2xl border text-left flex flex-col gap-1 transition-all ${
                       paymentMethod === 'qris'
-                        ? 'gradient-badge border-amber-500 text-amber-300 font-extrabold shadow-lg shadow-amber-500/20'
-                        : 'bg-gray-950/60 border-white/10 text-gray-400 hover:border-white/20'
+                        ? 'gradient-gold text-white font-extrabold shadow-md border-amber-600'
+                        : 'bg-amber-50/40 border-amber-500/20 text-gray-700 hover:bg-amber-100/60'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-white">QRIS / E-Wallet</span>
-                      <QrCode className="w-4 h-4 text-amber-400" />
+                      <span className={`font-bold text-xs ${paymentMethod === 'qris' ? 'text-white' : 'text-gray-900'}`}>QRIS / E-Wallet</span>
+                      <QrCode className={`w-4 h-4 ${paymentMethod === 'qris' ? 'text-white' : 'text-amber-600'}`} />
                     </div>
-                    <span className="text-[10px] text-gray-400">Bayar via GoPay, OVO, BCA</span>
+                    <span className={`text-[10px] ${paymentMethod === 'qris' ? 'text-amber-100' : 'text-gray-500'}`}>Bayar via GoPay, OVO, BCA</span>
                   </button>
 
                   <button
                     onClick={() => setPaymentMethod('cash')}
                     className={`p-3.5 rounded-2xl border text-left flex flex-col gap-1 transition-all ${
                       paymentMethod === 'cash'
-                        ? 'gradient-badge border-amber-500 text-amber-300 font-extrabold shadow-lg shadow-amber-500/20'
-                        : 'bg-gray-950/60 border-white/10 text-gray-400 hover:border-white/20'
+                        ? 'gradient-gold text-white font-extrabold shadow-md border-amber-600'
+                        : 'bg-amber-50/40 border-amber-500/20 text-gray-700 hover:bg-amber-100/60'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-white">Tunai di Kasir</span>
-                      <DollarSign className="w-4 h-4 text-emerald-400" />
+                      <span className={`font-bold text-xs ${paymentMethod === 'cash' ? 'text-white' : 'text-gray-900'}`}>Tunai di Kasir</span>
+                      <DollarSign className={`w-4 h-4 ${paymentMethod === 'cash' ? 'text-white' : 'text-emerald-600'}`} />
                     </div>
-                    <span className="text-[10px] text-gray-400">Bayar cash saat kasir memproses</span>
+                    <span className={`text-[10px] ${paymentMethod === 'cash' ? 'text-amber-100' : 'text-gray-500'}`}>Bayar cash saat kasir memproses</span>
                   </button>
                 </div>
               </div>
 
               {paymentMethod === 'qris' ? (
-                <div className="bg-gray-950/90 p-4 rounded-2xl border border-white/10 text-center space-y-2">
-                  <p className="text-[11px] text-gray-400 font-medium">Scan Kode QRIS di bawah ini:</p>
-                  <div className="bg-white p-3 rounded-2xl inline-block shadow-2xl border border-amber-500/40">
+                <div className="bg-amber-50/80 p-4 rounded-2xl border border-amber-500/20 text-center space-y-2">
+                  <p className="text-[11px] text-gray-600 font-semibold">Scan Kode QRIS di bawah ini:</p>
+                  <div className="bg-white p-3 rounded-2xl inline-block shadow-md border border-amber-300">
                     <div className="w-32 h-32 sm:w-36 sm:h-36 bg-gray-950 rounded-xl flex items-center justify-center p-2">
                       <QrCode className="w-full h-full text-white" />
                     </div>
                   </div>
-                  <p className="text-xs text-amber-400 font-extrabold font-mono">Total: {formatRupiah(cartTotal)}</p>
+                  <p className="text-xs text-amber-900 font-black font-mono">Total: {formatRupiah(cartTotal)}</p>
                 </div>
               ) : (
-                <div className="gradient-badge p-3.5 rounded-2xl border border-amber-500/30 text-amber-300 text-xs space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-white">
-                    <AlertCircle className="w-4 h-4 text-amber-400" /> Instruksi Pembayaran Tunai:
+                <div className="bg-amber-100/80 p-3.5 rounded-2xl border border-amber-300 text-amber-950 text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-900">
+                    <AlertCircle className="w-4 h-4 text-amber-700" /> Instruksi Pembayaran Tunai:
                   </div>
-                  <p className="text-gray-300 text-[11px]">
+                  <p className="text-amber-900 text-[11px] leading-relaxed">
                     Pesanan Anda akan dikirim ke Kasir dengan status <strong>Menunggu Bayar</strong>. Silakan menuju kasir untuk melakukan pembayaran.
                   </p>
                 </div>
@@ -1001,7 +993,7 @@ export default function CustomerOrderView({
             <button
               disabled={isProcessing}
               onClick={() => handleFinalCheckout(paymentMethod === 'qris')}
-              className="w-full gradient-gold text-gray-950 font-black py-3.5 sm:py-4 rounded-2xl text-xs shadow-xl shadow-amber-500/25 transition transform active:scale-95 flex items-center justify-center gap-2"
+              className="w-full gradient-gold text-white font-black py-3.5 sm:py-4 rounded-2xl text-xs shadow-xl shadow-amber-600/25 transition transform active:scale-95 flex items-center justify-center gap-2"
             >
               {isProcessing ? (
                 <span>Memproses Pesanan...</span>

@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "server": "node server/index.js",
-    "migrate": "node server/migrate.js --run"
+    "migrate": "node server/migrate.js --run",
+    "deploy": "git pull origin main && npm run build && pm2 restart caffe-api"
   },
   "dependencies": {
     "cors": "^2.8.6",

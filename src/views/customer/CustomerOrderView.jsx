@@ -294,59 +294,76 @@ export default function CustomerOrderView({
             className="w-full glass-input rounded-2xl pl-4 pr-10 py-2 sm:py-2.5 text-xs text-gray-100 placeholder-gray-500"
           />
         </div>
-      </div>
-
-      {/* PRODUCT GRID - 2 COLUMNS ON MOBILE */}
+      </div>      {/* PRODUCT GRID - 2 COLUMNS ON MOBILE */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3.5 sm:gap-6">
-        {filteredProducts.map(product => (
-          <div
-            key={product.id}
-            className="glass-card rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-between group"
-          >
-            <div>
-              {/* Product Image Header */}
-              <div className="relative h-36 sm:h-52 overflow-hidden">
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#181412] via-transparent to-black/30 opacity-90" />
-                
-                {/* Price Badge */}
-                <div className="absolute top-2 left-2 sm:top-3.5 sm:left-3.5 glass-panel bg-gray-950/80 backdrop-blur-md px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black text-amber-400 border border-amber-500/30 font-mono shadow-lg">
-                  {formatRupiah(product.price)}
+        {filteredProducts.map(product => {
+          const inCartQty = cart
+            .filter(i => i.productId === product.id)
+            .reduce((total, i) => total + i.quantity, 0);
+
+          return (
+            <div
+              key={product.id}
+              className="glass-card rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-between group relative border border-white/5 hover:border-amber-500/40"
+            >
+              <div>
+                {/* Product Image Header */}
+                <div className="relative h-36 sm:h-52 overflow-hidden">
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#181412] via-transparent to-black/30 opacity-90" />
+                  
+                  {/* Price Badge */}
+                  <div className="absolute top-2 left-2 sm:top-3.5 sm:left-3.5 glass-panel bg-gray-950/80 backdrop-blur-md px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black text-amber-400 border border-amber-500/30 font-mono shadow-lg">
+                    {formatRupiah(product.price)}
+                  </div>
+
+                  {/* Quantity In Cart Badge */}
+                  {inCartQty > 0 && (
+                    <div className="absolute top-2 right-2 sm:top-3.5 sm:right-3.5 gradient-gold text-gray-950 font-black px-2.5 py-1 rounded-xl text-[10px] sm:text-xs shadow-xl border border-amber-300/50 flex items-center gap-1 animate-pulse">
+                      <span>{inCartQty}x</span> di Keranjang
+                    </div>
+                  )}
+
+                  {/* Tag Badge */}
+                  {inCartQty === 0 && (
+                    <div className="hidden sm:flex absolute top-3.5 right-3.5 bg-amber-500/20 text-amber-300 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase border border-amber-500/40 items-center gap-1">
+                      <Flame className="w-3 h-3 text-amber-400" /> Best Seller
+                    </div>
+                  )}
                 </div>
 
-                {/* Tag Badge */}
-                <div className="hidden sm:flex absolute top-3.5 right-3.5 bg-amber-500/20 text-amber-300 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-extrabold uppercase border border-amber-500/40 items-center gap-1">
-                  <Flame className="w-3 h-3 text-amber-400" /> Best Seller
+                {/* Product Details */}
+                <div className="p-3 sm:p-5 space-y-1 sm:space-y-2">
+                  <h3 className="font-bold text-gray-100 text-xs sm:text-lg group-hover:text-amber-400 transition-colors line-clamp-1 sm:line-clamp-none">
+                    {product.name}
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-gray-400 leading-relaxed line-clamp-2">
+                    {product.description}
+                  </p>
                 </div>
               </div>
 
-              {/* Product Details */}
-              <div className="p-3 sm:p-5 space-y-1 sm:space-y-2">
-                <h3 className="font-bold text-gray-100 text-xs sm:text-lg group-hover:text-amber-400 transition-colors line-clamp-1 sm:line-clamp-none">
-                  {product.name}
-                </h3>
-                <p className="text-[11px] sm:text-xs text-gray-400 leading-relaxed line-clamp-2">
-                  {product.description}
-                </p>
+              {/* CTA Button */}
+              <div className="p-3 sm:p-5 pt-0">
+                <button
+                  onClick={() => openCustomization(product)}
+                  className={`w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-extrabold text-[11px] sm:text-xs transition-all duration-300 shadow-lg ${
+                    inCartQty > 0
+                      ? 'gradient-badge text-amber-300 border border-amber-500/60 hover:bg-amber-500 hover:text-gray-950'
+                      : 'bg-gradient-to-r from-amber-600/20 to-amber-500/20 hover:from-amber-600 hover:to-amber-500 text-amber-400 hover:text-gray-950 border border-amber-500/40 hover:shadow-amber-500/25'
+                  }`}
+                >
+                  <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span>{inCartQty > 0 ? `Tambah Lagi (${inCartQty}x)` : 'Pilih Varian & Pesan'}</span>
+                </button>
               </div>
             </div>
-
-            {/* CTA Button */}
-            <div className="p-3 sm:p-5 pt-0">
-              <button
-                onClick={() => openCustomization(product)}
-                className="w-full flex items-center justify-center gap-1 sm:gap-2 bg-gradient-to-r from-amber-600/20 to-amber-500/20 hover:from-amber-600 hover:to-amber-500 text-amber-400 hover:text-gray-950 border border-amber-500/40 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-extrabold text-[11px] sm:text-xs transition-all duration-300 shadow-lg hover:shadow-amber-500/25"
-              >
-                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span>Pilih & Pesan</span>
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* PRODUCT CUSTOMIZATION MODAL */}
@@ -377,8 +394,9 @@ export default function CustomerOrderView({
               {activeProduct.variants && activeProduct.variants.length > 0 ? (
                 activeProduct.variants.map((vGroup, idx) => (
                   <div key={idx} className="space-y-2">
-                    <label className="font-extrabold text-gray-200 block text-xs tracking-wide uppercase">
-                      {vGroup.name}
+                    <label className="font-extrabold text-gray-200 block text-xs tracking-wide uppercase flex items-center justify-between">
+                      <span>{vGroup.name}</span>
+                      <span className="text-[10px] text-amber-400 font-normal">Pilih salah satu</span>
                     </label>
                     <div className="grid grid-cols-2 gap-2.5">
                       {vGroup.options.map((opt, optIdx) => {
@@ -389,7 +407,7 @@ export default function CustomerOrderView({
                             onClick={() => setSelectedVariants({ ...selectedVariants, [vGroup.group]: opt })}
                             className={`p-2.5 sm:p-3 rounded-2xl border text-left flex justify-between items-center transition-all ${
                               isSelected
-                                ? 'gradient-badge border-amber-500 text-amber-300 font-extrabold shadow-lg shadow-amber-500/20'
+                                ? 'gradient-badge border-amber-500 text-amber-300 font-extrabold shadow-lg shadow-amber-500/20 scale-[1.02]'
                                 : 'bg-gray-950/60 border-white/10 text-gray-400 hover:border-white/20'
                             }`}
                           >
@@ -422,30 +440,36 @@ export default function CustomerOrderView({
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="p-4 sm:p-5 bg-gray-950 border-t border-white/10 flex items-center justify-between gap-3 sm:gap-4 shrink-0">
-              <div className="flex items-center gap-2 sm:gap-3 bg-gray-900 rounded-2xl p-1.5 border border-white/10">
-                <button
-                  onClick={() => setItemQty(Math.max(1, itemQty - 1))}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center font-extrabold text-gray-200 text-xs sm:text-sm"
-                >
-                  -
-                </button>
-                <span className="font-extrabold text-xs sm:text-sm w-4 sm:w-5 text-center">{itemQty}</span>
-                <button
-                  onClick={() => setItemQty(itemQty + 1)}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center font-extrabold text-gray-200 text-xs sm:text-sm"
-                >
-                  +
-                </button>
+            {/* Modal Footer with Clear Quantity Selector */}
+            <div className="p-4 sm:p-5 bg-gray-950 border-t border-white/10 flex flex-col gap-3 shrink-0">
+              
+              {/* Quantity Selector Header */}
+              <div className="flex items-center justify-between bg-gray-900/80 p-2.5 rounded-2xl border border-white/10">
+                <span className="text-xs font-extrabold text-gray-200 uppercase tracking-wider">Jumlah Pesanan (Qty):</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setItemQty(Math.max(1, itemQty - 1))}
+                    className="w-8 h-8 rounded-xl bg-gray-800 hover:bg-amber-500 hover:text-gray-950 flex items-center justify-center font-black text-gray-200 text-sm transition-all border border-white/10"
+                  >
+                    -
+                  </button>
+                  <span className="font-black text-sm w-6 text-center text-amber-400 font-mono text-base">{itemQty}</span>
+                  <button
+                    onClick={() => setItemQty(itemQty + 1)}
+                    className="w-8 h-8 rounded-xl bg-gray-800 hover:bg-amber-500 hover:text-gray-950 flex items-center justify-center font-black text-gray-200 text-sm transition-all border border-white/10"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
 
+              {/* Add to Cart Submit Button */}
               <button
                 onClick={handleAddToCart}
-                className="flex-1 flex items-center justify-between gradient-gold text-gray-950 font-black py-3 sm:py-3.5 px-4 sm:px-5 rounded-2xl text-xs shadow-xl shadow-amber-500/25 transition transform active:scale-95"
+                className="w-full flex items-center justify-between gradient-gold text-gray-950 font-black py-3.5 px-5 rounded-2xl text-xs sm:text-sm shadow-xl shadow-amber-500/25 transition transform active:scale-95"
               >
-                <span>Tambah ke Keranjang</span>
-                <span className="font-mono text-xs sm:text-sm">{formatRupiah(calculateCustomizedPrice() * itemQty)}</span>
+                <span>Tambah {itemQty}x ke Keranjang</span>
+                <span className="font-mono text-sm">{formatRupiah(calculateCustomizedPrice() * itemQty)}</span>
               </button>
             </div>
 

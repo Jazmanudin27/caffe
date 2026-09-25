@@ -320,8 +320,8 @@ export default function CustomerOrderView({
             </div>
           </div>
 
-          {/* PRODUCT GRID - 2 COLUMNS ON MOBILE */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3.5 sm:gap-6">
+          {/* PRODUCT GRID - 2 COLUMNS ON MOBILE, 4 COLUMNS ON DESKTOP */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5">
             {filteredProducts.map(product => {
               const inCartQty = cart
                 .filter(i => i.productId === product.id)

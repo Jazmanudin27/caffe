@@ -3,12 +3,14 @@ import Header from './components/Header';
 import CustomerOrderView from './components/CustomerOrderView';
 import CashierPosView from './components/CashierPosView';
 import KitchenDisplayView from './components/KitchenDisplayView';
-import { INITIAL_TABLES, INITIAL_ORDERS } from './data/mockData';
+import AdminDashboardView from './components/AdminDashboardView';
+import { INITIAL_TABLES, INITIAL_ORDERS, PRODUCTS } from './data/mockData';
 
 export default function App() {
   // Path Router helper
   const getInitialView = () => {
     const path = window.location.pathname.toLowerCase();
+    if (path.startsWith('/admin')) return 'admin';
     if (path.startsWith('/kasir')) return 'cashier';
     if (path.startsWith('/dapur')) return 'kitchen';
     return 'customer';
@@ -18,6 +20,12 @@ export default function App() {
   const [tables] = useState(INITIAL_TABLES);
   const [selectedTable, setSelectedTable] = useState(INITIAL_TABLES[2]); // Default Meja M-03
   
+  // Products State (Persisted in localStorage)
+  const [products, setProducts] = useState(() => {
+    const saved = localStorage.getItem('caffe_pos_products');
+    return saved ? JSON.parse(saved) : PRODUCTS;
+  });
+
   // Orders State (Persisted in localStorage)
   const [orders, setOrders] = useState(() => {
     const saved = localStorage.getItem('caffe_pos_orders');
@@ -27,6 +35,11 @@ export default function App() {
   // Cart State
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
+
+  // Sync products to localStorage
+  useEffect(() => {
+    localStorage.setItem('caffe_pos_products', JSON.stringify(products));
+  }, [products]);
 
   // Sync orders to localStorage
   useEffect(() => {
@@ -45,13 +58,32 @@ export default function App() {
   // Custom Navigation function
   const navigateTo = (path) => {
     window.history.pushState(null, '', path);
-    if (path.startsWith('/kasir')) {
+    if (path.startsWith('/admin')) {
+      setActiveView('admin');
+    } else if (path.startsWith('/kasir')) {
       setActiveView('cashier');
     } else if (path.startsWith('/dapur')) {
       setActiveView('kitchen');
     } else {
       setActiveView('customer');
     }
+  };
+
+  // Product CRUD Operations
+  const addProduct = (newProduct) => {
+    setProducts(prev => [newProduct, ...prev]);
+  };
+
+  const updateProduct = (id, updatedFields) => {
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updatedFields } : p));
+  };
+
+  const deleteProduct = (id) => {
+    setProducts(prev => prev.filter(p => p.id !== id));
+  };
+
+  const toggleProductAvailability = (id) => {
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, isAvailable: !p.isAvailable } : p));
   };
 
   // Cart operations
@@ -167,6 +199,18 @@ export default function App() {
             updateOrderStatus={updateOrderStatus}
           />
         )}
+
+        {activeView === 'admin' && (
+          <AdminDashboardView
+            products={products}
+            addProduct={addProduct}
+            updateProduct={updateProduct}
+            deleteProduct={deleteProduct}
+            toggleProductAvailability={toggleProductAvailability}
+            orders={orders}
+            tables={tables}
+          />
+        )}
       </main>
 
       {/* Global Footer */}
@@ -174,7 +218,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>&copy; 2026 CaffePOS System. Full-stack QR Order & Cashier System.</span>
           <div className="flex items-center gap-3 text-amber-400 font-mono text-[11px]">
-            <span>caffe.aspartech.com</span> • <span>/kasir</span> • <span>/dapur</span>
+            <span>caffe.aspartech.com</span> • <span>/kasir</span> • <span>/dapur</span> • <span>/admin</span>
           </div>
         </div>
       </footer>

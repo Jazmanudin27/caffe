@@ -1,5 +1,5 @@
 import React from 'react';
-import { Coffee, ShoppingBag, Sparkles, CircleDot } from 'lucide-react';
+import { Coffee, ShoppingBag, Sparkles, CircleDot, ShieldCheck } from 'lucide-react';
 
 export default function Header({ activeView, selectedTable, setSelectedTable, tables, cartCount, openCart }) {
   return (
@@ -25,12 +25,14 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
                 {activeView === 'customer' && 'QR SELF-ORDER'}
                 {activeView === 'cashier' && 'KASIR POS'}
                 {activeView === 'kitchen' && 'DAPUR KDS'}
+                {activeView === 'admin' && 'ADMIN CONTROL PANEL'}
               </span>
             </div>
             <p className="text-[11px] text-gray-400 font-medium">
               {activeView === 'customer' && 'Artisan Coffee & Smart Table Ordering'}
               {activeView === 'cashier' && 'Sistem Pembayaran & Kasir Restoran'}
               {activeView === 'kitchen' && 'Display Antrean Barista & Dapur'}
+              {activeView === 'admin' && 'Kelola Produk, Harga & Laporan Omset'}
             </p>
           </div>
         </div>
@@ -86,6 +88,13 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
             <div className="gradient-badge px-3.5 py-1.5 rounded-xl text-xs font-semibold text-purple-400 border border-purple-500/30 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
               <span>Halaman Dapur Aktif</span>
+            </div>
+          )}
+
+          {activeView === 'admin' && (
+            <div className="gradient-badge px-3.5 py-1.5 rounded-xl text-xs font-semibold text-amber-300 border border-amber-500/30 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-amber-400" />
+              <span>Session Admin</span>
             </div>
           )}
         </div>

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { 
   Coffee, CupSoda, Milk, Utensils, Cookie, Plus, ShoppingBag, 
-  Check, QrCode, AlertCircle, Clock, ChevronRight, X, Sparkles, DollarSign,
-  Flame, Star, Heart, CheckCircle2, ShieldCheck, Tag
+  QrCode, AlertCircle, Clock, ChevronRight, X, Sparkles, DollarSign,
+  Flame, ShieldCheck
 } from 'lucide-react';
-import { CATEGORIES, PRODUCTS } from '../data/mockData';
+import { CATEGORIES, PRODUCTS } from '../../data/mockData';
+import { formatRupiah } from '../../utils/formatters';
 
 export default function CustomerOrderView({ 
   selectedTable, 
@@ -231,7 +232,7 @@ export default function CustomerOrderView({
                 </div>
 
                 <div className="flex justify-between items-center text-xs text-gray-400 border-t border-white/5 pt-3">
-                  <span>{order.items.length} Menu • Total: <strong className="text-amber-400 font-mono text-sm">Rp {order.total.toLocaleString('id-ID')}</strong></span>
+                  <span>{order.items.length} Menu • Total: <strong className="text-amber-400 font-mono text-sm">{formatRupiah(order.total)}</strong></span>
                   <span className="uppercase font-mono text-[10px] bg-gray-950 px-2.5 py-1 rounded-lg border border-white/10 font-bold text-gray-300">
                     {order.paymentMethod}
                   </span>
@@ -296,7 +297,7 @@ export default function CustomerOrderView({
                 
                 {/* Price Badge */}
                 <div className="absolute top-3.5 left-3.5 glass-panel bg-gray-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-black text-amber-400 border border-amber-500/30 font-mono shadow-lg">
-                  Rp {product.price.toLocaleString('id-ID')}
+                  {formatRupiah(product.price)}
                 </div>
 
                 {/* Tag Badge */}
@@ -348,7 +349,7 @@ export default function CustomerOrderView({
               <div className="absolute bottom-4 left-5 right-5 space-y-1">
                 <h3 className="text-2xl font-black text-white">{activeProduct.name}</h3>
                 <p className="text-xs text-amber-400 font-extrabold font-mono">
-                  Harga dasar: Rp {activeProduct.price.toLocaleString('id-ID')}
+                  Harga dasar: {formatRupiah(activeProduct.price)}
                 </p>
               </div>
             </div>
@@ -376,7 +377,7 @@ export default function CustomerOrderView({
                           >
                             <span>{opt.label}</span>
                             {opt.extraPrice > 0 && (
-                              <span className="text-[10px] text-amber-400 font-mono">+Rp {opt.extraPrice.toLocaleString('id-ID')}</span>
+                              <span className="text-[10px] text-amber-400 font-mono">+{formatRupiah(opt.extraPrice)}</span>
                             )}
                           </button>
                         );
@@ -426,7 +427,7 @@ export default function CustomerOrderView({
                 className="flex-1 flex items-center justify-between gradient-gold text-gray-950 font-black py-3.5 px-5 rounded-2xl text-xs shadow-xl shadow-amber-500/25 transition transform active:scale-95"
               >
                 <span>Tambah ke Keranjang</span>
-                <span className="font-mono text-sm">Rp {(calculateCustomizedPrice() * itemQty).toLocaleString('id-ID')}</span>
+                <span className="font-mono text-sm">{formatRupiah(calculateCustomizedPrice() * itemQty)}</span>
               </button>
             </div>
 
@@ -469,7 +470,7 @@ export default function CustomerOrderView({
                         )}
                       </div>
                       <span className="font-bold font-mono text-amber-400 text-sm">
-                        Rp {(item.unitPrice * item.quantity).toLocaleString('id-ID')}
+                        {formatRupiah(item.unitPrice * item.quantity)}
                       </span>
                     </div>
 
@@ -507,15 +508,15 @@ export default function CustomerOrderView({
                 <div className="space-y-2 text-gray-400 font-medium">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>Rp {cartSubtotal.toLocaleString('id-ID')}</span>
+                    <span>{formatRupiah(cartSubtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Pajak Restoran (PB1 10%)</span>
-                    <span>Rp {cartTax.toLocaleString('id-ID')}</span>
+                    <span>{formatRupiah(cartTax)}</span>
                   </div>
                   <div className="flex justify-between font-black text-lg text-white pt-2 border-t border-white/10">
                     <span>Total Pembayaran</span>
-                    <span className="text-amber-400 font-mono">Rp {cartTotal.toLocaleString('id-ID')}</span>
+                    <span className="text-amber-400 font-mono">{formatRupiah(cartTotal)}</span>
                   </div>
                 </div>
 
@@ -594,7 +595,6 @@ export default function CustomerOrderView({
                 </div>
               </div>
 
-              {/* Dynamic QRIS / Cash Screen */}
               {paymentMethod === 'qris' ? (
                 <div className="bg-gray-950/90 p-4 rounded-2xl border border-white/10 text-center space-y-2">
                   <p className="text-[11px] text-gray-400 font-medium">Scan Kode QRIS di bawah ini:</p>
@@ -603,7 +603,7 @@ export default function CustomerOrderView({
                       <QrCode className="w-full h-full text-white" />
                     </div>
                   </div>
-                  <p className="text-xs text-amber-400 font-extrabold font-mono">Total: Rp {cartTotal.toLocaleString('id-ID')}</p>
+                  <p className="text-xs text-amber-400 font-extrabold font-mono">Total: {formatRupiah(cartTotal)}</p>
                 </div>
               ) : (
                 <div className="gradient-badge p-3.5 rounded-2xl border border-amber-500/30 text-amber-300 text-xs space-y-1">
@@ -653,7 +653,7 @@ export default function CustomerOrderView({
             </div>
 
             <div className="flex items-center gap-2 font-black text-base font-mono">
-              <span>Rp {cartTotal.toLocaleString('id-ID')}</span>
+              <span>{formatRupiah(cartTotal)}</span>
               <ChevronRight className="w-5 h-5 text-gray-950" />
             </div>
           </button>

@@ -6,7 +6,7 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
     <header className="glass-panel sticky top-0 z-40 border-b border-amber-500/10 px-4 py-3.5">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         
-        {/* Brand & Subtitle */}
+        {/* Brand Logo & App Title */}
         <div className="flex items-center gap-3">
           <div className="relative group cursor-pointer" onClick={() => window.location.href = '/'}>
             <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-700 rounded-2xl blur opacity-50 group-hover:opacity-100 transition duration-300" />
@@ -41,7 +41,7 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
         <div className="flex items-center gap-3">
           {activeView === 'customer' && (
             <>
-              {/* Table Selector Dropdown (Simulasi Meja) */}
+              {/* Table Selector Dropdown */}
               <div className="hidden sm:flex items-center gap-2 bg-gray-950/90 border border-amber-500/30 px-3.5 py-1.5 rounded-xl shadow-inner">
                 <CircleDot className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
                 <span className="text-[11px] text-gray-400 font-medium">Meja:</span>

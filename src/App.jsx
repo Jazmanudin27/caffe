@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import Header from './components/Header';
-import CustomerOrderView from './components/CustomerOrderView';
-import CashierPosView from './components/CashierPosView';
-import KitchenDisplayView from './components/KitchenDisplayView';
-import AdminDashboardView from './components/AdminDashboardView';
-import { INITIAL_TABLES, INITIAL_ORDERS, PRODUCTS } from './data/mockData';
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
+import CustomerOrderView from './views/customer/CustomerOrderView';
+import CashierPosView from './views/cashier/CashierPosView';
+import KitchenDisplayView from './views/kitchen/KitchenDisplayView';
+import AdminDashboardView from './views/admin/AdminDashboardView';
+import { INITIAL_TABLES } from './data/mockData';
+import { storageService } from './services/storageService';
 
 export default function App() {
   // Path Router helper
@@ -20,17 +22,11 @@ export default function App() {
   const [tables] = useState(INITIAL_TABLES);
   const [selectedTable, setSelectedTable] = useState(INITIAL_TABLES[2]); // Default Meja M-03
   
-  // Products State (Persisted in localStorage)
-  const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('caffe_pos_products');
-    return saved ? JSON.parse(saved) : PRODUCTS;
-  });
+  // Products State
+  const [products, setProducts] = useState(() => storageService.getProducts());
 
-  // Orders State (Persisted in localStorage)
-  const [orders, setOrders] = useState(() => {
-    const saved = localStorage.getItem('caffe_pos_orders');
-    return saved ? JSON.parse(saved) : INITIAL_ORDERS;
-  });
+  // Orders State
+  const [orders, setOrders] = useState(() => storageService.getOrders());
 
   // Cart State
   const [cart, setCart] = useState([]);
@@ -38,12 +34,12 @@ export default function App() {
 
   // Sync products to localStorage
   useEffect(() => {
-    localStorage.setItem('caffe_pos_products', JSON.stringify(products));
+    storageService.saveProducts(products);
   }, [products]);
 
   // Sync orders to localStorage
   useEffect(() => {
-    localStorage.setItem('caffe_pos_orders', JSON.stringify(orders));
+    storageService.saveOrders(orders);
   }, [orders]);
 
   // Sync route on popstate (Browser Back/Forward buttons)
@@ -54,20 +50,6 @@ export default function App() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
-
-  // Custom Navigation function
-  const navigateTo = (path) => {
-    window.history.pushState(null, '', path);
-    if (path.startsWith('/admin')) {
-      setActiveView('admin');
-    } else if (path.startsWith('/kasir')) {
-      setActiveView('cashier');
-    } else if (path.startsWith('/dapur')) {
-      setActiveView('kitchen');
-    } else {
-      setActiveView('customer');
-    }
-  };
 
   // Product CRUD Operations
   const addProduct = (newProduct) => {
@@ -159,7 +141,6 @@ export default function App() {
       {/* Global Navigation Header */}
       <Header
         activeView={activeView}
-        navigateTo={navigateTo}
         selectedTable={selectedTable}
         setSelectedTable={setSelectedTable}
         tables={tables}
@@ -214,14 +195,7 @@ export default function App() {
       </main>
 
       {/* Global Footer */}
-      <footer className="border-t border-white/5 bg-gray-950/80 py-4 px-4 text-center text-xs text-gray-500">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>&copy; 2026 CaffePOS System. Full-stack QR Order & Cashier System.</span>
-          <div className="flex items-center gap-3 text-amber-400 font-mono text-[11px]">
-            <span>caffe.aspartech.com</span> • <span>/kasir</span> • <span>/dapur</span> • <span>/admin</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
     </div>
   );

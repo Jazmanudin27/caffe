@@ -1,8 +1,7 @@
 import React from 'react';
-import { UtensilsCrossed, Clock, CheckCircle, Flame, Coffee, Bell } from 'lucide-react';
+import { UtensilsCrossed, Clock, CheckCircle, Coffee, Bell } from 'lucide-react';
 
 export default function KitchenDisplayView({ orders, updateOrderStatus }) {
-  // Only show orders that are PAID or CONFIRMED for kitchen prep
   const kitchenOrders = orders.filter(
     order => order.status === 'preparing' || order.status === 'ready'
   );
@@ -21,7 +20,7 @@ export default function KitchenDisplayView({ orders, updateOrderStatus }) {
               Kitchen & Barista Display (KDS)
             </h2>
             <p className="text-xs text-gray-400">
-              Antrean pembuatan pesanan real-time untuk Dapur & Barista.
+              Antrean pemrosesan pesanan real-time untuk Dapur & Barista.
             </p>
           </div>
         </div>
@@ -88,7 +87,6 @@ export default function KitchenDisplayView({ orders, updateOrderStatus }) {
                           </span>
                         </div>
 
-                        {/* Variants */}
                         {item.selectedVariants && item.selectedVariants.length > 0 && (
                           <div className="flex flex-wrap gap-1 pt-1">
                             {item.selectedVariants.map((v, vIdx) => (
@@ -99,7 +97,6 @@ export default function KitchenDisplayView({ orders, updateOrderStatus }) {
                           </div>
                         )}
 
-                        {/* Notes */}
                         {item.notes && (
                           <p className="text-xs text-red-400 font-bold pt-1 flex items-center gap-1">
                             ⚠️ Catatan: {item.notes}

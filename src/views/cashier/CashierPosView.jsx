@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { 
   Monitor, CheckCircle, Clock, Printer, DollarSign, 
-  Search, Filter, Coffee, AlertTriangle, ArrowRight, UserCheck, Plus
+  Search, AlertTriangle
 } from 'lucide-react';
-import ReceiptModal from './ReceiptModal';
+import ReceiptModal from '../../components/common/ReceiptModal';
+import { formatRupiah, formatRupiahInput, getNumericValue, formatDateTime } from '../../utils/formatters';
 
 export default function CashierPosView({ orders, updateOrderStatus, updateOrderPayment, selectedTable }) {
-  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'pending_payment', 'paid', 'preparing', 'completed'
+  const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   
   // Payment modal state
@@ -15,19 +16,6 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
   
   // Receipt view state
   const [receiptOrder, setReceiptOrder] = useState(null);
-
-  // Helper functions for Rupiah formatting
-  const formatRupiahInput = (val) => {
-    if (val === null || val === undefined) return '';
-    const numberString = val.toString().replace(/\D/g, '');
-    if (!numberString) return '';
-    return new Intl.NumberFormat('id-ID').format(parseInt(numberString, 10));
-  };
-
-  const getNumericValue = (val) => {
-    if (!val) return 0;
-    return parseInt(val.toString().replace(/\D/g, ''), 10) || 0;
-  };
 
   // Filter orders
   const filteredOrders = orders.filter(order => {
@@ -56,7 +44,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
       paymentStatus: 'paid',
       amountPaid: numericCash,
       changeAmount: changeAmount,
-      status: 'preparing' // Automatically send to kitchen upon payment verification!
+      status: 'preparing'
     });
 
     const updated = {
@@ -69,7 +57,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
 
     setCashModalOrder(null);
     setCashReceived('');
-    setReceiptOrder(updated); // Show receipt right after payment confirmation
+    setReceiptOrder(updated);
   };
 
   return (
@@ -179,7 +167,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                       Meja {order.tableNumber}
                     </span>
                     <p className="text-[10px] text-gray-500 mt-0.5">
-                      {new Date(order.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                      {formatDateTime(order.createdAt)}
                     </p>
                   </div>
                 </div>
@@ -212,7 +200,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                         )}
                         {item.notes && <p className="text-[10px] text-amber-300/80">"{item.notes}"</p>}
                       </div>
-                      <span className="font-mono text-gray-400">Rp {item.subtotal.toLocaleString('id-ID')}</span>
+                      <span className="font-mono text-gray-400">{formatRupiah(item.subtotal)}</span>
                     </div>
                   ))}
                 </div>
@@ -223,12 +211,11 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-400 text-xs">Total Pembayaran:</span>
                   <span className="font-bold font-mono text-amber-400 text-base">
-                    Rp {order.total.toLocaleString('id-ID')}
+                    {formatRupiah(order.total)}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {/* Action 1: Pay Cash Modal */}
                   {order.status === 'pending_payment' && (
                     <button
                       onClick={() => {
@@ -242,7 +229,6 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                     </button>
                   )}
 
-                  {/* Action 2: Print Receipt */}
                   <button
                     onClick={() => setReceiptOrder(order)}
                     className="p-2 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-xl text-xs font-semibold flex items-center gap-1 border border-gray-700 transition"
@@ -252,7 +238,6 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                     <span className="hidden sm:inline">Struk</span>
                   </button>
 
-                  {/* Action 3: Complete Order manually */}
                   {order.status === 'ready' && (
                     <button
                       onClick={() => updateOrderStatus(order.id, 'completed')}
@@ -291,7 +276,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                 <div className="flex justify-between text-sm font-bold text-white">
                   <span>Total Tagihan:</span>
                   <span className="text-amber-400 font-mono text-base">
-                    Rp {cashModalOrder.total.toLocaleString('id-ID')}
+                    {formatRupiah(cashModalOrder.total)}
                   </span>
                 </div>
               </div>
@@ -334,7 +319,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
               <div className="bg-gray-950 p-4 rounded-xl border border-gray-800 flex justify-between items-center">
                 <span className="text-gray-400">Uang Kembalian:</span>
                 <span className={`font-mono text-lg font-bold ${isEnoughCash ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {isEnoughCash ? `Rp ${changeAmount.toLocaleString('id-ID')}` : 'Uang Kurang!'}
+                  {isEnoughCash ? formatRupiah(changeAmount) : 'Uang Kurang!'}
                 </span>
               </div>
             </div>

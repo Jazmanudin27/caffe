@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { 
-  BarChart3, Package, Utensils, DollarSign, Plus, Edit3, Trash2, 
-  CheckCircle, XCircle, Search, Filter, TrendingUp, Calendar, 
-  ShoppingBag, Coffee, ArrowUpRight, ArrowDownRight, Layers, FileSpreadsheet, Sparkles, QrCode
+  BarChart3, Package, DollarSign, Plus, Edit3, Trash2, 
+  CheckCircle, XCircle, TrendingUp, Coffee, FileSpreadsheet, Sparkles, QrCode
 } from 'lucide-react';
-import { CATEGORIES } from '../data/mockData';
+import { CATEGORIES } from '../../data/mockData';
+import { formatRupiah, formatDateTime } from '../../utils/formatters';
 
 export default function AdminDashboardView({ 
   products, 
@@ -12,10 +12,9 @@ export default function AdminDashboardView({
   updateProduct, 
   deleteProduct, 
   toggleProductAvailability,
-  orders,
-  tables
+  orders
 }) {
-  const [adminTab, setAdminTab] = useState('financial'); // 'financial' | 'products' | 'tables'
+  const [adminTab, setAdminTab] = useState('financial'); // 'financial' | 'products'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -178,7 +177,7 @@ export default function AdminDashboardView({
                 </div>
               </div>
               <h3 className="text-2xl font-black text-amber-400 font-mono">
-                Rp {totalRevenue.toLocaleString('id-ID')}
+                {formatRupiah(totalRevenue)}
               </h3>
               <p className="text-[11px] text-gray-400">Dari {totalOrdersCount} transaksi terverifikasi</p>
             </div>
@@ -191,7 +190,7 @@ export default function AdminDashboardView({
                 </div>
               </div>
               <h3 className="text-2xl font-black text-blue-400 font-mono">
-                Rp {avgOrderValue.toLocaleString('id-ID')}
+                {formatRupiah(avgOrderValue)}
               </h3>
               <p className="text-[11px] text-gray-400">Rerata pembelanjaan per meja</p>
             </div>
@@ -204,7 +203,7 @@ export default function AdminDashboardView({
                 </div>
               </div>
               <h3 className="text-2xl font-black text-emerald-400 font-mono">
-                Rp {cashRevenue.toLocaleString('id-ID')}
+                {formatRupiah(cashRevenue)}
               </h3>
               <p className="text-[11px] text-gray-400">Pemasukan cash via Kasir</p>
             </div>
@@ -217,7 +216,7 @@ export default function AdminDashboardView({
                 </div>
               </div>
               <h3 className="text-2xl font-black text-purple-400 font-mono">
-                Rp {qrisRevenue.toLocaleString('id-ID')}
+                {formatRupiah(qrisRevenue)}
               </h3>
               <p className="text-[11px] text-gray-400">Pemasukan e-wallet / QRIS</p>
             </div>
@@ -252,7 +251,7 @@ export default function AdminDashboardView({
                       </div>
 
                       <span className="font-mono font-bold text-amber-400 text-sm">
-                        Rp {item.total.toLocaleString('id-ID')}
+                        {formatRupiah(item.total)}
                       </span>
                     </div>
                   ))
@@ -269,15 +268,15 @@ export default function AdminDashboardView({
               <div className="space-y-3 text-xs text-gray-300">
                 <div className="flex justify-between py-1 border-b border-white/5">
                   <span className="text-gray-400">Total Penjualan Kotor (Subtotal)</span>
-                  <span className="font-mono text-white font-bold">Rp {totalSubtotal.toLocaleString('id-ID')}</span>
+                  <span className="font-mono text-white font-bold">{formatRupiah(totalSubtotal)}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-white/5">
                   <span className="text-gray-400">Total Pajak Restoran (PB1 10%)</span>
-                  <span className="font-mono text-amber-400 font-bold">Rp {totalTax.toLocaleString('id-ID')}</span>
+                  <span className="font-mono text-amber-400 font-bold">{formatRupiah(totalTax)}</span>
                 </div>
                 <div className="flex justify-between py-2 font-black text-sm text-white border-t border-amber-500/30 pt-3">
                   <span>Pemasukan Bersih Resto</span>
-                  <span className="text-amber-400 font-mono">Rp {totalRevenue.toLocaleString('id-ID')}</span>
+                  <span className="text-amber-400 font-mono">{formatRupiah(totalRevenue)}</span>
                 </div>
               </div>
             </div>
@@ -309,11 +308,11 @@ export default function AdminDashboardView({
                   {orders.map(ord => (
                     <tr key={ord.id} className="hover:bg-white/5 transition">
                       <td className="p-3 font-mono font-bold text-amber-400">{ord.orderNumber}</td>
-                      <td className="p-3 text-gray-400">{new Date(ord.createdAt).toLocaleString('id-ID')}</td>
+                      <td className="p-3 text-gray-400">{formatDateTime(ord.createdAt)}</td>
                       <td className="p-3 font-bold text-white">Meja {ord.tableNumber}</td>
                       <td className="p-3">{ord.customerName}</td>
                       <td className="p-3 uppercase font-mono text-[11px] font-bold text-gray-300">{ord.paymentMethod}</td>
-                      <td className="p-3 font-mono font-bold text-white">Rp {ord.total.toLocaleString('id-ID')}</td>
+                      <td className="p-3 font-mono font-bold text-white">{formatRupiah(ord.total)}</td>
                       <td className="p-3">
                         {ord.paymentStatus === 'paid' ? (
                           <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
@@ -339,7 +338,6 @@ export default function AdminDashboardView({
       {adminTab === 'products' && (
         <div className="space-y-6">
           
-          {/* Controls Bar */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
               {CATEGORIES.map(cat => (
@@ -376,7 +374,6 @@ export default function AdminDashboardView({
             </div>
           </div>
 
-          {/* Products Table */}
           <div className="glass-panel rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-gray-300">
@@ -392,8 +389,6 @@ export default function AdminDashboardView({
                 <tbody className="divide-y divide-white/5">
                   {filteredProducts.map(prod => (
                     <tr key={prod.id} className="hover:bg-white/5 transition">
-                      
-                      {/* Product Name & Image */}
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <img
@@ -408,17 +403,14 @@ export default function AdminDashboardView({
                         </div>
                       </td>
 
-                      {/* Category */}
                       <td className="p-4 uppercase font-mono text-[11px] text-amber-400 font-bold">
                         {prod.categoryId}
                       </td>
 
-                      {/* Price */}
                       <td className="p-4 font-mono font-bold text-white text-sm">
-                        Rp {prod.price.toLocaleString('id-ID')}
+                        {formatRupiah(prod.price)}
                       </td>
 
-                      {/* Stock Toggle */}
                       <td className="p-4">
                         <button
                           onClick={() => toggleProductAvailability(prod.id)}
@@ -433,7 +425,6 @@ export default function AdminDashboardView({
                         </button>
                       </td>
 
-                      {/* Actions */}
                       <td className="p-4">
                         <div className="flex items-center justify-center gap-2">
                           <button
@@ -457,7 +448,6 @@ export default function AdminDashboardView({
                           </button>
                         </div>
                       </td>
-
                     </tr>
                   ))}
                 </tbody>

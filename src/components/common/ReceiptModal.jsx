@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Printer, CheckCircle, Coffee } from 'lucide-react';
+import { formatRupiah, formatDateTime } from '../../utils/formatters';
 
 export default function ReceiptModal({ order, onClose }) {
   if (!order) return null;
@@ -12,7 +13,7 @@ export default function ReceiptModal({ order, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       <div className="bg-white text-gray-900 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden font-mono text-sm border border-gray-200">
         
-        {/* Actions Bar (No-print) */}
+        {/* Actions Bar */}
         <div className="bg-gray-900 text-white p-3 flex justify-between items-center print:hidden">
           <span className="text-xs font-sans text-gray-300">Struk Pembayaran / Resi</span>
           <div className="flex items-center gap-2">
@@ -46,7 +47,7 @@ export default function ReceiptModal({ order, onClose }) {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Tanggal:</span>
-              <span>{new Date(order.createdAt).toLocaleString('id-ID')}</span>
+              <span>{formatDateTime(order.createdAt)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Meja:</span>
@@ -68,10 +69,10 @@ export default function ReceiptModal({ order, onClose }) {
               <div key={idx} className="space-y-0.5">
                 <div className="flex justify-between font-bold">
                   <span>{item.productName}</span>
-                  <span>Rp {(item.subtotal).toLocaleString('id-ID')}</span>
+                  <span>{formatRupiah(item.subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500">
-                  <span>{item.quantity} x Rp {item.unitPrice.toLocaleString('id-ID')}</span>
+                  <span>{item.quantity} x {formatRupiah(item.unitPrice)}</span>
                 </div>
                 {item.selectedVariants && item.selectedVariants.length > 0 && (
                   <div className="text-[11px] text-gray-400 italic">
@@ -91,15 +92,15 @@ export default function ReceiptModal({ order, onClose }) {
           <div className="space-y-1 text-xs">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
-              <span>Rp {order.subtotal.toLocaleString('id-ID')}</span>
+              <span>{formatRupiah(order.subtotal)}</span>
             </div>
             <div className="flex justify-between text-gray-600">
               <span>Pajak (PB1 10%)</span>
-              <span>Rp {order.tax.toLocaleString('id-ID')}</span>
+              <span>{formatRupiah(order.tax)}</span>
             </div>
             <div className="flex justify-between font-bold text-sm text-gray-900 pt-2 border-t border-gray-300">
               <span>TOTAL</span>
-              <span className="text-amber-700">Rp {order.total.toLocaleString('id-ID')}</span>
+              <span className="text-amber-700">{formatRupiah(order.total)}</span>
             </div>
             <div className="flex justify-between text-xs pt-1 text-gray-600">
               <span>Metode Pembayaran</span>
@@ -109,11 +110,11 @@ export default function ReceiptModal({ order, onClose }) {
               <>
                 <div className="flex justify-between text-xs text-gray-600">
                   <span>Tunai / Bayar</span>
-                  <span>Rp {Number(order.amountPaid).toLocaleString('id-ID')}</span>
+                  <span>{formatRupiah(order.amountPaid)}</span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-600">
                   <span>Kembalian</span>
-                  <span>Rp {Number(order.changeAmount || 0).toLocaleString('id-ID')}</span>
+                  <span>{formatRupiah(order.changeAmount || 0)}</span>
                 </div>
               </>
             )}

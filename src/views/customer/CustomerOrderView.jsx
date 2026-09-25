@@ -281,73 +281,6 @@ export default function CustomerOrderView({
       {/* VIEW TAB 1: BERANDA / KATALOG MENU */}
       {activeMobileTab === 'home' && (
         <div className="space-y-6 md:space-y-8 animate-fade-in">
-          
-          {/* HERO BANNER: Artisan Cafe & Table Session */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-700 via-amber-800 to-amber-950 text-white p-5 md:p-8 shadow-xl border border-amber-600/30">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-            
-            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
-              <div className="space-y-2 max-w-xl">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-amber-200 text-[10px] sm:text-xs font-bold uppercase tracking-wider border border-white/20">
-                  <ShieldCheck className="w-3.5 h-3.5 text-amber-300" /> TERVERIFIKASI QR CODE MEJA
-                </div>
-                
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
-                  Selamat Datang di <span className="text-amber-300 font-black">Meja {selectedTable.number}</span>
-                </h2>
-                
-                <p className="text-xs sm:text-sm text-amber-100/90 font-medium leading-relaxed">
-                  Nikmati racikan kopi artisan dan hidangan spesial. Pesan langsung dari meja tanpa perlu mengantri di kasir.
-                </p>
-
-                {/* Customer User Account Status Badge */}
-                <div className="pt-2">
-                  {currentUser ? (
-                    <div className="inline-flex items-center gap-3 bg-white/15 backdrop-blur-md border border-white/25 px-3.5 py-2 rounded-2xl text-xs text-white">
-                      <UserCheck className="w-4 h-4 text-emerald-300 shrink-0" />
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-left">
-                        <span>Pemesan: <strong className="font-extrabold text-white">{currentUser.name}</strong></span>
-                        <span className="text-amber-200 font-mono text-[11px]">({currentUser.phone})</span>
-                      </div>
-                      <button
-                        onClick={handleLogoutCustomer}
-                        className="ml-2 text-[10px] text-amber-200 hover:text-white flex items-center gap-1 font-bold border-l border-white/20 pl-2.5"
-                      >
-                        <LogOut className="w-3 h-3" /> Ganti Akun
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        setActiveMobileTab('account');
-                      }}
-                      className="inline-flex items-center gap-2 bg-white text-amber-900 font-black px-4 py-2 rounded-2xl text-xs shadow-lg hover:bg-amber-100 transition transform active:scale-95"
-                    >
-                      <Phone className="w-4 h-4 text-amber-700" />
-                      <span>Masuk / Daftar dengan No HP</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="bg-black/20 backdrop-blur-md p-4 rounded-2xl border border-white/15 space-y-2 w-full md:w-auto min-w-[220px] text-white">
-                <div className="flex items-center justify-between text-xs text-amber-100">
-                  <span>Status Meja:</span>
-                  <span className="text-emerald-300 font-bold flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" /> Terhubung
-                  </span>
-                </div>
-                <div className="text-xs text-amber-100 font-semibold flex justify-between border-t border-white/10 pt-2">
-                  <span>Token QR:</span>
-                  <span className="font-mono text-amber-300 font-bold">{selectedTable.token}</span>
-                </div>
-                <div className="text-[11px] text-amber-200 flex justify-between">
-                  <span>Kapasitas:</span>
-                  <span className="font-medium">{selectedTable.capacity} Kursi</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* CATEGORIES SLIDER & SEARCH BAR */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -465,17 +398,10 @@ export default function CustomerOrderView({
           <div className="flex items-center justify-between pb-3 border-b border-amber-500/20">
             <div>
               <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
-                <Clock className="w-6 h-6 text-amber-600" /> Status & Histori Pesanan Saya
+                <Clock className="w-6 h-6 text-amber-600" /> Pesanan
               </h2>
               <p className="text-xs text-gray-500">Pantau proses pesanan Anda di Meja {selectedTable.number} secara real-time</p>
             </div>
-            
-            <button
-              onClick={() => setActiveMobileTab('home')}
-              className="text-xs font-bold text-amber-700 hover:underline flex items-center gap-1"
-            >
-              + Tambah Menu Lain
-            </button>
           </div>
 
           {customerOrders.length === 0 ? (

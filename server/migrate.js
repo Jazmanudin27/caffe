@@ -156,11 +156,12 @@ export async function runMigration() {
     // Seed Default Users if empty
     const [usrRows] = await pool.query('SELECT COUNT(*) as count FROM users');
     if (usrRows[0].count === 0) {
-      console.log('🌱 Seeding Users...');
+      console.log('🌱 Seeding Staff Users (Admin, Kasir, Dapur)...');
       await pool.query(`
         INSERT INTO users (id, name, email, password_hash, role) VALUES
-        ('usr-admin', 'Admin Resto', 'admin@caffe.com', 'hash_admin', 'admin'),
-        ('usr-cashier1', 'Kasir #01', 'kasir1@caffe.com', 'hash_kasir', 'cashier')
+        ('usr-admin', 'Administrator Resto', 'admin@caffe.com', 'hash_admin', 'admin'),
+        ('usr-cashier1', 'Kasir POS #01', 'kasir1@caffe.com', 'hash_kasir', 'cashier'),
+        ('usr-kitchen1', 'Tim Dapur & Barista', 'dapur@caffe.com', 'hash_kitchen', 'kitchen')
       `);
     }
 

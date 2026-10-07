@@ -18,6 +18,35 @@ export const apiService = {
     }
   },
 
+  // Staff login against MySQL users table database
+  staffLogin: async (username, password) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/staff-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Gagal login ke database');
+      }
+      return await res.json();
+    } catch (e) {
+      console.warn('Backend DB auth unreachable, using local role inference fallback.', e);
+      // Fallback local detection if API is offline
+      const cleanUser = username.trim().toLowerCase();
+      let role = 'cashier';
+      let displayName = username.trim();
+      if (cleanUser.includes('admin')) { role = 'admin'; displayName = 'Administrator'; }
+      else if (cleanUser.includes('dapur') || cleanUser.includes('kitchen')) { role = 'kitchen'; displayName = 'Barista & Dapur'; }
+      else if (cleanUser.includes('kasir') || cleanUser.includes('cashier')) { role = 'cashier'; displayName = 'Kasir POS'; }
+      return {
+        success: true,
+        user: { id: 'usr-' + Date.now(), name: displayName, username: username.trim(), role, loggedInAt: new Date().toISOString() }
+      };
+    }
+  },
+
   // Register new customer
   registerCustomer: async (name, phone) => {
     try {

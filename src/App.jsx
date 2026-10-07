@@ -167,6 +167,11 @@ export default function App() {
 
   // Cart operations (Does NOT auto-open cart sidebar)
   const addToCart = (item) => {
+    const targetProd = products.find(p => p.id === item.productId);
+    if (targetProd && (targetProd.isAvailable === false || targetProd.is_available === 0)) {
+      return;
+    }
+
     setCart((prev) => {
       const existingIndex = prev.findIndex(
         (i) =>

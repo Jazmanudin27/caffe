@@ -72,6 +72,11 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
   };
 
   const handleAddProductToCart = (prod) => {
+    if (prod.isAvailable === false || prod.is_available === 0) {
+      alert(`Maaf, "${prod.name}" saat ini sedang habis stok dan tidak dapat dipesan.`);
+      return;
+    }
+
     setNewOrderCart(prev => {
       const idx = prev.findIndex(i => i.productId === prod.id);
       if (idx > -1) {
@@ -597,28 +602,58 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
 
               {/* Product Grid List (ONLY THIS SCROLLS) */}
               <div className="flex-1 overflow-y-auto pr-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 auto-rows-max">
-                {filteredProductsForNewOrder.map(prod => (
-                  <div
-                    key={prod.id}
-                    onClick={() => handleAddProductToCart(prod)}
-                    className="bg-white border border-amber-200/80 rounded-2xl p-2.5 flex flex-col justify-between hover:border-amber-500 hover:shadow-md cursor-pointer transition active:scale-95 group"
-                  >
-                    {prod.imageUrl ? (
-                      <img src={prod.imageUrl} alt={prod.name} className="w-full h-20 object-cover rounded-xl mb-1.5" />
-                    ) : (
-                      <div className="w-full h-20 bg-amber-100 rounded-xl mb-1.5 flex items-center justify-center text-amber-700">
-                        <Utensils className="w-7 h-7" />
+                {filteredProductsForNewOrder.map(prod => {
+                  const isAvailable = prod.isAvailable !== false && prod.is_available !== 0;
+
+                  return (
+                    <div
+                      key={prod.id}
+                      onClick={() => handleAddProductToCart(prod)}
+                      className={`bg-white border rounded-2xl p-2.5 flex flex-col justify-between transition ${
+                        isAvailable
+                          ? 'border-amber-200/80 hover:border-amber-500 hover:shadow-md cursor-pointer active:scale-95 group'
+                          : 'border-slate-200 opacity-60 grayscale-[0.3] cursor-not-allowed bg-slate-50 shadow-none'
+                      }`}
+                    >
+                      <div className="relative">
+                        {prod.imageUrl ? (
+                          <img src={prod.imageUrl} alt={prod.name} className="w-full h-20 object-cover rounded-xl mb-1.5" />
+                        ) : (
+                          <div className="w-full h-20 bg-amber-100 rounded-xl mb-1.5 flex items-center justify-center text-amber-700">
+                            <Utensils className="w-7 h-7" />
+                          </div>
+                        )}
+                        {!isAvailable && (
+                          <div className="absolute inset-0 bg-slate-950/40 rounded-xl mb-1.5 flex items-center justify-center">
+                            <span className="bg-rose-600 text-white font-extrabold px-2 py-0.5 rounded text-[8.5px] uppercase shadow">
+                              Habis
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                    <div>
-                      <h4 className="text-[11px] font-black text-gray-900 line-clamp-1 group-hover:text-amber-700">{prod.name}</h4>
-                      <span className="text-[11px] font-mono font-bold text-amber-800">{formatRupiah(prod.price)}</span>
+
+                      <div>
+                        <h4 className={`text-[11px] font-black line-clamp-1 ${
+                          isAvailable ? 'text-gray-900 group-hover:text-amber-700' : 'text-slate-500'
+                        }`}>{prod.name}</h4>
+                        <span className={`text-[11px] font-mono font-bold ${
+                          isAvailable ? 'text-amber-800' : 'text-slate-400 line-through'
+                        }`}>{formatRupiah(prod.price)}</span>
+                      </div>
+
+                      <button
+                        disabled={!isAvailable}
+                        className={`mt-2 w-full font-extrabold text-[10px] py-1 rounded-lg transition shadow-xs ${
+                          isAvailable
+                            ? 'bg-amber-100 group-hover:bg-amber-600 group-hover:text-white text-amber-900'
+                            : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                        }`}
+                      >
+                        {isAvailable ? '+ Tambah Menu' : 'Stok Habis'}
+                      </button>
                     </div>
-                    <button className="mt-2 w-full bg-amber-100 group-hover:bg-amber-600 group-hover:text-white text-amber-900 font-extrabold text-[10px] py-1 rounded-lg transition shadow-sm">
-                      + Tambah Menu
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
             </div>

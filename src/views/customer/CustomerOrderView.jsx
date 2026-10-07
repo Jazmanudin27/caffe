@@ -157,8 +157,16 @@ export default function CustomerOrderView({
     return matchesCat && matchesSearch;
   });
 
-  // Open product customization modal (Enforces Login First)
+  // Open product customization modal (Enforces Login First & Checks Stock)
   const openCustomization = (product) => {
+    if (product.isAvailable === false || product.is_available === 0) {
+      setToastMessage(`Maaf, menu "${product.name}" saat ini sedang habis stok.`);
+      setTimeout(() => {
+        setToastMessage(null);
+      }, 2500);
+      return;
+    }
+
     if (!currentUser) {
       setAuthStep('phone');
       setAuthError('');
@@ -194,7 +202,7 @@ export default function CustomerOrderView({
 
   // Add customized item to cart (Without auto-opening cart)
   const handleAddToCart = () => {
-    if (!activeProduct) return;
+    if (!activeProduct || activeProduct.isAvailable === false || activeProduct.is_available === 0) return;
     const variantLabels = Object.values(selectedVariants).filter(Boolean).map(v => v.label);
     const customizedPrice = calculateCustomizedPrice();
     
@@ -325,6 +333,7 @@ export default function CustomerOrderView({
           {/* PRODUCT GRID - 2 COLUMNS ON MOBILE, 4 COLUMNS ON DESKTOP */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {filteredProducts.map(product => {
+              const isAvailable = product.isAvailable !== false && product.is_available !== 0;
               const inCartQty = cart
                 .filter(i => i.productId === product.id)
                 .reduce((total, i) => total + i.quantity, 0);
@@ -333,7 +342,11 @@ export default function CustomerOrderView({
                 <div
                   key={product.id}
                   onClick={() => openCustomization(product)}
-                  className="bg-white rounded-xl overflow-hidden flex flex-col justify-between group relative border border-amber-500/20 hover:border-amber-500/60 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer select-none hover:-translate-y-0.5"
+                  className={`bg-white rounded-xl overflow-hidden flex flex-col justify-between group relative border transition-all duration-200 select-none ${
+                    isAvailable
+                      ? 'border-amber-500/20 hover:border-amber-500/60 shadow-xs hover:shadow-md cursor-pointer hover:-translate-y-0.5'
+                      : 'border-slate-200 opacity-65 grayscale-[0.25] cursor-not-allowed bg-slate-50 shadow-none'
+                  }`}
                 >
                   <div>
                     {/* Product Image Header */}
@@ -341,19 +354,30 @@ export default function CustomerOrderView({
                       <img
                         src={product.imageUrl}
                         alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
+                        className={`w-full h-full object-cover transition-transform duration-300 ease-out ${
+                          isAvailable ? 'group-hover:scale-105' : 'filter brightness-90'
+                        }`}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-40" />
                       
+                      {/* Out of Stock Overlay / Badge */}
+                      {!isAvailable && (
+                        <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[1px] flex items-center justify-center">
+                          <span className="bg-rose-600/95 text-white font-extrabold px-2.5 py-1 rounded-lg text-[9px] uppercase tracking-wider shadow-md border border-rose-300/40">
+                            Stok Habis
+                          </span>
+                        </div>
+                      )}
+
                       {/* Best Seller / Tag Badge */}
-                      {product.isBestSeller && inCartQty === 0 && (
+                      {isAvailable && product.isBestSeller && inCartQty === 0 && (
                         <div className="absolute top-1.5 right-1.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-1.5 py-0.5 rounded-md text-[8.5px] font-black uppercase tracking-wider shadow-xs flex items-center gap-0.5 border border-amber-300/30">
                           <Flame className="w-2.5 h-2.5 text-amber-200 fill-amber-200" /> Best Seller
                         </div>
                       )}
 
                       {/* Quantity In Cart Badge */}
-                      {inCartQty > 0 && (
+                      {isAvailable && inCartQty > 0 && (
                         <div className="absolute top-1.5 right-1.5 bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-md text-[9.5px] shadow-xs flex items-center gap-1 border border-emerald-300">
                           <span>{inCartQty}x</span> di Keranjang
                         </div>
@@ -362,7 +386,9 @@ export default function CustomerOrderView({
 
                     {/* Product Details */}
                     <div className="p-2.5 space-y-0.5">
-                      <h3 className="font-bold text-gray-900 text-xs group-hover:text-amber-700 transition-colors line-clamp-1">
+                      <h3 className={`font-bold text-xs transition-colors line-clamp-1 ${
+                        isAvailable ? 'text-gray-900 group-hover:text-amber-700' : 'text-slate-500'
+                      }`}>
                         {product.name}
                       </h3>
                       <p className="text-[10px] text-gray-500 font-medium leading-tight line-clamp-2">
@@ -375,11 +401,17 @@ export default function CustomerOrderView({
                   <div className="p-2.5 pt-1.5 flex items-center justify-between border-t border-amber-500/10 mt-1">
                     <div>
                       <span className="text-[8.5px] text-gray-400 block font-semibold leading-none">Harga</span>
-                      <span className="font-extrabold font-mono text-amber-900 text-xs sm:text-sm">
+                      <span className={`font-extrabold font-mono text-xs sm:text-sm ${
+                        isAvailable ? 'text-amber-900' : 'text-slate-400 line-through'
+                      }`}>
                         {formatRupiah(product.price)}
                       </span>
                     </div>
-                    {inCartQty > 0 ? (
+                    {!isAvailable ? (
+                      <span className="text-[9px] font-extrabold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                        Stok Habis
+                      </span>
+                    ) : inCartQty > 0 ? (
                       <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                         {inCartQty}x
                       </span>

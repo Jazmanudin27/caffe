@@ -8,6 +8,7 @@ import {
 import { CATEGORIES } from '../../data/mockData';
 import { formatRupiah, formatDateTime } from '../../utils/formatters';
 import { apiService } from '../../services/apiService';
+import ReceiptModal from '../../components/common/ReceiptModal';
 
 export default function AdminDashboardView({ 
   products = [], 
@@ -29,6 +30,12 @@ export default function AdminDashboardView({
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [profileDropdown, setProfileDropdown] = useState(false);
+
+  // Orders / Riwayat Transaksi Filter States
+  const [orderStatusFilter, setOrderStatusFilter] = useState('all');
+  const [orderPaymentFilter, setOrderPaymentFilter] = useState('all');
+  const [orderSearchQuery, setOrderSearchQuery] = useState('');
+  const [selectedOrderForReceipt, setSelectedOrderForReceipt] = useState(null);
 
   // Multi-Tenant Caffe Stores State
   const [storesList, setStoresList] = useState([
@@ -1063,6 +1070,294 @@ export default function AdminDashboardView({
 
             </div>
           )}
+
+          {/* SECTION: RIWAYAT TRANSAKSI PENJUALAN */}
+          {activeMenu === 'orders' && (() => {
+            // Filter orders
+            const filteredOrders = orders.filter(ord => {
+              // Search query filter
+              const matchesSearch = 
+                (ord.orderNumber || '').toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
+                (ord.customerName || '').toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
+                (ord.tableNumber || '').toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
+                (ord.id || '').toLowerCase().includes(orderSearchQuery.toLowerCase());
+
+              // Order Status filter
+              const matchesStatus = orderStatusFilter === 'all' || ord.status === orderStatusFilter;
+
+              // Payment Status filter
+              const matchesPayment = orderPaymentFilter === 'all' || ord.paymentStatus === orderPaymentFilter;
+
+              // Period filter
+              let matchesPeriod = true;
+              if (periodFilter !== 'all' && ord.createdAt) {
+                const orderDate = new Date(ord.createdAt);
+                const now = new Date();
+                if (periodFilter === 'today') {
+                  matchesPeriod = orderDate.toDateString() === now.toDateString();
+                } else if (periodFilter === '7days') {
+                  const diffDays = (now - orderDate) / (1000 * 60 * 60 * 24);
+                  matchesPeriod = diffDays <= 7;
+                } else if (periodFilter === 'month') {
+                  matchesPeriod = orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+                }
+              }
+
+              return matchesSearch && matchesStatus && matchesPayment && matchesPeriod;
+            });
+
+            // Summary stats for filtered orders
+            const totalOrdersCount = filteredOrders.length;
+            const paidOrders = filteredOrders.filter(o => o.paymentStatus === 'paid' || o.status === 'completed');
+            const unpaidOrders = filteredOrders.filter(o => o.paymentStatus === 'unpaid' && o.status !== 'completed');
+            const totalRevenue = paidOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            const totalUnpaid = unpaidOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+
+            return (
+              <div className="space-y-6">
+                
+                {/* Title Card */}
+                <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                  <div>
+                    <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 font-heading tracking-tight">
+                      <Receipt className="w-5 h-5 text-blue-600" />
+                      Riwayat Transaksi & Order History
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                      Total <strong className="text-slate-800">{orders.length}</strong> seluruh transaksi masuk di sistem CaffePOS.
+                    </p>
+                  </div>
+
+                  {/* Period Filter Buttons */}
+                  <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
+                    {[
+                      { id: 'today', label: 'Hari Ini' },
+                      { id: '7days', label: '7 Hari' },
+                      { id: 'month', label: 'Bulan Ini' },
+                      { id: 'all', label: 'Semua' },
+                    ].map((btn) => (
+                      <button
+                        key={btn.id}
+                        onClick={() => setPeriodFilter(btn.id)}
+                        className={`px-3 py-1.5 rounded-lg transition text-xs font-bold ${
+                          periodFilter === btn.id
+                            ? 'bg-white text-blue-700 shadow-xs border border-slate-200'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        {btn.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 4 Quick Stat Badges */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span className="text-[11px] font-bold text-slate-400 block mb-1">Total Transaksi</span>
+                    <h3 className="text-xl font-black text-slate-900 font-mono">{totalOrdersCount}</h3>
+                    <p className="text-[10px] text-slate-400 mt-0.5">Sesuai filter aktif</p>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span className="text-[11px] font-bold text-emerald-600 block mb-1">Total Pendapatan Lunas</span>
+                    <h3 className="text-xl font-black text-emerald-700 font-mono">{formatRupiah(totalRevenue)}</h3>
+                    <p className="text-[10px] text-emerald-600/70 mt-0.5">{paidOrders.length} transaksi selesai</p>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span className="text-[11px] font-bold text-amber-600 block mb-1">Menunggu Pembayaran</span>
+                    <h3 className="text-xl font-black text-amber-700 font-mono">{unpaidOrders.length}</h3>
+                    <p className="text-[10px] text-amber-600/70 mt-0.5">Senilai {formatRupiah(totalUnpaid)}</p>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span className="text-[11px] font-bold text-blue-600 block mb-1">Rata-Rata Transaksi</span>
+                    <h3 className="text-xl font-black text-blue-700 font-mono">
+                      {paidOrders.length > 0 ? formatRupiah(Math.round(totalRevenue / paidOrders.length)) : 'Rp 0'}
+                    </h3>
+                    <p className="text-[10px] text-blue-600/70 mt-0.5">AOV per nota lunas</p>
+                  </div>
+                </div>
+
+                {/* Search & Filter Bar */}
+                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-2.5 text-xs">
+                  {/* Search */}
+                  <div className="relative w-full md:w-72">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      placeholder="Cari No. Invoice / Pelanggan / Meja..."
+                      value={orderSearchQuery}
+                      onChange={e => setOrderSearchQuery(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                    />
+                  </div>
+
+                  {/* Status & Payment Filters */}
+                  <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+                    <select
+                      value={orderStatusFilter}
+                      onChange={e => setOrderStatusFilter(e.target.value)}
+                      className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none focus:border-blue-600 cursor-pointer"
+                    >
+                      <option value="all">Semua Status Dapur</option>
+                      <option value="pending_payment">Menunggu Bayar</option>
+                      <option value="preparing">Sedang Dibuat (Dapur)</option>
+                      <option value="ready">Siap Disajikan</option>
+                      <option value="completed">Selesai</option>
+                    </select>
+
+                    <select
+                      value={orderPaymentFilter}
+                      onChange={e => setOrderPaymentFilter(e.target.value)}
+                      className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none focus:border-blue-600 cursor-pointer"
+                    >
+                      <option value="all">Semua Pembayaran</option>
+                      <option value="paid">Lunas (Paid)</option>
+                      <option value="unpaid">Belum Bayar (Unpaid)</option>
+                    </select>
+
+                    {(orderSearchQuery || orderStatusFilter !== 'all' || orderPaymentFilter !== 'all') && (
+                      <button
+                        onClick={() => {
+                          setOrderSearchQuery('');
+                          setOrderStatusFilter('all');
+                          setOrderPaymentFilter('all');
+                        }}
+                        className="text-xs text-blue-600 hover:underline font-bold whitespace-nowrap px-1"
+                      >
+                        Reset Filter
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Orders Data Table */}
+                <div className="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs text-slate-700 border-collapse border border-slate-300">
+                      <thead className="bg-slate-100 text-slate-700 font-extrabold text-[10px] uppercase tracking-wider">
+                        <tr>
+                          <th className="py-2.5 px-3 text-center w-10 border border-slate-300 bg-slate-100">NO</th>
+                          <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">NO. INVOICE / ID</th>
+                          <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">WAKTU & TANGGAL</th>
+                          <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">PELANGGAN / MEJA</th>
+                          <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">ITEM PESANAN</th>
+                          <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">STATUS BAYAR</th>
+                          <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">STATUS DAPUR</th>
+                          <th className="py-2.5 px-3 text-right border border-slate-300 bg-slate-100">TOTAL TAGIHAN</th>
+                          <th className="py-2.5 px-3 text-center w-28 border border-slate-300 bg-slate-100">AKSI</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredOrders.length === 0 ? (
+                          <tr>
+                            <td colSpan="9" className="py-12 text-center text-slate-400 italic text-xs border border-slate-200">
+                              <Receipt className="w-8 h-8 text-slate-300 mx-auto mb-2 stroke-[1.5]" />
+                              Tidak ada riwayat transaksi yang cocok dengan filter.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredOrders.map((ord, idx) => {
+                            const isPaid = ord.paymentStatus === 'paid' || ord.status === 'completed';
+                            return (
+                              <tr key={ord.id || idx} className="hover:bg-blue-50/40 transition odd:bg-white even:bg-slate-50/50">
+                                <td className="py-2.5 px-3 text-center font-bold text-slate-500 text-[11px] border border-slate-200">
+                                  {idx + 1}
+                                </td>
+
+                                <td className="py-2.5 px-3 font-mono font-bold text-slate-900 border border-slate-200 text-xs">
+                                  <div className="flex flex-col">
+                                    <span className="font-extrabold text-blue-700">{ord.orderNumber || ord.id}</span>
+                                    <span className="text-[10px] text-slate-400 font-sans">{ord.orderType === 'takeaway' ? '🥡 Bungkus / Takeaway' : '🍽️ Dine-In'}</span>
+                                  </div>
+                                </td>
+
+                                <td className="py-2.5 px-3 border border-slate-200 text-[11px] text-slate-600 font-medium whitespace-nowrap">
+                                  {ord.createdAt ? formatDateTime(ord.createdAt) : '-'}
+                                </td>
+
+                                <td className="py-2.5 px-3 border border-slate-200">
+                                  <div className="flex flex-col">
+                                    <span className="font-extrabold text-slate-900 text-xs">{ord.customerName || 'Guest'}</span>
+                                    <span className="text-[10px] text-amber-800 font-bold">
+                                      Meja {ord.tableNumber || '-'}
+                                    </span>
+                                  </div>
+                                </td>
+
+                                <td className="py-2.5 px-3 border border-slate-200 max-w-xs">
+                                  <div className="space-y-0.5">
+                                    {(ord.items || []).map((item, iIdx) => (
+                                      <div key={iIdx} className="text-[11px] text-slate-800 leading-tight">
+                                        <span className="font-bold text-slate-900">{item.quantity}x</span> {item.productName}
+                                        {item.selectedVariants && item.selectedVariants.length > 0 && (
+                                          <span className="text-[9.5px] text-slate-500 block font-normal">
+                                            ({item.selectedVariants.join(', ')})
+                                          </span>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </td>
+
+                                <td className="py-2.5 px-3 text-center border border-slate-200">
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
+                                      isPaid
+                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                                        : 'bg-rose-50 text-rose-700 border border-rose-300'
+                                    }`}>
+                                      {isPaid ? '✓ Lunas' : 'Belum Bayar'}
+                                    </span>
+                                    <span className="text-[9px] text-slate-400 uppercase font-mono">
+                                      {ord.paymentMethod || 'cash'}
+                                    </span>
+                                  </div>
+                                </td>
+
+                                <td className="py-2.5 px-3 text-center border border-slate-200">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                    ord.status === 'completed'
+                                      ? 'bg-emerald-100 text-emerald-800'
+                                      : ord.status === 'ready'
+                                      ? 'bg-purple-100 text-purple-800'
+                                      : ord.status === 'preparing'
+                                      ? 'bg-blue-100 text-blue-800 animate-pulse'
+                                      : 'bg-amber-100 text-amber-800'
+                                  }`}>
+                                    {ord.status === 'completed' ? 'Selesai' :
+                                     ord.status === 'ready' ? 'Siap Saji' :
+                                     ord.status === 'preparing' ? 'Dapur' : 'Pending'}
+                                  </span>
+                                </td>
+
+                                <td className="py-2.5 px-3 text-right font-mono font-black text-slate-900 text-xs border border-slate-200">
+                                  {formatRupiah(ord.total || 0)}
+                                </td>
+
+                                <td className="py-2.5 px-3 text-center border border-slate-200">
+                                  <button
+                                    onClick={() => setSelectedOrderForReceipt(ord)}
+                                    className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-extrabold shadow-2xs transition inline-flex items-center gap-1 active:scale-95"
+                                  >
+                                    <Printer className="w-3 h-3 text-amber-400" />
+                                    <span>Struk</span>
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+              </div>
+            );
+          })()}
 
           {/* SECTION 0 & 5: DASHBOARD OVERVIEW & REKAPAN PENJUALAN + GRAFIK */}
           {(activeMenu === 'dashboard' || activeMenu === 'financial') && (() => {
@@ -2100,6 +2395,14 @@ export default function AdminDashboardView({
 
           </div>
         </div>
+      )}
+
+      {/* RECEIPT MODAL FOR ADMIN */}
+      {selectedOrderForReceipt && (
+        <ReceiptModal 
+          order={selectedOrderForReceipt} 
+          onClose={() => setSelectedOrderForReceipt(null)} 
+        />
       )}
 
     </div>

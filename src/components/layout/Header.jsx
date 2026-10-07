@@ -2,27 +2,43 @@ import React from 'react';
 import { Coffee, ShoppingBag, Sparkles, CircleDot, ShieldCheck } from 'lucide-react';
 
 export default function Header({ activeView, selectedTable, setSelectedTable, tables, cartCount, openCart }) {
+  const isCashier = activeView === 'cashier';
+
   return (
-    <header className="glass-panel sticky top-0 z-40 border-b border-amber-500/10 px-4 py-3.5">
+    <header className={`sticky top-0 z-40 px-4 py-3.5 transition-all duration-300 ${
+      isCashier
+        ? 'bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 text-white border-b border-amber-600/40 shadow-xl'
+        : 'glass-panel border-b border-amber-500/10'
+    }`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         
         {/* Brand Logo & App Title */}
         <div className="flex items-center gap-3">
           <div className="relative group cursor-pointer" onClick={() => window.location.href = '/'}>
-            <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-700 rounded-2xl blur opacity-50 group-hover:opacity-100 transition duration-300" />
-            <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-950 via-gray-900 to-amber-900 border border-amber-500/40 flex items-center justify-center shadow-2xl">
-              <Coffee className="w-6 h-6 text-amber-400 transform group-hover:rotate-12 transition duration-300" />
+            <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-700 rounded-2xl blur opacity-60 group-hover:opacity-100 transition duration-300" />
+            <div className={`relative w-11 h-11 rounded-2xl flex items-center justify-center shadow-2xl border ${
+              isCashier
+                ? 'bg-gradient-to-tr from-amber-800 to-orange-600 border-amber-400/60'
+                : 'bg-gradient-to-tr from-amber-950 via-gray-900 to-amber-900 border-amber-500/40'
+            }`}>
+              <Coffee className="w-6 h-6 text-amber-300 transform group-hover:rotate-12 transition duration-300" />
             </div>
           </div>
 
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-extrabold tracking-tight text-gray-900 flex items-center gap-1.5">
-                CAFFE<span className="text-amber-600">POS</span>
+              <h1 className={`text-xl font-extrabold tracking-tight flex items-center gap-1.5 ${
+                isCashier ? 'text-white' : 'text-gray-900'
+              }`}>
+                CAFFE<span className="text-amber-500">POS</span>
               </h1>
               {activeView !== 'customer' && (
-                <span className="gradient-badge text-[10px] font-bold px-2.5 py-0.5 rounded-full text-amber-800 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-amber-600" /> 
+                <span className={`text-[10px] font-black px-3 py-0.5 rounded-full flex items-center gap-1 shadow-sm ${
+                  isCashier 
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border border-amber-300/40' 
+                    : 'gradient-badge text-amber-800'
+                }`}>
+                  <Sparkles className="w-3 h-3 text-amber-300" /> 
                   {activeView === 'cashier' && 'KASIR POS'}
                   {activeView === 'kitchen' && 'DAPUR KDS'}
                   {activeView === 'admin' && 'ADMIN CONTROL PANEL'}
@@ -30,7 +46,7 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
               )}
             </div>
             {activeView !== 'customer' && (
-              <p className="text-[11px] text-gray-500 font-medium">
+              <p className={`text-[11px] font-medium ${isCashier ? 'text-amber-200/80' : 'text-gray-500'}`}>
                 {activeView === 'cashier' && 'Sistem Pembayaran & Kasir Restoran'}
                 {activeView === 'kitchen' && 'Display Antrean Barista & Dapur'}
                 {activeView === 'admin' && 'Kelola Produk, Harga & Laporan Omset'}
@@ -80,8 +96,8 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
           )}
 
           {activeView === 'cashier' && (
-            <div className="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
+            <div className="bg-gradient-to-r from-emerald-900/80 to-teal-900/80 text-emerald-300 border border-emerald-500/40 px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-inner backdrop-blur-md">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               <span>Halaman Kasir Aktif</span>
             </div>
           )}
@@ -105,3 +121,4 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
     </header>
   );
 }
+

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { CATEGORIES } from '../../data/mockData';
 import { formatRupiah, formatDateTime } from '../../utils/formatters';
+import { apiService } from '../../services/apiService';
 
 export default function AdminDashboardView({ 
   products = [], 
@@ -25,6 +26,86 @@ export default function AdminDashboardView({
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [profileDropdown, setProfileDropdown] = useState(false);
+
+  // Categories State
+  const [categoriesList, setCategoriesList] = useState([
+    { id: 'coffee', name: 'Espresso & Coffee', slug: 'coffee', display_order: 1 },
+    { id: 'non-coffee', name: 'Non-Coffee', slug: 'non-coffee', display_order: 2 },
+    { id: 'food', name: 'Makanan Berat', slug: 'food', display_order: 3 },
+    { id: 'snack', name: 'Snack & Pastry', slug: 'snack', display_order: 4 }
+  ]);
+
+  useEffect(() => {
+    const fetchCats = async () => {
+      const fetched = await apiService.getCategories();
+      if (fetched && Array.isArray(fetched) && fetched.length > 0) {
+        setCategoriesList(fetched);
+      }
+    };
+    fetchCats();
+  }, []);
+
+  // Category Modal State
+  const [categoryModal, setCategoryModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [catFormData, setCatFormData] = useState({
+    name: '',
+    slug: '',
+    displayOrder: '1'
+  });
+
+  const openAddCategoryModal = () => {
+    setEditingCategory(null);
+    setCatFormData({
+      name: '',
+      slug: '',
+      displayOrder: (categoriesList.length + 1).toString()
+    });
+    setCategoryModal(true);
+  };
+
+  const openEditCategoryModal = (cat) => {
+    setEditingCategory(cat);
+    setCatFormData({
+      name: cat.name,
+      slug: cat.slug || cat.id,
+      displayOrder: (cat.display_order || 1).toString()
+    });
+    setCategoryModal(true);
+  };
+
+  const handleSaveCategory = async (e) => {
+    e.preventDefault();
+    const orderNum = parseInt(catFormData.displayOrder) || 1;
+    const slugName = catFormData.slug.trim() || catFormData.name.toLowerCase().replace(/\s+/g, '-');
+
+    if (editingCategory) {
+      const updatedCat = {
+        name: catFormData.name,
+        slug: slugName,
+        display_order: orderNum
+      };
+      setCategoriesList(prev => prev.map(c => c.id === editingCategory.id ? { ...c, ...updatedCat } : c));
+      await apiService.updateCategory(editingCategory.id, updatedCat);
+    } else {
+      const newCat = {
+        id: slugName || ('cat-' + Date.now()),
+        name: catFormData.name,
+        slug: slugName,
+        display_order: orderNum
+      };
+      setCategoriesList(prev => [...prev, newCat]);
+      await apiService.createCategory(newCat);
+    }
+    setCategoryModal(false);
+  };
+
+  const handleDeleteCategory = async (catId) => {
+    if (window.confirm('Hapus kategori ini dari katalog?')) {
+      setCategoriesList(prev => prev.filter(c => c.id !== catId));
+      await apiService.deleteCategory(catId);
+    }
+  };
 
   // Live Clock State
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -523,6 +604,115 @@ export default function AdminDashboardView({
             </div>
           )}
 
+          {/* SECTION: KELOLA KATEGORI MENU */}
+          {activeMenu === 'categories' && (
+            <div className="space-y-6">
+              
+              {/* Top Title Bar Card */}
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                <div>
+                  <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 font-heading tracking-tight">
+                    <Layers className="w-5 h-5 text-blue-600" />
+                    Kelola Kategori Menu CaffePOS
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                    Total <strong className="text-slate-800">{categoriesList.length}</strong> kategori produk aktif.
+                  </p>
+                </div>
+
+                <button
+                  onClick={openAddCategoryModal}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3.5 py-2 rounded-lg text-xs shadow-sm flex items-center gap-1.5 transition active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>Tambah Kategori Baru</span>
+                </button>
+              </div>
+
+              {/* Compact Bordered Data Table Layout (table-bordered / table-sm / btn-sm) */}
+              <div className="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-700 border-collapse border border-slate-300">
+                    <thead className="bg-slate-100 text-slate-700 font-extrabold text-[10px] uppercase tracking-wider">
+                      <tr>
+                        <th className="py-2.5 px-3 text-center w-10 border border-slate-300 bg-slate-100">NO</th>
+                        <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">NAMA KATEGORI</th>
+                        <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">SLUG / KODE</th>
+                        <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">URUTAN TAMPIL</th>
+                        <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">JUMLAH PRODUK</th>
+                        <th className="py-2.5 px-3 text-center w-20 border border-slate-300 bg-slate-100">AKSI</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {categoriesList.length === 0 ? (
+                        <tr>
+                          <td colSpan="6" className="py-10 text-center text-slate-400 italic text-xs border border-slate-200">
+                            Tidak ada data kategori ditemukan.
+                          </td>
+                        </tr>
+                      ) : (
+                        categoriesList.map((cat, idx) => {
+                          const prodCount = products.filter(p => p.categoryId === cat.id || p.categoryId === cat.slug).length;
+                          return (
+                            <tr key={cat.id || idx} className="hover:bg-blue-50/40 transition odd:bg-white even:bg-slate-50/50">
+                              <td className="py-2 px-3 text-center font-bold text-slate-500 text-[11px] border border-slate-200">{idx + 1}</td>
+                              
+                              <td className="py-2 px-3 border border-slate-200">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center font-black text-xs">
+                                    <Layers className="w-3.5 h-3.5" />
+                                  </div>
+                                  <h4 className="font-bold text-slate-900 text-xs">{cat.name}</h4>
+                                </div>
+                              </td>
+
+                              <td className="py-2 px-3 font-mono text-slate-600 text-xs border border-slate-200">
+                                <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-300/60 font-bold">
+                                  {cat.slug || cat.id}
+                                </span>
+                              </td>
+
+                              <td className="py-2 px-3 text-center font-bold text-slate-800 text-xs border border-slate-200">
+                                {cat.display_order || (idx + 1)}
+                              </td>
+
+                              <td className="py-2 px-3 text-center border border-slate-200">
+                                <span className="bg-emerald-50 text-emerald-700 border border-emerald-300/80 px-2 py-0.5 rounded text-[10px] font-extrabold inline-block">
+                                  {prodCount} Menu
+                                </span>
+                              </td>
+
+                              <td className="py-2 px-3 text-center border border-slate-200">
+                                <div className="flex items-center justify-center gap-1">
+                                  <button
+                                    onClick={() => openEditCategoryModal(cat)}
+                                    className="p-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-2xs transition"
+                                    title="Edit Kategori"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                  </button>
+                                  
+                                  <button
+                                    onClick={() => handleDeleteCategory(cat.id)}
+                                    className="p-1 bg-rose-600 hover:bg-rose-700 text-white rounded-md shadow-2xs transition"
+                                    title="Hapus Kategori"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          )}
+
           {/* SECTION 2: LAPORAN KEUANGAN */}
           {activeMenu === 'financial' && (
             <div className="space-y-6">
@@ -745,6 +935,75 @@ export default function AdminDashboardView({
                   className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-5 py-2.5 rounded-xl shadow-md"
                 >
                   Simpan Produk
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      {/* ADD / EDIT CATEGORY MODAL */}
+      {categoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white text-slate-900 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl border border-slate-200">
+            
+            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+              <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                <Layers className="w-5 h-5 text-blue-600" />
+                {editingCategory ? 'Edit Data Kategori Menu' : 'Tambah Kategori Menu Baru'}
+              </h3>
+              <button onClick={() => setCategoryModal(false)} className="text-slate-400 hover:text-slate-900 font-bold p-1">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCategory} className="space-y-4 text-xs font-medium">
+              <div>
+                <label className="font-extrabold text-slate-800 block mb-1">Nama Kategori</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: Desserts & Cake"
+                  value={catFormData.name}
+                  onChange={e => setCatFormData({ ...catFormData, name: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="font-extrabold text-slate-800 block mb-1">Kode / Slug URL (Opsional)</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: dessert"
+                  value={catFormData.slug}
+                  onChange={e => setCatFormData({ ...catFormData, slug: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="font-extrabold text-slate-800 block mb-1">Urutan Tampil</label>
+                <input
+                  type="number"
+                  required
+                  value={catFormData.displayOrder}
+                  onChange={e => setCatFormData({ ...catFormData, displayOrder: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-mono font-bold"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCategoryModal(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 font-bold"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-5 py-2.5 rounded-xl shadow-md"
+                >
+                  Simpan Kategori
                 </button>
               </div>
             </form>

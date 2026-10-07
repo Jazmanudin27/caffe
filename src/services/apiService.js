@@ -62,6 +62,55 @@ export const apiService = {
     }
   },
 
+  // Fetch Categories from API
+  getCategories: async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/categories`);
+      if (!res.ok) throw new Error('Failed to fetch categories');
+      return await res.json();
+    } catch (e) {
+      console.warn('API Offline, using default categories', e);
+      return null;
+    }
+  },
+
+  createCategory: async (cat) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/categories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cat)
+      });
+      return await res.json();
+    } catch (e) {
+      console.warn('Backend API offline for createCategory', e);
+    }
+  },
+
+  updateCategory: async (id, cat) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cat)
+      });
+      return await res.json();
+    } catch (e) {
+      console.warn('Backend API offline for updateCategory', e);
+    }
+  },
+
+  deleteCategory: async (id) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
+        method: 'DELETE'
+      });
+      return await res.json();
+    } catch (e) {
+      console.warn('Backend API offline for deleteCategory', e);
+    }
+  },
+
   // Fetch Products from MySQL API
   getProducts: async () => {
     try {

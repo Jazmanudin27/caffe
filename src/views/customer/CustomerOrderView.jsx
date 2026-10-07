@@ -330,57 +330,59 @@ export default function CustomerOrderView({
               return (
                 <div
                   key={product.id}
-                  className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col justify-between group relative border border-amber-500/20 hover:border-amber-500/50 shadow-sm hover:shadow-md transition-all duration-300"
+                  className="bg-white rounded-2xl overflow-hidden flex flex-col justify-between group relative border border-amber-500/20 hover:border-amber-500/50 shadow-sm hover:shadow-md transition-all duration-300"
                 >
                   <div>
                     {/* Product Image Header */}
-                    <div className="relative h-36 sm:h-52 overflow-hidden">
+                    <div className="relative h-32 sm:h-44 overflow-hidden">
                       <img
                         src={product.imageUrl}
                         alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-50" />
                       
-                      {/* Price Badge */}
-                      <div className="absolute top-2 left-2 sm:top-3.5 sm:left-3.5 bg-white/95 text-gray-900 px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-[10px] sm:text-xs font-black font-mono shadow-md border border-amber-500/20">
-                        {formatRupiah(product.price)}
-                      </div>
-
-                      {/* Quantity In Cart Badge */}
-                      {inCartQty > 0 && (
-                        <div className="absolute top-2 right-2 sm:top-3.5 sm:right-3.5 gradient-gold text-white font-black px-2.5 py-1 rounded-xl text-[10px] sm:text-xs shadow-md flex items-center gap-1 animate-pulse border border-amber-300">
-                          <span>{inCartQty}x</span> di Keranjang
+                      {/* Best Seller / Tag Badge */}
+                      {inCartQty === 0 && (
+                        <div className="absolute top-2 right-2 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1 border border-amber-300/30">
+                          <Flame className="w-2.5 h-2.5 text-amber-200 fill-amber-200" /> Best Seller
                         </div>
                       )}
 
-                      {/* Tag Badge */}
-                      {inCartQty === 0 && (
-                        <div className="flex absolute top-2 right-2 sm:top-3.5 sm:right-3.5 gradient-gold text-white px-2.5 py-1 sm:px-3 sm:py-1 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md items-center gap-1 border border-amber-300/40">
-                          <Flame className="w-3 h-3 text-white fill-white" /> Best Seller
+                      {/* Quantity In Cart Badge */}
+                      {inCartQty > 0 && (
+                        <div className="absolute top-2 right-2 bg-emerald-600 text-white font-black px-2 py-0.5 rounded-lg text-[10px] shadow-sm flex items-center gap-1 border border-emerald-300 animate-pulse">
+                          <span>{inCartQty}x</span> di Keranjang
                         </div>
                       )}
                     </div>
 
                     {/* Product Details */}
-                    <div className="p-3 sm:p-5 space-y-1 sm:space-y-2">
-                      <h3 className="font-extrabold text-gray-900 text-xs sm:text-base group-hover:text-amber-700 transition-colors line-clamp-1 sm:line-clamp-none">
+                    <div className="p-3 space-y-1">
+                      <h3 className="font-extrabold text-gray-900 text-xs sm:text-sm group-hover:text-amber-700 transition-colors line-clamp-1">
                         {product.name}
                       </h3>
-                      <p className="text-[11px] sm:text-xs text-gray-600 font-medium leading-relaxed line-clamp-2">
+                      <p className="text-[10px] sm:text-xs text-gray-500 font-medium leading-tight line-clamp-2">
                         {product.description}
                       </p>
                     </div>
                   </div>
 
-                  {/* CTA Button */}
-                  <div className="p-3 sm:p-5 pt-0">
+                  {/* Footer Price & Compact Action Button */}
+                  <div className="p-3 pt-2 flex items-center justify-between gap-1.5 border-t border-amber-500/10 mt-1">
+                    <div>
+                      <span className="text-[9px] text-gray-400 block font-semibold leading-none">Harga</span>
+                      <span className="font-black font-mono text-amber-900 text-xs sm:text-sm">
+                        {formatRupiah(product.price)}
+                      </span>
+                    </div>
+
                     <button
                       onClick={() => openCustomization(product)}
-                      className="w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm gradient-gold text-white shadow-md hover:shadow-lg transition transform active:scale-95 border border-amber-500/40"
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl font-black text-xs gradient-gold text-white shadow-sm hover:shadow transition transform active:scale-95 border border-amber-400/30"
                     >
-                      <Plus className="w-4 h-4 text-white stroke-[3]" />
-                      <span>{inCartQty > 0 ? `Tambah (${inCartQty}x)` : 'Tambah'}</span>
+                      <Plus className="w-3.5 h-3.5 text-white stroke-[3]" />
+                      <span>{inCartQty > 0 ? `${inCartQty}x` : 'Tambah'}</span>
                     </button>
                   </div>
                 </div>

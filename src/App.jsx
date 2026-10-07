@@ -186,11 +186,14 @@ export default function App() {
 
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
+  const isShowingLogin = activeView === 'login' || (activeView !== 'customer' && !staffUser);
+  const showHeaderAndFooter = !isShowingLogin && activeView !== 'admin';
+
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-gray-800 flex flex-col font-sans selection:bg-amber-500 selection:text-white">
       
-      {/* Global Navigation Header (Hidden in Admin Portal View for full desktop portal experience) */}
-      {activeView !== 'admin' || !staffUser ? (
+      {/* Global Navigation Header (Hidden on Login Page and Admin Portal View) */}
+      {showHeaderAndFooter ? (
         <Header
           activeView={activeView}
           selectedTable={selectedTable}
@@ -222,7 +225,7 @@ export default function App() {
         )}
 
         {/* Unified Staff Login Portal View */}
-        {(activeView === 'login' || (activeView !== 'customer' && !staffUser)) && (
+        {isShowingLogin && (
           <StaffLoginView
             targetView={activeView === 'login' ? 'cashier' : activeView}
             onLoginSuccess={handleStaffLoginSuccess}
@@ -260,8 +263,8 @@ export default function App() {
         )}
       </main>
 
-      {/* Global Footer (Hidden on Admin Portal Page) */}
-      {activeView !== 'admin' || !staffUser ? <Footer /> : null}
+      {/* Global Footer (Hidden on Login Page and Admin Portal View) */}
+      {showHeaderAndFooter ? <Footer /> : null}
 
     </div>
   );

@@ -750,16 +750,20 @@ export default function CustomerOrderView({
                                   setSelectedVariants({ ...selectedVariants, [vGroup.group]: opt });
                                 }
                               }}
-                              className={`p-2.5 sm:p-3 rounded-2xl border text-left flex justify-between items-center transition-all ${
+                              className={`p-2.5 rounded-xl border text-left flex flex-col items-start justify-center gap-0.5 transition-all cursor-pointer ${
                                 isSelected
                                   ? 'gradient-gold text-white font-extrabold shadow-md border-amber-600 scale-[1.02]'
                                   : 'bg-amber-50/40 border-amber-500/20 text-gray-800 hover:bg-amber-100/60'
                               }`}
                             >
-                              <span className="font-bold">{opt.label}</span>
-                              {opt.extraPrice > 0 && (
-                                <span className={`text-[10px] font-mono ${isSelected ? 'text-amber-100 font-bold' : 'text-amber-800 font-bold'}`}>
+                              <span className="font-bold text-xs leading-tight">{opt.label}</span>
+                              {opt.extraPrice > 0 ? (
+                                <span className={`text-[10px] font-mono font-bold ${isSelected ? 'text-amber-100' : 'text-amber-800'}`}>
                                   +{formatRupiah(opt.extraPrice)}
+                                </span>
+                              ) : (
+                                <span className={`text-[9.5px] ${isSelected ? 'text-amber-100/80' : 'text-gray-400'}`}>
+                                  +Rp 0
                                 </span>
                               )}
                             </button>

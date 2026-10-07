@@ -260,6 +260,9 @@ export default function App() {
             updateOrderStatus={updateOrderStatus}
             updateOrderPayment={updateOrderPayment}
             selectedTable={selectedTable}
+            products={products}
+            createOrder={createOrder}
+            tables={tables}
           />
         )}
 

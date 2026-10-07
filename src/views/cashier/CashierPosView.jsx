@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { 
   Monitor, CheckCircle, Clock, Printer, DollarSign, 
-  Search, AlertTriangle, ChefHat, Sparkles, Receipt, ArrowRight, ShieldAlert, Layers
+  Search, AlertTriangle, ChefHat, Sparkles, Receipt, ArrowRight, ShieldAlert, Layers,
+  Plus, Trash2, ShoppingBag, Utensils, X
 } from 'lucide-react';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import { formatRupiah, formatRupiahInput, getNumericValue, formatDateTime } from '../../utils/formatters';
 
-export default function CashierPosView({ orders, updateOrderStatus, updateOrderPayment, selectedTable }) {
+export default function CashierPosView({ orders, updateOrderStatus, updateOrderPayment, selectedTable, products = [], createOrder, tables = [] }) {
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -16,6 +17,15 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
   
   // Receipt view state
   const [receiptOrder, setReceiptOrder] = useState(null);
+
+  // New Order Creation Modal State (Kasir POS Direct Order)
+  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
+  const [newCustomerName, setNewCustomerName] = useState('Pelanggan Walk-In');
+  const [newTableNumber, setNewTableNumber] = useState('M-01');
+  const [newOrderType, setNewOrderType] = useState('dine_in');
+  const [newPaymentNow, setNewPaymentNow] = useState(true);
+  const [newOrderCart, setNewOrderCart] = useState([]);
+  const [productSearch, setProductSearch] = useState('');
 
   // Filter orders
   const filteredOrders = orders.filter(order => {
@@ -60,18 +70,89 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
     setReceiptOrder(updated);
   };
 
-  const countPending = orders.filter(o => o.status === 'pending_payment').length;
-  const countPreparing = orders.filter(o => o.status === 'preparing').length;
-  const countCompleted = orders.filter(o => o.status === 'completed').length;
+  const handleAddProductToCart = (prod) => {
+    setNewOrderCart(prev => {
+      const idx = prev.findIndex(i => i.productId === prod.id);
+      if (idx > -1) {
+        const updated = [...prev];
+        updated[idx].quantity += 1;
+        updated[idx].subtotal = updated[idx].quantity * updated[idx].unitPrice;
+        return updated;
+      }
+      return [
+        ...prev,
+        {
+          productId: prod.id,
+          productName: prod.name,
+          quantity: 1,
+          unitPrice: prod.price,
+          subtotal: prod.price,
+          selectedVariants: [],
+          notes: ''
+        }
+      ];
+    });
+  };
+
+  const handleUpdateNewCartQty = (idx, delta) => {
+    setNewOrderCart(prev => {
+      const updated = [...prev];
+      const newQty = updated[idx].quantity + delta;
+      if (newQty <= 0) {
+        return prev.filter((_, i) => i !== idx);
+      }
+      updated[idx].quantity = newQty;
+      updated[idx].subtotal = newQty * updated[idx].unitPrice;
+      return updated;
+    });
+  };
+
+  const handleRemoveNewCartItem = (idx) => {
+    setNewOrderCart(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const newOrderTotals = newOrderCart.reduce((sum, item) => sum + item.subtotal, 0);
+  const newOrderTax = newOrderTotals * 0.1;
+  const newOrderGrandTotal = newOrderTotals + newOrderTax;
+
+  const handleSubmitNewOrder = async () => {
+    if (newOrderCart.length === 0) return;
+    const ordNumber = 'INV-' + Math.floor(1000 + Math.random() * 9000);
+    const newOrd = {
+      id: 'ord-' + Date.now(),
+      orderNumber: ordNumber,
+      tableNumber: newTableNumber,
+      customerName: newCustomerName.trim() || 'Guest Walk-In',
+      orderType: newOrderType,
+      status: newPaymentNow ? 'preparing' : 'pending_payment',
+      paymentStatus: newPaymentNow ? 'paid' : 'unpaid',
+      paymentMethod: 'cash',
+      subtotal: newOrderTotals,
+      tax: newOrderTax,
+      total: newOrderGrandTotal,
+      createdAt: new Date().toISOString(),
+      items: newOrderCart
+    };
+
+    if (createOrder) {
+      await createOrder(newOrd);
+    }
+    setIsNewOrderModalOpen(false);
+    setNewOrderCart([]);
+    setNewCustomerName('Pelanggan Walk-In');
+  };
+
+  const filteredProductsForNewOrder = products.filter(p => 
+    p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+    (p.description && p.description.toLowerCase().includes(productSearch.toLowerCase()))
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6 animate-fade-in pb-24 text-gray-800">
       
-
-
       {/* Filter Tabs & Search Navigation Bar */}
-      <div className="bg-white/80 backdrop-blur-md p-3 rounded-2xl border border-amber-500/20 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 no-scrollbar">
+      <div className="bg-white/80 backdrop-blur-md p-3 rounded-2xl border border-amber-500/20 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 no-scrollbar">
           <button
             onClick={() => setFilterStatus('all')}
             className={`px-4 py-2.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
@@ -121,16 +202,28 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
           </button>
         </div>
 
-        {/* Search Input Box */}
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-amber-600 absolute left-3.5 top-3" />
-          <input
-            type="text"
-            placeholder="Cari Nota, Meja, Nama..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-amber-50/30 border border-amber-500/30 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-900 font-semibold placeholder-gray-400 focus:outline-none focus:border-amber-600 focus:bg-white shadow-inner transition"
-          />
+        {/* Action Controls: Search + Tambah Pesanan Button */}
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          {/* Add New Order Button */}
+          <button
+            onClick={() => setIsNewOrderModalOpen(true)}
+            className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-amber-600/30 transition whitespace-nowrap shrink-0 active:scale-95"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>+ Tambah Pesanan</span>
+          </button>
+
+          {/* Search Input Box */}
+          <div className="relative flex-1 md:w-64">
+            <Search className="w-4 h-4 text-amber-600 absolute left-3 top-3" />
+            <input
+              type="text"
+              placeholder="Cari Nota, Meja..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full bg-amber-50/30 border border-amber-500/30 rounded-xl pl-9 pr-4 py-2.5 text-xs text-gray-900 font-semibold placeholder-gray-400 focus:outline-none focus:border-amber-600 focus:bg-white shadow-inner transition"
+            />
+          </div>
         </div>
       </div>
 
@@ -410,6 +503,214 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
               <CheckCircle className="w-4.5 h-4.5" />
               <span>Konfirmasi Lunas & Kirim ke Dapur</span>
             </button>
+
+          </div>
+        </div>
+      )}
+
+      {/* NEW ORDER CREATION MODAL (DIRECT KASIR POS ORDER) */}
+      {isNewOrderModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="bg-white border-2 border-amber-500/40 text-gray-900 w-full max-w-4xl rounded-3xl p-5 sm:p-6 space-y-5 shadow-2xl my-auto relative max-h-[92vh] flex flex-col">
+            
+            {/* Modal Header */}
+            <div className="flex justify-between items-center pb-4 border-b border-amber-100 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-600 text-white flex items-center justify-center shadow-md">
+                  <Plus className="w-6 h-6 stroke-[3]" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base sm:text-lg text-gray-900">Input Pesanan Baru (Kasir POS)</h3>
+                  <p className="text-[11px] text-gray-500">Pilih menu, meja pelanggan, & status pembayaran</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsNewOrderModalOpen(false)} 
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body: Split Grid layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 overflow-y-auto flex-1 pr-1">
+              
+              {/* Left Column: Metadata & Menu Selector (7 cols) */}
+              <div className="lg:col-span-7 space-y-4">
+                
+                {/* Customer & Table Setup */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-amber-50/50 p-3.5 rounded-2xl border border-amber-200/70">
+                  <div>
+                    <label className="text-[11px] font-extrabold text-amber-900 block mb-1">Nama Pelanggan</label>
+                    <input
+                      type="text"
+                      value={newCustomerName}
+                      onChange={(e) => setNewCustomerName(e.target.value)}
+                      placeholder="Contoh: Pak Budi"
+                      className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-extrabold text-amber-900 block mb-1">Pilih Meja / Lokasi</label>
+                    <select
+                      value={newTableNumber}
+                      onChange={(e) => setNewTableNumber(e.target.value)}
+                      className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-bold text-amber-950 focus:outline-none focus:ring-2 focus:ring-amber-500/40 cursor-pointer"
+                    >
+                      {tables.map(t => (
+                        <option key={t.id} value={t.number}>Meja {t.number} ({t.capacity} Kursi)</option>
+                      ))}
+                      <option value="Takeaway">Bungkus / Takeaway</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Search Menu Input */}
+                <div className="relative">
+                  <Search className="w-4 h-4 text-amber-600 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    placeholder="Cari nama menu / makanan..."
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    className="w-full bg-white border border-amber-300 rounded-xl pl-9 pr-3 py-2 text-xs font-semibold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                  />
+                </div>
+
+                {/* Product Grid List */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-64 overflow-y-auto pr-1">
+                  {filteredProductsForNewOrder.map(prod => (
+                    <div
+                      key={prod.id}
+                      onClick={() => handleAddProductToCart(prod)}
+                      className="bg-white border border-amber-200/80 rounded-2xl p-2.5 flex flex-col justify-between hover:border-amber-500 hover:shadow-md cursor-pointer transition active:scale-95 group"
+                    >
+                      {prod.imageUrl ? (
+                        <img src={prod.imageUrl} alt={prod.name} className="w-full h-16 object-cover rounded-xl mb-1.5" />
+                      ) : (
+                        <div className="w-full h-16 bg-amber-100 rounded-xl mb-1.5 flex items-center justify-center text-amber-700">
+                          <Utensils className="w-6 h-6" />
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="text-[11px] font-black text-gray-900 line-clamp-1 group-hover:text-amber-700">{prod.name}</h4>
+                        <span className="text-xs font-mono font-bold text-amber-800">{formatRupiah(prod.price)}</span>
+                      </div>
+                      <button className="mt-2 w-full bg-amber-100 group-hover:bg-amber-600 group-hover:text-white text-amber-900 font-extrabold text-[10px] py-1 rounded-lg transition">
+                        + Tambah
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+              </div>
+
+              {/* Right Column: Cart Summary & Checkout (5 cols) */}
+              <div className="lg:col-span-5 bg-amber-50/40 p-4 rounded-2xl border border-amber-200/70 flex flex-col justify-between space-y-4">
+                
+                <div>
+                  <div className="flex justify-between items-center pb-2 border-b border-amber-200/60 mb-2">
+                    <span className="text-xs font-extrabold text-amber-900 flex items-center gap-1.5">
+                      <ShoppingBag className="w-4 h-4 text-amber-700" />
+                      Daftar Pesanan ({newOrderCart.length})
+                    </span>
+                    {newOrderCart.length > 0 && (
+                      <button onClick={() => setNewOrderCart([])} className="text-[10px] text-red-600 hover:underline font-bold">
+                        Hapus Semua
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Cart Items List */}
+                  {newOrderCart.length === 0 ? (
+                    <div className="py-10 text-center text-gray-400 text-xs font-semibold">
+                      Belum ada menu dipilih.<br />Klik menu di sebelah kiri untuk menambah.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {newOrderCart.map((item, idx) => (
+                        <div key={idx} className="bg-white p-2.5 rounded-xl border border-amber-200 flex items-center justify-between gap-2 shadow-sm">
+                          <div className="flex-1 min-w-0">
+                            <h5 className="text-[11px] font-black text-gray-900 truncate">{item.productName}</h5>
+                            <span className="text-[10px] font-mono text-amber-800 font-bold">{formatRupiah(item.subtotal)}</span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={() => handleUpdateNewCartQty(idx, -1)}
+                              className="w-6 h-6 rounded-lg bg-gray-100 hover:bg-amber-200 font-bold text-gray-700 text-xs flex items-center justify-center"
+                            >
+                              -
+                            </button>
+                            <span className="font-mono font-black text-xs w-4 text-center">{item.quantity}</span>
+                            <button
+                              onClick={() => handleUpdateNewCartQty(idx, 1)}
+                              className="w-6 h-6 rounded-lg bg-amber-100 hover:bg-amber-200 font-bold text-amber-900 text-xs flex items-center justify-center"
+                            >
+                              +
+                            </button>
+                            <button
+                              onClick={() => handleRemoveNewCartItem(idx)}
+                              className="text-red-500 hover:text-red-700 p-1"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Subtotal & Action Bar */}
+                <div className="space-y-3 pt-3 border-t border-amber-200/80">
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between text-gray-600">
+                      <span>Subtotal:</span>
+                      <span className="font-mono font-bold">{formatRupiah(newOrderTotals)}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-600">
+                      <span>PB1 Tax (10%):</span>
+                      <span className="font-mono font-bold">{formatRupiah(newOrderTax)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-black text-amber-950 pt-1 border-t border-amber-200/60">
+                      <span>Total Tagihan:</span>
+                      <span className="font-mono text-base font-black text-amber-900">{formatRupiah(newOrderGrandTotal)}</span>
+                    </div>
+                  </div>
+
+                  {/* Payment Status Option */}
+                  <div className="bg-white p-2.5 rounded-xl border border-amber-300 flex items-center justify-between text-xs">
+                    <span className="font-bold text-gray-700">Status Pembayaran:</span>
+                    <button
+                      type="button"
+                      onClick={() => setNewPaymentNow(!newPaymentNow)}
+                      className={`px-3 py-1 rounded-lg font-black text-[11px] transition ${
+                        newPaymentNow ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'
+                      }`}
+                    >
+                      {newPaymentNow ? '✓ LUNAS (CASH)' : 'BELUM BAYAR'}
+                    </button>
+                  </div>
+
+                  <button
+                    disabled={newOrderCart.length === 0}
+                    onClick={handleSubmitNewOrder}
+                    className={`w-full py-3.5 rounded-2xl font-black text-xs shadow-lg transition flex items-center justify-center gap-2 ${
+                      newOrderCart.length > 0
+                        ? 'bg-gradient-to-r from-amber-600 via-amber-700 to-orange-600 hover:brightness-110 text-white shadow-amber-600/30 active:scale-95'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'
+                    }`}
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Simpan & Kirim Ke Dapur</span>
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
 
           </div>
         </div>

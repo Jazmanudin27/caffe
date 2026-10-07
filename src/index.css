@@ -1,8 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
-  --font-heading: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Plus Jakarta Sans', 'Inter', sans-serif;
 
   --bg-primary: #FAF7F2;
   --bg-secondary: #F3ECE1;
@@ -19,8 +20,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+body, button, input, select, textarea, table, th, td {
+  font-family: var(--font-body) !important;
+}
+
 body {
-  font-family: var(--font-body);
   background-color: var(--bg-primary);
   color: #1F1815;
   min-height: 100vh;
@@ -31,8 +35,8 @@ body {
   background-attachment: fixed;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: var(--font-heading) !important;
   letter-spacing: -0.025em;
 }
 

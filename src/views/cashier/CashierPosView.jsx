@@ -614,110 +614,111 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
             </div>
 
             {/* Right Column: Fixed Cart Summary & Checkout (5 cols - NO PARENT SCROLL) */}
-            <div className="lg:col-span-5 bg-white p-4 sm:p-5 rounded-3xl border border-amber-300/80 flex flex-col justify-between min-h-0 overflow-hidden shadow-sm space-y-3">
+            <div className="lg:col-span-5 bg-white p-4 sm:p-5 rounded-3xl border border-amber-300/80 flex flex-col min-h-0 overflow-hidden shadow-sm">
               
-              <div className="flex flex-col flex-1 min-h-0">
-                <div className="flex justify-between items-center pb-2.5 border-b border-amber-200 mb-2.5 shrink-0">
-                  <span className="text-xs font-extrabold text-amber-900 flex items-center gap-2">
-                    <ShoppingBag className="w-4 h-4 text-amber-700" />
-                    Keranjang Pesanan ({newOrderCart.length})
-                  </span>
-                  {newOrderCart.length > 0 && (
-                    <button onClick={() => setNewOrderCart([])} className="text-[11px] text-red-600 hover:underline font-extrabold">
-                      Hapus Semua
-                    </button>
-                  )}
+              {/* Cart Header */}
+              <div className="flex justify-between items-center pb-2.5 border-b border-amber-200 mb-2.5 shrink-0">
+                <span className="text-xs font-extrabold text-amber-900 flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-amber-700" />
+                  Keranjang Pesanan ({newOrderCart.length})
+                </span>
+                {newOrderCart.length > 0 && (
+                  <button onClick={() => setNewOrderCart([])} className="text-[11px] text-red-600 hover:underline font-extrabold">
+                    Hapus Semua
+                  </button>
+                )}
+              </div>
+
+              {/* Cart Items List - FLEXIBLE WITHOUT OUTSIDE SCROLL */}
+              <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-2 mb-2">
+                {newOrderCart.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-gray-400 text-xs font-semibold py-8">
+                    <ShoppingBag className="w-10 h-10 text-amber-200 mb-2 stroke-[1.5]" />
+                    <span>Belum ada menu dipilih.</span>
+                    <span className="text-[10px] text-gray-400">Klik menu di sebelah kiri untuk menambah.</span>
+                  </div>
+                ) : (
+                  newOrderCart.map((item, idx) => (
+                    <div key={idx} className="bg-amber-50/50 p-2.5 rounded-xl border border-amber-200/80 flex items-center justify-between gap-2 shadow-sm">
+                      <div className="flex-1 min-w-0">
+                        <h5 className="text-[11px] font-black text-gray-900 truncate">{item.productName}</h5>
+                        <span className="text-[10px] font-mono text-amber-800 font-bold">{formatRupiah(item.subtotal)}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() => handleUpdateNewCartQty(idx, -1)}
+                          className="w-6 h-6 rounded-lg bg-white hover:bg-amber-200 border border-amber-300 font-bold text-gray-700 text-xs flex items-center justify-center transition active:scale-95"
+                        >
+                          -
+                        </button>
+                        <span className="font-mono font-black text-xs w-4 text-center">{item.quantity}</span>
+                        <button
+                          onClick={() => handleUpdateNewCartQty(idx, 1)}
+                          className="w-6 h-6 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center justify-center transition active:scale-95"
+                        >
+                          +
+                        </button>
+                        <button
+                          onClick={() => handleRemoveNewCartItem(idx)}
+                          className="text-red-500 hover:text-red-700 p-1 transition"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Subtotal & Action Bar (Fixed at bottom of right column) */}
+              <div className="shrink-0 space-y-2.5 pt-2.5 border-t border-amber-200/80 bg-white">
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal:</span>
+                    <span className="font-mono font-bold">{formatRupiah(newOrderTotals)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>PB1 Tax (10%):</span>
+                    <span className="font-mono font-bold">{formatRupiah(newOrderTax)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-black text-amber-950 pt-1 border-t border-amber-200/60">
+                    <span>Total Tagihan:</span>
+                    <span className="font-mono text-base font-black text-amber-900">{formatRupiah(newOrderGrandTotal)}</span>
+                  </div>
                 </div>
 
-                  {/* Cart Items List */}
-                  {newOrderCart.length === 0 ? (
-                    <div className="py-10 text-center text-gray-400 text-xs font-semibold">
-                      Belum ada menu dipilih.<br />Klik menu di sebelah kiri untuk menambah.
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                      {newOrderCart.map((item, idx) => (
-                        <div key={idx} className="bg-white p-2.5 rounded-xl border border-amber-200 flex items-center justify-between gap-2 shadow-sm">
-                          <div className="flex-1 min-w-0">
-                            <h5 className="text-[11px] font-black text-gray-900 truncate">{item.productName}</h5>
-                            <span className="text-[10px] font-mono text-amber-800 font-bold">{formatRupiah(item.subtotal)}</span>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <button
-                              onClick={() => handleUpdateNewCartQty(idx, -1)}
-                              className="w-6 h-6 rounded-lg bg-gray-100 hover:bg-amber-200 font-bold text-gray-700 text-xs flex items-center justify-center"
-                            >
-                              -
-                            </button>
-                            <span className="font-mono font-black text-xs w-4 text-center">{item.quantity}</span>
-                            <button
-                              onClick={() => handleUpdateNewCartQty(idx, 1)}
-                              className="w-6 h-6 rounded-lg bg-amber-100 hover:bg-amber-200 font-bold text-amber-900 text-xs flex items-center justify-center"
-                            >
-                              +
-                            </button>
-                            <button
-                              onClick={() => handleRemoveNewCartItem(idx)}
-                              className="text-red-500 hover:text-red-700 p-1"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Subtotal & Action Bar */}
-                <div className="space-y-3 pt-3 border-t border-amber-200/80">
-                  <div className="space-y-1 text-xs">
-                    <div className="flex justify-between text-gray-600">
-                      <span>Subtotal:</span>
-                      <span className="font-mono font-bold">{formatRupiah(newOrderTotals)}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>PB1 Tax (10%):</span>
-                      <span className="font-mono font-bold">{formatRupiah(newOrderTax)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm font-black text-amber-950 pt-1 border-t border-amber-200/60">
-                      <span>Total Tagihan:</span>
-                      <span className="font-mono text-base font-black text-amber-900">{formatRupiah(newOrderGrandTotal)}</span>
-                    </div>
-                  </div>
-
-                  {/* Payment Status Option */}
-                  <div className="bg-white p-2.5 rounded-xl border border-amber-300 flex items-center justify-between text-xs">
-                    <span className="font-bold text-gray-700">Status Pembayaran:</span>
-                    <button
-                      type="button"
-                      onClick={() => setNewPaymentNow(!newPaymentNow)}
-                      className={`px-3 py-1 rounded-lg font-black text-[11px] transition ${
-                        newPaymentNow ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'
-                      }`}
-                    >
-                      {newPaymentNow ? '✓ LUNAS (CASH)' : 'BELUM BAYAR'}
-                    </button>
-                  </div>
-
+                {/* Payment Status Option */}
+                <div className="bg-amber-50/70 p-2 rounded-xl border border-amber-300 flex items-center justify-between text-xs">
+                  <span className="font-bold text-gray-700">Status Pembayaran:</span>
                   <button
-                    disabled={newOrderCart.length === 0}
-                    onClick={handleSubmitNewOrder}
-                    className={`w-full py-3.5 rounded-2xl font-black text-xs shadow-lg transition flex items-center justify-center gap-2 ${
-                      newOrderCart.length > 0
-                        ? 'bg-gradient-to-r from-amber-600 via-amber-700 to-orange-600 hover:brightness-110 text-white shadow-amber-600/30 active:scale-95'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'
+                    type="button"
+                    onClick={() => setNewPaymentNow(!newPaymentNow)}
+                    className={`px-3 py-1 rounded-lg font-black text-[11px] transition shadow-sm ${
+                      newPaymentNow ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'
                     }`}
                   >
-                    <CheckCircle className="w-4 h-4" />
-                    <span>Simpan dan Kirim Ke Dapur</span>
+                    {newPaymentNow ? '✓ LUNAS (CASH)' : 'BELUM BAYAR'}
                   </button>
                 </div>
+
+                <button
+                  disabled={newOrderCart.length === 0}
+                  onClick={handleSubmitNewOrder}
+                  className={`w-full py-3 rounded-2xl font-black text-xs shadow-lg transition flex items-center justify-center gap-2 ${
+                    newOrderCart.length > 0
+                      ? 'bg-gradient-to-r from-amber-600 via-amber-700 to-orange-600 hover:brightness-110 text-white shadow-amber-600/30 active:scale-95'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'
+                  }`}
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Simpan dan Kirim Ke Dapur</span>
+                </button>
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
       {/* PRINT RECEIPT MODAL */}
       {receiptOrder && (

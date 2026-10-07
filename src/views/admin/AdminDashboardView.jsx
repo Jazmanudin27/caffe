@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, Package, DollarSign, Plus, Edit3, Trash2, 
   CheckCircle, XCircle, TrendingUp, Coffee, FileSpreadsheet, Sparkles, QrCode,
-  LayoutDashboard, Layers, Table as TableIcon, Receipt, Users, Menu, Bell, ChevronDown, RefreshCw, Search, LogOut, Clock
+  LayoutDashboard, Layers, Table as TableIcon, Receipt, Users, Menu, Bell, ChevronDown, RefreshCw, Search, LogOut, Clock,
+  Upload, Image as ImageIcon, FileUp, Camera, Check, X
 } from 'lucide-react';
 import { CATEGORIES } from '../../data/mockData';
 import { formatRupiah, formatDateTime } from '../../utils/formatters';
@@ -129,6 +130,9 @@ export default function AdminDashboardView({
   // Product Modal State
   const [productModal, setProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const fileInputRef = React.useRef(null);
+
   const [formData, setFormData] = useState({
     name: '',
     categoryId: 'coffee',
@@ -137,6 +141,22 @@ export default function AdminDashboardView({
     imageUrl: '',
     isAvailable: true
   });
+
+  const handleImageFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 8 * 1024 * 1024) {
+      alert('Ukuran file foto terlalu besar (Maksimal 8 MB)');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setFormData(prev => ({ ...prev, imageUrl: event.target.result }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Calculate Financial Statistics
   const completedOrders = orders.filter(o => o.paymentStatus === 'paid' || o.status === 'completed');
@@ -172,12 +192,13 @@ export default function AdminDashboardView({
   // Form Handlers
   const openAddModal = () => {
     setEditingProduct(null);
+    setShowUrlInput(false);
     setFormData({
       name: '',
-      categoryId: 'coffee',
+      categoryId: categoriesList[0]?.id || 'coffee',
       price: '',
       description: '',
-      imageUrl: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&auto=format&fit=crop&q=80',
+      imageUrl: '',
       isAvailable: true
     });
     setProductModal(true);
@@ -185,6 +206,7 @@ export default function AdminDashboardView({
 
   const openEditModal = (prod) => {
     setEditingProduct(prod);
+    setShowUrlInput(false);
     setFormData({
       name: prod.name,
       categoryId: prod.categoryId,
@@ -831,112 +853,234 @@ export default function AdminDashboardView({
         </main>
       </div>
 
-      {/* ADD / EDIT PRODUCT MODAL */}
+      {/* ADD / EDIT PRODUCT MODAL (SUPER SLEEK DESIGN + LOCAL LAPTOP FILE UPLOAD) */}
       {productModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white text-slate-900 w-full max-w-lg rounded-3xl p-6 space-y-5 shadow-2xl border border-slate-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="bg-white text-slate-900 w-full max-w-lg rounded-3xl space-y-5 shadow-2xl border border-slate-200 overflow-hidden my-8">
             
-            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-              <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                <Package className="w-5 h-5 text-blue-600" />
-                {editingProduct ? 'Edit Data Produk & Harga' : 'Tambah Agenda Produk Baru'}
-              </h3>
-              <button onClick={() => setProductModal(false)} className="text-slate-400 hover:text-slate-900 font-bold p-1">
-                ✕
+            {/* Modal Header */}
+            <div className="bg-slate-900 text-white p-5 flex justify-between items-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
+              
+              <div className="flex items-center gap-3 relative z-10">
+                <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-blue-500/30">
+                  <Package className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-white tracking-tight leading-tight font-heading">
+                    {editingProduct ? 'Edit Data Produk & Harga' : 'Tambah Produk Menu Baru'}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">Restoran CaffePOS Multi-Role System</p>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setProductModal(false)} 
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveProduct} className="space-y-4 text-xs font-medium">
+            <form onSubmit={handleSaveProduct} className="p-6 pt-2 space-y-4 text-xs font-medium">
+              
+              {/* Nama Produk */}
               <div>
-                <label className="font-extrabold text-slate-800 block mb-1">Nama Produk / Menu</label>
+                <label className="font-extrabold text-slate-800 uppercase tracking-wider text-[11px] block mb-1">
+                  Nama Produk / Menu <span className="text-rose-500">*</span>
+                </label>
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: Caramel Latte Special"
+                  placeholder="Contoh: Kopi Aren Iced / Truffle Burger"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-600/20 transition"
                 />
               </div>
 
+              {/* Kategori & Harga Grid */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-extrabold text-slate-800 block mb-1">Kategori</label>
+                  <label className="font-extrabold text-slate-800 uppercase tracking-wider text-[11px] block mb-1">
+                    Kategori Menu <span className="text-rose-500">*</span>
+                  </label>
                   <select
                     value={formData.categoryId}
                     onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-bold"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600 focus:bg-white transition cursor-pointer"
                   >
-                    <option value="coffee">Espresso & Coffee</option>
-                    <option value="non-coffee">Non-Coffee</option>
-                    <option value="food">Makanan Berat</option>
-                    <option value="snack">Snack & Pastry</option>
+                    {categoriesList.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="font-extrabold text-slate-800 block mb-1">Harga (Rp)</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="Contoh: 35000"
-                    value={formData.price}
-                    onChange={e => setFormData({ ...formData, price: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-mono font-bold"
-                  />
+                  <label className="font-extrabold text-slate-800 uppercase tracking-wider text-[11px] block mb-1">
+                    Harga Jual <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-slate-400 font-bold text-xs">Rp</span>
+                    <input
+                      type="number"
+                      required
+                      placeholder="35000"
+                      value={formData.price}
+                      onChange={e => setFormData({ ...formData, price: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-900 font-mono font-bold focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                    />
+                  </div>
                 </div>
               </div>
 
+              {/* Deskripsi Singkat */}
               <div>
-                <label className="font-extrabold text-slate-800 block mb-1">Deskripsi Singkat</label>
+                <label className="font-extrabold text-slate-800 uppercase tracking-wider text-[11px] block mb-1">
+                  Deskripsi Menu
+                </label>
                 <textarea
                   rows="2"
-                  placeholder="Deskripsi menu..."
+                  placeholder="Keterangan singkat komposisi atau rasa menu..."
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
                 />
               </div>
 
+              {/* UPLOAD FOTO DARI LAPTOP / KOMPUTER */}
               <div>
-                <label className="font-extrabold text-slate-800 block mb-1">URL Gambar (Unsplash / Online)</label>
-                <input
-                  type="text"
-                  placeholder="https://images.unsplash.com/..."
-                  value={formData.imageUrl}
-                  onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900"
-                />
+                <div className="flex justify-between items-center mb-1">
+                  <label className="font-extrabold text-slate-800 uppercase tracking-wider text-[11px]">
+                    Foto Produk (Upload dari Laptop)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowUrlInput(!showUrlInput)}
+                    className="text-[10px] font-bold text-blue-600 hover:underline"
+                  >
+                    {showUrlInput ? '« Gunakan Upload Laptop' : 'Punya URL Gambar?'}
+                  </button>
+                </div>
+
+                {!showUrlInput ? (
+                  <div className="space-y-2">
+                    {/* Hidden Native File Input */}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/*"
+                      onChange={handleImageFileUpload}
+                      className="hidden"
+                    />
+
+                    {/* Interactive Drag & Drop / Click Upload Box */}
+                    <div 
+                      onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                      className="bg-slate-50 border-2 border-dashed border-slate-300 hover:border-blue-500 hover:bg-blue-50/20 rounded-2xl p-4 transition cursor-pointer flex flex-col items-center justify-center text-center group relative overflow-hidden"
+                    >
+                      {formData.imageUrl ? (
+                        <div className="flex items-center gap-4 w-full">
+                          <img
+                            src={formData.imageUrl}
+                            alt="Preview"
+                            className="w-20 h-20 rounded-xl object-cover border border-slate-200 shadow-md shrink-0"
+                          />
+                          <div className="flex-1 text-left space-y-1.5">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">
+                              <Check className="w-3 h-3 text-emerald-600" /> Foto Berhasil Diupload
+                            </span>
+                            <p className="text-[11px] text-slate-500 line-clamp-1 font-mono">
+                              {formData.imageUrl.startsWith('data:') ? 'File Foto dari Laptop' : formData.imageUrl}
+                            </p>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  fileInputRef.current && fileInputRef.current.click();
+                                }}
+                                className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold shadow-2xs transition"
+                              >
+                                Ganti Foto Laptop
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setFormData(prev => ({ ...prev, imageUrl: '' }));
+                                }}
+                                className="px-2.5 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-[10px] font-bold transition"
+                              >
+                                Hapus
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="py-2 space-y-2">
+                          <div className="w-12 h-12 rounded-2xl bg-blue-50 group-hover:bg-blue-100 text-blue-600 flex items-center justify-center mx-auto transition">
+                            <Upload className="w-6 h-6 stroke-[2.5]" />
+                          </div>
+                          <div>
+                            <p className="font-extrabold text-xs text-slate-800">
+                              Klik untuk Pilih Gambar dari Laptop / Komputer
+                            </p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">
+                              Format PNG, JPG, WEBP (Ukuran maks. 8 MB)
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Masukkan URL foto online (https://...)"
+                      value={formData.imageUrl}
+                      onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-mono"
+                    />
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="availCheck"
-                  checked={formData.isAvailable}
-                  onChange={e => setFormData({ ...formData, isAvailable: e.target.checked })}
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
-                />
-                <label htmlFor="availCheck" className="text-xs font-bold text-slate-800">
-                  Produk Tersedia (Stok Ready)
-                </label>
+              {/* Status Ready Switch Card */}
+              <div 
+                onClick={() => setFormData(prev => ({ ...prev, isAvailable: !prev.isAvailable }))}
+                className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition cursor-pointer"
+              >
+                <div>
+                  <p className="font-extrabold text-xs text-slate-800">Status Stok Produk</p>
+                  <p className="text-[10px] text-slate-500">
+                    {formData.isAvailable ? 'Produk aktif dan dapat dipesan pelanggan' : 'Stok habis / sementara disembunyikan'}
+                  </p>
+                </div>
+                <div className={`w-11 h-6 rounded-full p-1 transition-colors ${formData.isAvailable ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${formData.isAvailable ? 'translate-x-5' : 'translate-x-0'}`} />
+                </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+              {/* Modal Action Buttons */}
+              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setProductModal(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 font-bold"
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition text-xs"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-5 py-2.5 rounded-xl shadow-md"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-6 py-2.5 rounded-xl shadow-md shadow-blue-600/20 flex items-center gap-1.5 transition active:scale-95 text-xs"
                 >
-                  Simpan Produk
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>Simpan Produk</span>
                 </button>
               </div>
+
             </form>
 
           </div>
@@ -945,67 +1089,86 @@ export default function AdminDashboardView({
 
       {/* ADD / EDIT CATEGORY MODAL */}
       {categoryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white text-slate-900 w-full max-w-md rounded-3xl p-6 space-y-5 shadow-2xl border border-slate-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in">
+          <div className="bg-white text-slate-900 w-full max-w-md rounded-3xl space-y-5 shadow-2xl border border-slate-200 overflow-hidden">
             
-            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-              <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                <Layers className="w-5 h-5 text-blue-600" />
-                {editingCategory ? 'Edit Data Kategori Menu' : 'Tambah Kategori Menu Baru'}
-              </h3>
-              <button onClick={() => setCategoryModal(false)} className="text-slate-400 hover:text-slate-900 font-bold p-1">
-                ✕
+            {/* Modal Header */}
+            <div className="bg-slate-900 text-white p-5 flex justify-between items-center relative overflow-hidden">
+              <div className="flex items-center gap-3 relative z-10">
+                <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-blue-500/30">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-white tracking-tight leading-tight font-heading">
+                    {editingCategory ? 'Edit Data Kategori Menu' : 'Tambah Kategori Menu Baru'}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">Restoran CaffePOS Multi-Role System</p>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setCategoryModal(false)} 
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveCategory} className="space-y-4 text-xs font-medium">
+            <form onSubmit={handleSaveCategory} className="p-6 pt-2 space-y-4 text-xs font-medium">
               <div>
-                <label className="font-extrabold text-slate-800 block mb-1">Nama Kategori</label>
+                <label className="font-extrabold text-slate-800 uppercase tracking-wider text-[11px] block mb-1">
+                  Nama Kategori <span className="text-rose-500">*</span>
+                </label>
                 <input
                   type="text"
                   required
                   placeholder="Contoh: Desserts & Cake"
                   value={catFormData.name}
                   onChange={e => setCatFormData({ ...catFormData, name: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-bold"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-600/20 transition"
                 />
               </div>
 
               <div>
-                <label className="font-extrabold text-slate-800 block mb-1">Kode / Slug URL (Opsional)</label>
+                <label className="font-extrabold text-slate-800 uppercase tracking-wider text-[11px] block mb-1">
+                  Kode / Slug URL (Opsional)
+                </label>
                 <input
                   type="text"
                   placeholder="Contoh: dessert"
                   value={catFormData.slug}
                   onChange={e => setCatFormData({ ...catFormData, slug: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-mono"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-600 focus:bg-white transition"
                 />
               </div>
 
               <div>
-                <label className="font-extrabold text-slate-800 block mb-1">Urutan Tampil</label>
+                <label className="font-extrabold text-slate-800 uppercase tracking-wider text-[11px] block mb-1">
+                  Urutan Tampil <span className="text-rose-500">*</span>
+                </label>
                 <input
                   type="number"
                   required
                   value={catFormData.displayOrder}
                   onChange={e => setCatFormData({ ...catFormData, displayOrder: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-mono font-bold"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-mono font-bold focus:outline-none focus:border-blue-600 focus:bg-white transition"
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setCategoryModal(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 font-bold"
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition text-xs"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-5 py-2.5 rounded-xl shadow-md"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-6 py-2.5 rounded-xl shadow-md shadow-blue-600/20 flex items-center gap-1.5 transition active:scale-95 text-xs"
                 >
-                  Simpan Kategori
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>Simpan Kategori</span>
                 </button>
               </div>
             </form>

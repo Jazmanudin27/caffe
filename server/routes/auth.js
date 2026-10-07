@@ -56,6 +56,8 @@ router.post('/register-customer', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
 // POST /api/auth/staff-login (Authenticates staff and auto-detects role from MySQL database)
 router.post('/staff-login', async (req, res) => {
   try {

@@ -353,37 +353,37 @@ export default function AdminDashboardView({
             <div className="space-y-6">
               
               {/* Top Title Bar Card */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                 <div>
-                  <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2 font-heading">
-                    <Package className="w-6 h-6 text-blue-600" />
+                  <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 font-heading tracking-tight">
+                    <Package className="w-5 h-5 text-blue-600" />
                     Kelola Produk & Menu CaffePOS
                   </h2>
-                  <p className="text-xs text-slate-500 mt-1 font-medium">
+                  <p className="text-xs text-slate-500 mt-0.5 font-medium">
                     Total <strong className="text-slate-800">{products.length}</strong> produk menu makanan & minuman aktif di katalog.
                   </p>
                 </div>
 
                 <button
                   onClick={openAddModal}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md shadow-blue-600/20 flex items-center gap-2 transition active:scale-95"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3.5 py-2 rounded-lg text-xs shadow-sm flex items-center gap-1.5 transition active:scale-95"
                 >
-                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <Plus className="w-3.5 h-3.5 stroke-[3]" />
                   <span>Tambah Produk Baru</span>
                 </button>
               </div>
 
               {/* Search & Filter Controls Bar */}
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <div className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
                 {/* Search Field */}
-                <div className="relative w-full sm:w-80">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
+                <div className="relative w-full sm:w-72">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
                   <input
                     type="text"
                     placeholder="Cari agenda kegiatan / produk..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    className="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:border-blue-600 transition"
+                    className="w-full bg-slate-50/60 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition"
                   />
                 </div>
 
@@ -392,7 +392,7 @@ export default function AdminDashboardView({
                   <select
                     value={selectedCategory}
                     onChange={e => setSelectedCategory(e.target.value)}
-                    className="bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-bold focus:outline-none focus:border-blue-600 cursor-pointer"
+                    className="bg-slate-50/60 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none focus:border-blue-600 cursor-pointer"
                   >
                     <option value="all">Semua Kategori</option>
                     {CATEGORIES.map(c => (
@@ -403,7 +403,7 @@ export default function AdminDashboardView({
                   <select
                     value={selectedStatus}
                     onChange={e => setSelectedStatus(e.target.value)}
-                    className="bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-bold focus:outline-none focus:border-blue-600 cursor-pointer"
+                    className="bg-slate-50/60 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none focus:border-blue-600 cursor-pointer"
                   >
                     <option value="all">Semua Status</option>
                     <option value="available">Tersedia</option>
@@ -412,88 +412,88 @@ export default function AdminDashboardView({
 
                   <button
                     onClick={handleRefresh}
-                    className={`p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-xl transition ${isRefreshing ? 'animate-spin' : ''}`}
+                    className={`p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 rounded-lg transition ${isRefreshing ? 'animate-spin' : ''}`}
                     title="Refresh Data"
                   >
-                    <RefreshCw className="w-4 h-4" />
+                    <RefreshCw className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
 
-              {/* Exact Data Table Layout matching Screenshot */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              {/* Compact Data Table Layout (table-sm / btn-sm) */}
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-800">
-                    <thead className="bg-[#f8fafc] text-slate-700 font-black text-[11px] uppercase tracking-wider border-b border-slate-200">
+                  <table className="w-full text-left text-xs text-slate-700 border-collapse">
+                    <thead className="bg-slate-100/80 text-slate-600 font-extrabold text-[10px] uppercase tracking-wider border-b border-slate-200">
                       <tr>
-                        <th className="py-3.5 px-4 text-center w-12">NO</th>
-                        <th className="py-3.5 px-4">NAMA PRODUK / MENU</th>
-                        <th className="py-3.5 px-4 text-center">KATEGORI</th>
-                        <th className="py-3.5 px-4">HARGA</th>
-                        <th className="py-3.5 px-4 text-center">STATUS</th>
-                        <th className="py-3.5 px-4">KETERANGAN</th>
-                        <th className="py-3.5 px-4 text-center w-24">AKSI</th>
+                        <th className="py-2.5 px-3 text-center w-10">NO</th>
+                        <th className="py-2.5 px-3">NAMA PRODUK / MENU</th>
+                        <th className="py-2.5 px-3 text-center">KATEGORI</th>
+                        <th className="py-2.5 px-3">HARGA</th>
+                        <th className="py-2.5 px-3 text-center">STATUS</th>
+                        <th className="py-2.5 px-3">KETERANGAN</th>
+                        <th className="py-2.5 px-3 text-center w-20">AKSI</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {filteredProducts.length === 0 ? (
                         <tr>
-                          <td colSpan="7" className="py-12 text-center text-slate-400 italic">
+                          <td colSpan="7" className="py-10 text-center text-slate-400 italic text-xs">
                             Tidak ada data produk ditemukan.
                           </td>
                         </tr>
                       ) : (
                         filteredProducts.map((prod, idx) => (
-                          <tr key={prod.id} className="hover:bg-slate-50 transition font-medium">
-                            <td className="py-3.5 px-4 text-center font-bold text-slate-500">{idx + 1}</td>
+                          <tr key={prod.id} className="hover:bg-blue-50/30 transition odd:bg-white even:bg-slate-50/40">
+                            <td className="py-2 px-3 text-center font-bold text-slate-400 text-[11px]">{idx + 1}</td>
                             
-                            <td className="py-3.5 px-4">
-                              <div className="flex items-center gap-3">
+                            <td className="py-2 px-3">
+                              <div className="flex items-center gap-2.5">
                                 <img
                                   src={prod.imageUrl}
                                   alt={prod.name}
-                                  className="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-sm shrink-0"
+                                  className="w-8 h-8 rounded-lg object-cover border border-slate-200 shadow-2xs shrink-0"
                                 />
                                 <div>
-                                  <h4 className="font-extrabold text-slate-900 text-xs">{prod.name}</h4>
-                                  <span className="text-[10px] text-slate-400 font-mono">ID: {prod.id}</span>
+                                  <h4 className="font-bold text-slate-800 text-xs leading-tight">{prod.name}</h4>
+                                  <span className="text-[9px] text-slate-400 font-mono">ID: {prod.id}</span>
                                 </div>
                               </div>
                             </td>
 
-                            <td className="py-3.5 px-4 text-center">
-                              <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg text-[11px] font-bold inline-block">
+                            <td className="py-2 px-3 text-center">
+                              <span className="bg-blue-50 text-blue-700 border border-blue-200/80 px-2 py-0.5 rounded text-[10px] font-bold inline-block uppercase">
                                 {prod.categoryId}
                               </span>
                             </td>
 
-                            <td className="py-3.5 px-4 font-mono font-black text-slate-900 text-xs">
+                            <td className="py-2 px-3 font-mono font-bold text-slate-900 text-xs">
                               {formatRupiah(prod.price)}
                             </td>
 
-                            <td className="py-3.5 px-4 text-center">
+                            <td className="py-2 px-3 text-center">
                               <button
                                 onClick={() => toggleProductAvailability(prod.id)}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                                className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold transition cursor-pointer ${
                                   prod.isAvailable
-                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
-                                    : 'bg-rose-50 text-rose-700 border border-rose-300'
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-300/80'
+                                    : 'bg-rose-50 text-rose-700 border border-rose-300/80'
                                 }`}
                               >
                                 {prod.isAvailable ? 'Tersedia' : 'Stok Habis'}
                               </button>
                             </td>
 
-                            <td className="py-3.5 px-4 text-slate-500 text-[11px] max-w-xs truncate">
+                            <td className="py-2 px-3 text-slate-500 text-[11px] max-w-xs truncate">
                               {prod.description || '-'}
                             </td>
 
-                            {/* Action Buttons Column matching screenshot: Blue Edit & Red Delete */}
-                            <td className="py-3.5 px-4 text-center">
-                              <div className="flex items-center justify-center gap-1.5">
+                            {/* Compact Action Buttons (btn-sm) */}
+                            <td className="py-2 px-3 text-center">
+                              <div className="flex items-center justify-center gap-1">
                                 <button
                                   onClick={() => openEditModal(prod)}
-                                  className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition"
+                                  className="p-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-2xs transition"
                                   title="Edit Produk"
                                 >
                                   <Edit3 className="w-3.5 h-3.5" />
@@ -505,7 +505,7 @@ export default function AdminDashboardView({
                                       deleteProduct(prod.id);
                                     }
                                   }}
-                                  className="p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-sm transition"
+                                  className="p-1 bg-rose-600 hover:bg-rose-700 text-white rounded-md shadow-2xs transition"
                                   title="Hapus Produk"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -605,27 +605,27 @@ export default function AdminDashboardView({
                 </h2>
               </div>
 
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <table className="w-full text-left text-xs text-slate-800">
-                  <thead className="bg-[#f8fafc] text-slate-700 font-black text-[11px] uppercase border-b border-slate-200">
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+                <table className="w-full text-left text-xs text-slate-700 border-collapse">
+                  <thead className="bg-slate-100/80 text-slate-600 font-extrabold text-[10px] uppercase border-b border-slate-200">
                     <tr>
-                      <th className="p-3.5">NO NOTA</th>
-                      <th className="p-3.5">MEJA</th>
-                      <th className="p-3.5">PELANGGAN</th>
-                      <th className="p-3.5">TOTAL</th>
-                      <th className="p-3.5">STATUS</th>
+                      <th className="py-2.5 px-3">NO NOTA</th>
+                      <th className="py-2.5 px-3">MEJA</th>
+                      <th className="py-2.5 px-3">PELANGGAN</th>
+                      <th className="py-2.5 px-3">TOTAL</th>
+                      <th className="py-2.5 px-3">STATUS</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
                     {orders.map(ord => (
-                      <tr key={ord.id} className="hover:bg-slate-50">
-                        <td className="p-3.5 font-mono font-bold text-blue-600">{ord.orderNumber}</td>
-                        <td className="p-3.5 font-bold">Meja {ord.tableNumber}</td>
-                        <td className="p-3.5">{ord.customerName}</td>
-                        <td className="p-3.5 font-mono font-black">{formatRupiah(ord.total)}</td>
-                        <td className="p-3.5">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
-                            ord.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      <tr key={ord.id} className="hover:bg-blue-50/30 transition odd:bg-white even:bg-slate-50/40">
+                        <td className="py-2 px-3 font-mono font-bold text-blue-600">{ord.orderNumber}</td>
+                        <td className="py-2 px-3 font-bold">Meja {ord.tableNumber}</td>
+                        <td className="py-2 px-3">{ord.customerName}</td>
+                        <td className="py-2 px-3 font-mono font-bold text-slate-900">{formatRupiah(ord.total)}</td>
+                        <td className="py-2 px-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                            ord.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-300/80' : 'bg-amber-50 text-amber-700 border border-amber-300/80'
                           }`}>
                             {ord.paymentStatus === 'paid' ? 'LUNAS' : 'MENUNGGU BAYAR'}
                           </span>

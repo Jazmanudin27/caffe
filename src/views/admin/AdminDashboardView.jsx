@@ -28,6 +28,14 @@ export default function AdminDashboardView({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [profileDropdown, setProfileDropdown] = useState(false);
 
+  // Multi-Tenant Caffe Stores State
+  const [storesList, setStoresList] = useState([
+    { id: 'store-01', name: 'CaffePOS Resto (Pusat)', code: 'PUSAT', address: 'Jl. Malioboro No. 12' },
+    { id: 'store-02', name: 'CaffePOS Cabang Dago', code: 'DAGO', address: 'Jl. Ir. H. Juanda No. 88' }
+  ]);
+  const [selectedStoreId, setSelectedStoreId] = useState('store-01');
+  const currentStore = storesList.find(s => s.id === selectedStoreId) || storesList[0];
+
   // Categories State
   const [categoriesList, setCategoriesList] = useState([
     { id: 'coffee', name: 'Espresso & Coffee', slug: 'coffee', display_order: 1 },
@@ -379,17 +387,35 @@ export default function AdminDashboardView({
             </div>
           </div>
 
-          {/* Sub-Brand Admin Card */}
-          <div className="p-3">
-            <div className="bg-[#1e293b] p-3 rounded-2xl border border-slate-700/60 flex items-center gap-3 shadow-inner">
-              <div className="w-9 h-9 rounded-xl bg-amber-600/30 border border-amber-500/40 flex items-center justify-center text-amber-400 font-black">
-                <Coffee className="w-5 h-5" />
+          {/* Sub-Brand Admin Card & Multi-Store Selector */}
+          <div className="p-3 space-y-2">
+            <div className="bg-[#1e293b] p-3 rounded-2xl border border-slate-700/60 shadow-inner space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-amber-600/30 border border-amber-500/40 flex items-center justify-center text-amber-400 font-black shrink-0">
+                  <Coffee className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="font-extrabold text-xs text-white truncate">{currentStore.name}</h2>
+                  <span className="inline-block text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-600 text-white mt-0.5">
+                    OUTLET: {currentStore.code}
+                  </span>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h2 className="font-extrabold text-xs text-white truncate">CAFFE POS RESTO</h2>
-                <span className="inline-block text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-600 text-white mt-0.5">
-                  ADMIN
-                </span>
+
+              {/* Outlet Dropdown Selector for Multi-Tenant ERP */}
+              <div className="pt-1">
+                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                  Pilih Outlet Caffe (ERP):
+                </label>
+                <select
+                  value={selectedStoreId}
+                  onChange={e => setSelectedStoreId(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-amber-300 font-bold focus:outline-none focus:border-amber-500 cursor-pointer"
+                >
+                  {storesList.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -1478,10 +1504,14 @@ export default function AdminDashboardView({
                 <div className="w-10 h-10 rounded-xl bg-blue-600 text-white font-black text-xl flex items-center justify-center mx-auto shadow-md">
                   P
                 </div>
-                <h2 className="font-black text-base text-slate-900 uppercase tracking-wider font-heading">
-                  CAFFE POS RESTO
+                <h2 className="font-black text-base text-slate-900 uppercase tracking-wider font-heading leading-tight">
+                  {currentStore.name}
                 </h2>
-                <p className="text-[10px] text-slate-500 font-mono">Scan untuk Pesan Menu Restoran</p>
+                <div className="flex items-center justify-center gap-1.5 pt-0.5">
+                  <span className="bg-slate-900 text-amber-300 font-mono text-[9px] font-bold px-2 py-0.5 rounded">
+                    OUTLET: {currentStore.code}
+                  </span>
+                </div>
               </div>
 
               {/* QR Code Graphics Card */}
@@ -1514,18 +1544,21 @@ export default function AdminDashboardView({
 
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="bg-slate-900 border-2 border-amber-400 text-amber-400 rounded-full px-2 py-0.5 text-[9px] font-mono font-bold shadow-lg">
-                    {selectedQrTable.token}
+                    QR-{currentStore.code}-{selectedQrTable.number.replace('-', '')}
                   </div>
                 </div>
               </div>
 
-              {/* Table Number Title Badge */}
-              <div className="space-y-1">
+              {/* Table Number Title Badge & URL */}
+              <div className="space-y-1.5">
                 <span className="inline-block bg-slate-900 text-white font-black text-xl px-5 py-1.5 rounded-xl uppercase tracking-widest shadow-md">
                   MEJA {selectedQrTable.number}
                 </span>
-                <p className="text-[10px] text-slate-600 font-medium max-w-xs mx-auto pt-1 leading-snug">
-                  Imbas (scan) Kode QR ini dengan kamera smartphone Anda untuk membuka menu digital & memesan langsung.
+                <p className="text-[9px] text-blue-600 font-mono font-bold">
+                  https://caffe.aspartech.com/?store={currentStore.code.toLowerCase()}&table={selectedQrTable.number}
+                </p>
+                <p className="text-[10px] text-slate-600 font-medium max-w-xs mx-auto leading-snug">
+                  Imbas (scan) Kode QR ini untuk membuka menu digital & memesan khusus meja <strong>{selectedQrTable.number}</strong> ({currentStore.name}).
                 </p>
               </div>
 

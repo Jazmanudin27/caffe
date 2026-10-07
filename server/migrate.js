@@ -1,10 +1,22 @@
 import pool from './db.js';
 
 const schemaDDL = `
+-- 0. TABEL CABANG CAFFE / MULTI-TENANT (STORES)
+CREATE TABLE IF NOT EXISTS stores (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    code VARCHAR(36) NOT NULL UNIQUE,
+    address TEXT,
+    phone VARCHAR(20),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 1. TABEL MEJA (TABLES)
 CREATE TABLE IF NOT EXISTS tables (
     id VARCHAR(36) PRIMARY KEY,
-    table_number VARCHAR(20) NOT NULL UNIQUE,
+    store_id VARCHAR(36) DEFAULT 'caffe-pusat',
+    table_number VARCHAR(20) NOT NULL,
     qr_code_token VARCHAR(100) NOT NULL UNIQUE,
     capacity INT DEFAULT 4,
     status VARCHAR(20) DEFAULT 'available',

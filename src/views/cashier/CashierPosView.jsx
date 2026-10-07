@@ -291,7 +291,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                       <span className="text-xs font-bold">Struk</span>
                     </button>
 
-                    {order.status === 'ready' && (
+                    {(order.status === 'preparing' || order.status === 'ready') && (
                       <button
                         onClick={() => updateOrderStatus(order.id, 'completed')}
                         className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-3.5 min-h-[44px] rounded-2xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/30 transition active:scale-95"

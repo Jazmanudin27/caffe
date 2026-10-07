@@ -420,34 +420,34 @@ export default function AdminDashboardView({
                 </div>
               </div>
 
-              {/* Compact Data Table Layout (table-sm / btn-sm) */}
-              <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+              {/* Compact Bordered Data Table Layout (table-bordered / table-sm / btn-sm) */}
+              <div className="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-700 border-collapse">
-                    <thead className="bg-slate-100/80 text-slate-600 font-extrabold text-[10px] uppercase tracking-wider border-b border-slate-200">
+                  <table className="w-full text-left text-xs text-slate-700 border-collapse border border-slate-300">
+                    <thead className="bg-slate-100 text-slate-700 font-extrabold text-[10px] uppercase tracking-wider">
                       <tr>
-                        <th className="py-2.5 px-3 text-center w-10">NO</th>
-                        <th className="py-2.5 px-3">NAMA PRODUK / MENU</th>
-                        <th className="py-2.5 px-3 text-center">KATEGORI</th>
-                        <th className="py-2.5 px-3">HARGA</th>
-                        <th className="py-2.5 px-3 text-center">STATUS</th>
-                        <th className="py-2.5 px-3">KETERANGAN</th>
-                        <th className="py-2.5 px-3 text-center w-20">AKSI</th>
+                        <th className="py-2.5 px-3 text-center w-10 border border-slate-300 bg-slate-100">NO</th>
+                        <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">NAMA PRODUK / MENU</th>
+                        <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">KATEGORI</th>
+                        <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">HARGA</th>
+                        <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">STATUS</th>
+                        <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">KETERANGAN</th>
+                        <th className="py-2.5 px-3 text-center w-20 border border-slate-300 bg-slate-100">AKSI</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody>
                       {filteredProducts.length === 0 ? (
                         <tr>
-                          <td colSpan="7" className="py-10 text-center text-slate-400 italic text-xs">
+                          <td colSpan="7" className="py-10 text-center text-slate-400 italic text-xs border border-slate-200">
                             Tidak ada data produk ditemukan.
                           </td>
                         </tr>
                       ) : (
                         filteredProducts.map((prod, idx) => (
-                          <tr key={prod.id} className="hover:bg-blue-50/30 transition odd:bg-white even:bg-slate-50/40">
-                            <td className="py-2 px-3 text-center font-bold text-slate-400 text-[11px]">{idx + 1}</td>
+                          <tr key={prod.id} className="hover:bg-blue-50/40 transition odd:bg-white even:bg-slate-50/50">
+                            <td className="py-2 px-3 text-center font-bold text-slate-500 text-[11px] border border-slate-200">{idx + 1}</td>
                             
-                            <td className="py-2 px-3">
+                            <td className="py-2 px-3 border border-slate-200">
                               <div className="flex items-center gap-2.5">
                                 <img
                                   src={prod.imageUrl}
@@ -461,17 +461,17 @@ export default function AdminDashboardView({
                               </div>
                             </td>
 
-                            <td className="py-2 px-3 text-center">
+                            <td className="py-2 px-3 text-center border border-slate-200">
                               <span className="bg-blue-50 text-blue-700 border border-blue-200/80 px-2 py-0.5 rounded text-[10px] font-bold inline-block uppercase">
                                 {prod.categoryId}
                               </span>
                             </td>
 
-                            <td className="py-2 px-3 font-mono font-bold text-slate-900 text-xs">
+                            <td className="py-2 px-3 font-mono font-bold text-slate-900 text-xs border border-slate-200">
                               {formatRupiah(prod.price)}
                             </td>
 
-                            <td className="py-2 px-3 text-center">
+                            <td className="py-2 px-3 text-center border border-slate-200">
                               <button
                                 onClick={() => toggleProductAvailability(prod.id)}
                                 className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold transition cursor-pointer ${
@@ -484,12 +484,12 @@ export default function AdminDashboardView({
                               </button>
                             </td>
 
-                            <td className="py-2 px-3 text-slate-500 text-[11px] max-w-xs truncate">
+                            <td className="py-2 px-3 text-slate-500 text-[11px] max-w-xs truncate border border-slate-200">
                               {prod.description || '-'}
                             </td>
 
                             {/* Compact Action Buttons (btn-sm) */}
-                            <td className="py-2 px-3 text-center">
+                            <td className="py-2 px-3 text-center border border-slate-200">
                               <div className="flex items-center justify-center gap-1">
                                 <button
                                   onClick={() => openEditModal(prod)}
@@ -605,25 +605,25 @@ export default function AdminDashboardView({
                 </h2>
               </div>
 
-              <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
-                <table className="w-full text-left text-xs text-slate-700 border-collapse">
-                  <thead className="bg-slate-100/80 text-slate-600 font-extrabold text-[10px] uppercase border-b border-slate-200">
+              <div className="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
+                <table className="w-full text-left text-xs text-slate-700 border-collapse border border-slate-300">
+                  <thead className="bg-slate-100 text-slate-700 font-extrabold text-[10px] uppercase">
                     <tr>
-                      <th className="py-2.5 px-3">NO NOTA</th>
-                      <th className="py-2.5 px-3">MEJA</th>
-                      <th className="py-2.5 px-3">PELANGGAN</th>
-                      <th className="py-2.5 px-3">TOTAL</th>
-                      <th className="py-2.5 px-3">STATUS</th>
+                      <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">NO NOTA</th>
+                      <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">MEJA</th>
+                      <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">PELANGGAN</th>
+                      <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">TOTAL</th>
+                      <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">STATUS</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 font-medium">
+                  <tbody>
                     {orders.map(ord => (
-                      <tr key={ord.id} className="hover:bg-blue-50/30 transition odd:bg-white even:bg-slate-50/40">
-                        <td className="py-2 px-3 font-mono font-bold text-blue-600">{ord.orderNumber}</td>
-                        <td className="py-2 px-3 font-bold">Meja {ord.tableNumber}</td>
-                        <td className="py-2 px-3">{ord.customerName}</td>
-                        <td className="py-2 px-3 font-mono font-bold text-slate-900">{formatRupiah(ord.total)}</td>
-                        <td className="py-2 px-3">
+                      <tr key={ord.id} className="hover:bg-blue-50/40 transition odd:bg-white even:bg-slate-50/50">
+                        <td className="py-2 px-3 font-mono font-bold text-blue-600 border border-slate-200">{ord.orderNumber}</td>
+                        <td className="py-2 px-3 font-bold border border-slate-200">Meja {ord.tableNumber}</td>
+                        <td className="py-2 px-3 border border-slate-200">{ord.customerName}</td>
+                        <td className="py-2 px-3 font-mono font-bold text-slate-900 border border-slate-200">{formatRupiah(ord.total)}</td>
+                        <td className="py-2 px-3 border border-slate-200">
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
                             ord.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-300/80' : 'bg-amber-50 text-amber-700 border border-amber-300/80'
                           }`}>

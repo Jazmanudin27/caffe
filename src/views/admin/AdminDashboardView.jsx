@@ -15,6 +15,7 @@ export default function AdminDashboardView({
   updateProduct, 
   deleteProduct, 
   toggleProductAvailability,
+  toggleProductBestSeller,
   orders = [],
   tables = [],
   staffUser,
@@ -247,7 +248,8 @@ export default function AdminDashboardView({
     price: '',
     description: '',
     imageUrl: '',
-    isAvailable: true
+    isAvailable: true,
+    isBestSeller: false
   });
 
   const handleImageFileUpload = (e) => {
@@ -307,7 +309,8 @@ export default function AdminDashboardView({
       price: '',
       description: '',
       imageUrl: '',
-      isAvailable: true
+      isAvailable: true,
+      isBestSeller: false
     });
     setProductModal(true);
   };
@@ -321,7 +324,8 @@ export default function AdminDashboardView({
       price: prod.price.toString(),
       description: prod.description || '',
       imageUrl: prod.imageUrl || '',
-      isAvailable: prod.isAvailable
+      isAvailable: prod.isAvailable,
+      isBestSeller: Boolean(prod.isBestSeller)
     });
     setProductModal(true);
   };
@@ -337,7 +341,8 @@ export default function AdminDashboardView({
         price: priceNum,
         description: formData.description,
         imageUrl: formData.imageUrl,
-        isAvailable: formData.isAvailable
+        isAvailable: formData.isAvailable,
+        isBestSeller: formData.isBestSeller
       });
     } else {
       const newProd = {
@@ -348,6 +353,7 @@ export default function AdminDashboardView({
         description: formData.description,
         imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&auto=format&fit=crop&q=80',
         isAvailable: formData.isAvailable,
+        isBestSeller: formData.isBestSeller,
         variants: []
       };
       addProduct(newProd);
@@ -642,6 +648,7 @@ export default function AdminDashboardView({
                         <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">KATEGORI</th>
                         <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">HARGA</th>
                         <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">STATUS</th>
+                        <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">BEST SELLER</th>
                         <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">KETERANGAN</th>
                         <th className="py-2.5 px-3 text-center w-20 border border-slate-300 bg-slate-100">AKSI</th>
                       </tr>
@@ -692,6 +699,21 @@ export default function AdminDashboardView({
                                 }`}
                               >
                                 {prod.isAvailable ? 'Tersedia' : 'Stok Habis'}
+                              </button>
+                            </td>
+
+                            <td className="py-2 px-3 text-center border border-slate-200">
+                              <button
+                                onClick={() => toggleProductBestSeller && toggleProductBestSeller(prod.id)}
+                                className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold transition cursor-pointer flex items-center gap-1 mx-auto ${
+                                  prod.isBestSeller
+                                    ? 'bg-amber-100 text-amber-800 border border-amber-400 font-black'
+                                    : 'bg-slate-100 text-slate-400 border border-slate-200 hover:text-slate-700'
+                                }`}
+                                title="Klik untuk ubah status Best Seller"
+                              >
+                                <span>🔥</span>
+                                <span>{prod.isBestSeller ? 'Best Seller' : 'Reguler'}</span>
                               </button>
                             </td>
 
@@ -1254,6 +1276,28 @@ export default function AdminDashboardView({
                 </div>
                 <div className={`w-11 h-6 rounded-full p-1 transition-colors ${formData.isAvailable ? 'bg-emerald-500' : 'bg-slate-300'}`}>
                   <div className={`w-4 h-4 rounded-full bg-white transition-transform ${formData.isAvailable ? 'translate-x-5' : 'translate-x-0'}`} />
+                </div>
+              </div>
+
+              {/* Best Seller Switch Card */}
+              <div 
+                onClick={() => setFormData(prev => ({ ...prev, isBestSeller: !prev.isBestSeller }))}
+                className={`flex items-center justify-between p-3 rounded-2xl border transition cursor-pointer ${
+                  formData.isBestSeller 
+                    ? 'bg-amber-50 border-amber-300 text-amber-900' 
+                    : 'bg-slate-50 border-slate-200/80 hover:bg-slate-100 text-slate-800'
+                }`}
+              >
+                <div>
+                  <p className="font-extrabold text-xs flex items-center gap-1.5">
+                    <span className="text-amber-600">🔥</span> Label Menu Best Seller
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    {formData.isBestSeller ? 'Menu ini ditandai sebagai Best Seller di katalog' : 'Menu reguler biasa (tanpa badge Best Seller)'}
+                  </p>
+                </div>
+                <div className={`w-11 h-6 rounded-full p-1 transition-colors ${formData.isBestSeller ? 'bg-amber-500' : 'bg-slate-300'}`}>
+                  <div className={`w-4 h-4 rounded-full bg-white transition-transform ${formData.isBestSeller ? 'translate-x-5' : 'translate-x-0'}`} />
                 </div>
               </div>
 

@@ -41,6 +41,7 @@ router.get('/', async (req, res) => {
         price: parseFloat(prod.price) || 0,
         imageUrl: prod.image_url,
         isAvailable: Boolean(prod.is_available),
+        isBestSeller: Boolean(prod.is_bestseller),
         variants: Object.values(groupsMap)
       };
     });
@@ -54,14 +55,14 @@ router.get('/', async (req, res) => {
 // POST /api/products (Create product)
 router.post('/', async (req, res) => {
   try {
-    const { id, storeId, categoryId, name, description, price, imageUrl, isAvailable } = req.body;
+    const { id, storeId, categoryId, name, description, price, imageUrl, isAvailable, isBestSeller } = req.body;
     const prodId = id || 'prod-' + Date.now();
     const store = storeId || 'caffe-pusat';
 
     await pool.query(
-      `INSERT INTO products (id, store_id, category_id, name, description, price, image_url, is_available)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [prodId, store, categoryId || 'coffee', name, description || '', price || 0, imageUrl || '', isAvailable !== false]
+      `INSERT INTO products (id, store_id, category_id, name, description, price, image_url, is_available, is_bestseller)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [prodId, store, categoryId || 'coffee', name, description || '', price || 0, imageUrl || '', isAvailable !== false, isBestSeller ? 1 : 0]
     );
 
     res.json({ success: true, id: prodId });
@@ -74,13 +75,13 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { categoryId, name, description, price, imageUrl, isAvailable } = req.body;
+    const { categoryId, name, description, price, imageUrl, isAvailable, isBestSeller } = req.body;
 
     await pool.query(
       `UPDATE products 
-       SET category_id = ?, name = ?, description = ?, price = ?, image_url = ?, is_available = ?
+       SET category_id = ?, name = ?, description = ?, price = ?, image_url = ?, is_available = ?, is_bestseller = ?
        WHERE id = ?`,
-      [categoryId, name, description, price, imageUrl, isAvailable, id]
+      [categoryId, name, description, price, imageUrl, isAvailable ? 1 : 0, isBestSeller ? 1 : 0, id]
     );
 
     res.json({ success: true });
@@ -94,6 +95,17 @@ router.patch('/:id/toggle-availability', async (req, res) => {
   try {
     const { id } = req.params;
     await pool.query('UPDATE products SET is_available = NOT is_available WHERE id = ?', [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /api/products/:id/toggle-bestseller
+router.patch('/:id/toggle-bestseller', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('UPDATE products SET is_bestseller = NOT is_bestseller WHERE id = ?', [id]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

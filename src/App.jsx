@@ -160,6 +160,11 @@ export default function App() {
     await apiService.toggleProductAvailability(id);
   };
 
+  const toggleProductBestSeller = async (id) => {
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, isBestSeller: !p.isBestSeller } : p));
+    await apiService.toggleProductBestSeller(id);
+  };
+
   // Cart operations (Does NOT auto-open cart sidebar)
   const addToCart = (item) => {
     setCart((prev) => {
@@ -301,6 +306,7 @@ export default function App() {
             updateProduct={updateProduct}
             deleteProduct={deleteProduct}
             toggleProductAvailability={toggleProductAvailability}
+            toggleProductBestSeller={toggleProductBestSeller}
             orders={orders}
             tables={tables}
             staffUser={staffUser}

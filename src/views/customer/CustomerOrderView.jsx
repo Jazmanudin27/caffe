@@ -346,7 +346,7 @@ export default function CustomerOrderView({
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-40" />
                       
                       {/* Best Seller / Tag Badge */}
-                      {inCartQty === 0 && (
+                      {product.isBestSeller && inCartQty === 0 && (
                         <div className="absolute top-1.5 right-1.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-1.5 py-0.5 rounded-md text-[8.5px] font-black uppercase tracking-wider shadow-xs flex items-center gap-0.5 border border-amber-300/30">
                           <Flame className="w-2.5 h-2.5 text-amber-200 fill-amber-200" /> Best Seller
                         </div>

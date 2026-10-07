@@ -213,6 +213,18 @@ export const apiService = {
     }
   },
 
+  // Toggle Best Seller
+  toggleProductBestSeller: async (id) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/products/${id}/toggle-bestseller`, {
+        method: 'PATCH'
+      });
+      return await res.json();
+    } catch (e) {
+      console.warn('Backend API offline', e);
+    }
+  },
+
   // Delete Product
   deleteProduct: async (id) => {
     try {

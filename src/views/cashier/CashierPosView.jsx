@@ -142,6 +142,10 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
     setNewCustomerName('Pelanggan Walk-In');
   };
 
+  const countPending = orders.filter(o => o.status === 'pending_payment').length;
+  const countPreparing = orders.filter(o => o.status === 'preparing').length;
+  const countCompleted = orders.filter(o => o.status === 'completed').length;
+
   const filteredProductsForNewOrder = products.filter(p => 
     p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
     (p.description && p.description.toLowerCase().includes(productSearch.toLowerCase()))

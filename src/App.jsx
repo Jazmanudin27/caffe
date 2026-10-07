@@ -57,20 +57,24 @@ export default function App() {
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
 
-  // Fetch initial products, tables, and orders from Express/MySQL API
+  // Fetch & Auto-sync products, tables, and orders from Express/MySQL API
   useEffect(() => {
+    const activeStoreId = staffUser?.storeId || 'caffe-pusat';
+
     const loadData = async () => {
       try {
-        const activeStoreId = staffUser?.storeId || 'caffe-pusat';
-        const fetchedProducts = await apiService.getProducts(activeStoreId);
+        const [fetchedProducts, fetchedOrders, fetchedTables] = await Promise.all([
+          apiService.getProducts(activeStoreId),
+          apiService.getOrders(activeStoreId),
+          apiService.getTables(activeStoreId)
+        ]);
+
         if (fetchedProducts && fetchedProducts.length > 0) {
           setProducts(fetchedProducts);
         }
-        const fetchedOrders = await apiService.getOrders(activeStoreId);
-        if (fetchedOrders && fetchedOrders.length > 0) {
+        if (fetchedOrders && Array.isArray(fetchedOrders)) {
           setOrders(fetchedOrders);
         }
-        const fetchedTables = await apiService.getTables(activeStoreId);
         if (fetchedTables && fetchedTables.length > 0) {
           setTables(fetchedTables);
         }
@@ -78,7 +82,20 @@ export default function App() {
         console.warn('Menggunakan fallback data lokal', err);
       }
     };
+
+    // Initial load
     loadData();
+
+    // Realtime polling every 3.5 seconds
+    const interval = setInterval(() => {
+      apiService.getOrders(activeStoreId).then(freshOrders => {
+        if (freshOrders && Array.isArray(freshOrders)) {
+          setOrders(freshOrders);
+        }
+      }).catch(() => {});
+    }, 3500);
+
+    return () => clearInterval(interval);
   }, [staffUser?.storeId]);
 
   // Sync products to localStorage fallback

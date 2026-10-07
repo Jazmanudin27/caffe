@@ -231,10 +231,12 @@ export default function CustomerOrderView({
     setTimeout(() => {
       const newOrder = {
         id: 'ord-' + Date.now(),
+        storeId: 'caffe-pusat',
         orderNumber: 'ORD-' + Math.floor(100000 + Math.random() * 900000),
         tableNumber: selectedTable.number,
         tableToken: selectedTable.token,
         customerName: customerName.trim() || 'Pelanggan Meja ' + selectedTable.number,
+        customerPhone: currentUser?.phone || '',
         orderType: 'dine_in',
         status: payNow ? 'preparing' : 'pending_payment',
         paymentStatus: payNow ? 'paid' : 'unpaid',

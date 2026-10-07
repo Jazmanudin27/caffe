@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';
 import CustomerOrderView from './views/customer/CustomerOrderView';
 import CashierPosView from './views/cashier/CashierPosView';
 import KitchenDisplayView from './views/kitchen/KitchenDisplayView';
@@ -292,10 +291,6 @@ export default function App() {
           />
         )}
       </main>
-
-      {/* Global Footer (Hidden on Login Page and Admin Portal View) */}
-      {showHeaderAndFooter ? <Footer /> : null}
-
     </div>
   );
 }

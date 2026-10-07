@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { 
   Monitor, CheckCircle, Clock, Printer, DollarSign, 
   Search, AlertTriangle, ChefHat, Sparkles, Receipt, ArrowRight, ShieldAlert, Layers,
-  Plus, Trash2, ShoppingBag, Utensils, X
+  Plus, Trash2, ShoppingBag, Utensils, X, Coffee, CupSoda, Milk, Cookie
 } from 'lucide-react';
+import { CATEGORIES } from '../../data/mockData';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import { formatRupiah, formatRupiahInput, getNumericValue, formatDateTime } from '../../utils/formatters';
 
@@ -27,6 +28,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
   const [newCashReceived, setNewCashReceived] = useState('');
   const [newOrderCart, setNewOrderCart] = useState([]);
   const [productSearch, setProductSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   // Filter orders
   const filteredOrders = orders.filter(order => {
@@ -161,10 +163,24 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
   const countPreparing = orders.filter(o => o.status === 'preparing').length;
   const countCompleted = orders.filter(o => o.status === 'completed').length;
 
-  const filteredProductsForNewOrder = products.filter(p => 
-    p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-    (p.description && p.description.toLowerCase().includes(productSearch.toLowerCase()))
-  );
+  // Category Icon Resolver
+  const getCategoryIcon = (iconName) => {
+    switch (iconName) {
+      case 'Coffee': return <Coffee className="w-3.5 h-3.5" />;
+      case 'CupSoda': return <CupSoda className="w-3.5 h-3.5" />;
+      case 'Milk': return <Milk className="w-3.5 h-3.5" />;
+      case 'Utensils': return <Utensils className="w-3.5 h-3.5" />;
+      case 'Cookie': return <Cookie className="w-3.5 h-3.5" />;
+      default: return <Sparkles className="w-3.5 h-3.5" />;
+    }
+  };
+
+  const filteredProductsForNewOrder = products.filter(p => {
+    const matchesCat = selectedCategory === 'all' || p.categoryId === selectedCategory;
+    const matchesSearch = p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+                          (p.description && p.description.toLowerCase().includes(productSearch.toLowerCase()));
+    return matchesCat && matchesSearch;
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6 animate-fade-in pb-24 text-gray-800">
@@ -598,6 +614,30 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                   onChange={(e) => setProductSearch(e.target.value)}
                   className="w-full bg-white border border-amber-300 rounded-xl pl-9 pr-4 py-2.5 text-xs font-semibold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 shadow-sm"
                 />
+              </div>
+
+              {/* Category Filter Pills (Compact SM) */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar shrink-0">
+                {CATEGORIES.map(cat => {
+                  const isSelected = selectedCategory === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all duration-150 cursor-pointer ${
+                        isSelected
+                          ? 'bg-amber-700 text-white shadow-xs border border-amber-800'
+                          : 'bg-white text-slate-700 border border-amber-200 hover:bg-amber-50 hover:text-amber-900'
+                      }`}
+                    >
+                      <div className={`p-0.5 rounded transition ${isSelected ? 'text-amber-200' : 'text-amber-800'}`}>
+                        {getCategoryIcon(cat.icon)}
+                      </div>
+                      <span>{cat.name}</span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Product Grid List (ONLY THIS SCROLLS) */}

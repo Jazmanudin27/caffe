@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS products (
     name VARCHAR(100) NOT NULL,
     description TEXT,
     price DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
-    image_url TEXT,
+    image_url LONGTEXT,
     is_available BOOLEAN DEFAULT TRUE,
     is_bestseller BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -164,6 +164,12 @@ export async function runMigration() {
       await pool.query('ALTER TABLE products ADD COLUMN is_bestseller BOOLEAN DEFAULT FALSE');
     } catch (err) {
       // Ignore duplicate column error
+    }
+
+    try {
+      await pool.query('ALTER TABLE products MODIFY COLUMN image_url LONGTEXT');
+    } catch (err) {
+      // Ignore error
     }
 
     // Seed Stores if empty

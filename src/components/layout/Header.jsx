@@ -2,11 +2,11 @@ import React from 'react';
 import { Coffee, ShoppingBag, Sparkles, CircleDot, ShieldCheck, LogOut, UserCheck } from 'lucide-react';
 
 export default function Header({ activeView, selectedTable, setSelectedTable, tables, cartCount, openCart, staffUser, onLogoutStaff }) {
-  const isCashier = activeView === 'cashier';
+  const isDarkHeader = activeView === 'cashier' || activeView === 'kitchen';
 
   return (
     <header className={`sticky top-0 z-40 px-4 py-3.5 transition-all duration-300 ${
-      isCashier
+      isDarkHeader
         ? 'bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 text-white border-b border-amber-600/40 shadow-xl'
         : 'glass-panel border-b border-amber-500/10'
     }`}>
@@ -17,7 +17,7 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
           <div className="relative group cursor-pointer" onClick={() => window.location.href = '/'}>
             <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-700 rounded-2xl blur opacity-60 group-hover:opacity-100 transition duration-300" />
             <div className={`relative w-11 h-11 rounded-2xl flex items-center justify-center shadow-2xl border ${
-              isCashier
+              isDarkHeader
                 ? 'bg-gradient-to-tr from-amber-800 to-orange-600 border-amber-400/60'
                 : 'bg-gradient-to-tr from-amber-950 via-gray-900 to-amber-900 border-amber-500/40'
             }`}>
@@ -28,13 +28,13 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
           <div>
             <div className="flex items-center gap-2">
               <h1 className={`text-xl font-extrabold tracking-tight flex items-center gap-1.5 ${
-                isCashier ? 'text-white' : 'text-gray-900'
+                isDarkHeader ? 'text-white' : 'text-gray-900'
               }`}>
                 CAFFE<span className="text-amber-500">POS</span>
               </h1>
               {activeView !== 'customer' && (
                 <span className={`text-[10px] font-black px-3 py-0.5 rounded-full flex items-center gap-1 shadow-sm ${
-                  isCashier 
+                  isDarkHeader 
                     ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border border-amber-300/40' 
                     : 'gradient-badge text-amber-800'
                 }`}>
@@ -46,7 +46,7 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
               )}
             </div>
             {activeView !== 'customer' && (
-              <p className={`text-[11px] font-medium ${isCashier ? 'text-amber-200/80' : 'text-gray-500'}`}>
+              <p className={`text-[11px] font-medium ${isDarkHeader ? 'text-amber-200/80' : 'text-gray-500'}`}>
                 {activeView === 'cashier' && 'Sistem Pembayaran & Kasir Restoran'}
                 {activeView === 'kitchen' && 'Display Antrean Barista & Dapur'}
                 {activeView === 'admin' && 'Kelola Produk, Harga & Laporan Omset'}
@@ -99,7 +99,7 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
           {activeView !== 'customer' && staffUser && (
             <div className="flex items-center gap-2">
               <div className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm border ${
-                isCashier
+                isDarkHeader
                   ? 'bg-amber-900/80 text-amber-200 border-amber-500/40'
                   : 'bg-amber-100 text-amber-900 border-amber-300'
               }`}>

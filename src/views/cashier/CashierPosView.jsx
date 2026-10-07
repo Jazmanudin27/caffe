@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Monitor, CheckCircle, Clock, Printer, DollarSign, 
   Search, AlertTriangle, ChefHat, Sparkles, Receipt, ArrowRight, ShieldAlert, Layers,
-  Plus, Trash2, ShoppingBag, Utensils, X, Coffee, CupSoda, Milk, Cookie
+  Plus, Trash2, ShoppingBag, Utensils, X, Coffee, CupSoda, Milk, Cookie, Flame
 } from 'lucide-react';
 import { CATEGORIES } from '../../data/mockData';
 import ReceiptModal from '../../components/common/ReceiptModal';
@@ -45,7 +45,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
     return matchesFilter && matchesSearch;
   });
 
-  // Calculate change
+  // Calculate change for order payment modal
   const numericCash = getNumericValue(cashReceived);
   const changeAmount = cashModalOrder ? Math.max(0, numericCash - cashModalOrder.total) : 0;
   const isEnoughCash = cashModalOrder ? numericCash >= cashModalOrder.total : false;
@@ -73,33 +73,81 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
     setReceiptOrder(updated);
   };
 
-  const handleAddProductToCart = (prod) => {
-    if (prod.isAvailable === false || prod.is_available === 0) {
-      alert(`Maaf, "${prod.name}" saat ini sedang habis stok dan tidak dapat dipesan.`);
+  // Customization modal state (Identical to customer order view)
+  const [activeProduct, setActiveProduct] = useState(null);
+  const [selectedVariants, setSelectedVariants] = useState({});
+  const [itemQty, setItemQty] = useState(1);
+  const [itemNotes, setItemNotes] = useState('');
+
+  // Open product customization modal
+  const openCustomization = (product) => {
+    if (product.isAvailable === false || product.is_available === 0) {
+      alert(`Maaf, "${product.name}" saat ini sedang habis stok.`);
       return;
     }
 
+    setActiveProduct(product);
+    setItemQty(1);
+    setItemNotes('');
+    
+    const initialVariants = {};
+    if (product.variants) {
+      product.variants.forEach(vGroup => {
+        const isOptionalGroup = vGroup.group.toLowerCase().includes('topping') || vGroup.required === false;
+        if (!isOptionalGroup && vGroup.options && vGroup.options.length > 0) {
+          initialVariants[vGroup.group] = vGroup.options[0];
+        }
+      });
+    }
+    setSelectedVariants(initialVariants);
+  };
+
+  // Calculate customized unit price
+  const calculateCustomizedPrice = () => {
+    if (!activeProduct) return 0;
+    let total = activeProduct.price;
+    Object.values(selectedVariants).forEach(v => {
+      if (v && v.extraPrice) total += v.extraPrice;
+    });
+    return total;
+  };
+
+  // Add customized item to POS cart
+  const handleAddCustomizedToCart = () => {
+    if (!activeProduct || activeProduct.isAvailable === false || activeProduct.is_available === 0) return;
+    const variantLabels = Object.values(selectedVariants).filter(Boolean).map(v => v.label);
+    const customizedPrice = calculateCustomizedPrice();
+    
     setNewOrderCart(prev => {
-      const idx = prev.findIndex(i => i.productId === prod.id);
-      if (idx > -1) {
+      const existingIndex = prev.findIndex(
+        (i) =>
+          i.productId === activeProduct.id &&
+          JSON.stringify(i.selectedVariants) === JSON.stringify(variantLabels) &&
+          i.notes === itemNotes
+      );
+
+      if (existingIndex > -1) {
         const updated = [...prev];
-        updated[idx].quantity += 1;
-        updated[idx].subtotal = updated[idx].quantity * updated[idx].unitPrice;
+        updated[existingIndex].quantity += itemQty;
+        updated[existingIndex].subtotal = updated[existingIndex].quantity * updated[existingIndex].unitPrice;
         return updated;
       }
       return [
         ...prev,
         {
-          productId: prod.id,
-          productName: prod.name,
-          quantity: 1,
-          unitPrice: prod.price,
-          subtotal: prod.price,
-          selectedVariants: [],
-          notes: ''
+          productId: activeProduct.id,
+          productName: activeProduct.name,
+          unitPrice: customizedPrice,
+          quantity: itemQty,
+          subtotal: customizedPrice * itemQty,
+          selectedVariants: variantLabels,
+          notes: itemNotes,
+          imageUrl: activeProduct.imageUrl
         }
       ];
     });
+
+    setActiveProduct(null);
   };
 
   const handleUpdateNewCartQty = (idx, delta) => {
@@ -644,11 +692,14 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
               <div className="flex-1 overflow-y-auto pr-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 auto-rows-max">
                 {filteredProductsForNewOrder.map(prod => {
                   const isAvailable = prod.isAvailable !== false && prod.is_available !== 0;
+                  const inCartQty = newOrderCart
+                    .filter(i => i.productId === prod.id)
+                    .reduce((total, i) => total + i.quantity, 0);
 
                   return (
                     <div
                       key={prod.id}
-                      onClick={() => handleAddProductToCart(prod)}
+                      onClick={() => openCustomization(prod)}
                       className={`bg-white border rounded-2xl p-2.5 flex flex-col justify-between transition ${
                         isAvailable
                           ? 'border-amber-200/80 hover:border-amber-500 hover:shadow-md cursor-pointer active:scale-95 group'
@@ -657,17 +708,27 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                     >
                       <div className="relative">
                         {prod.imageUrl ? (
-                          <img src={prod.imageUrl} alt={prod.name} className="w-full h-20 object-cover rounded-xl mb-1.5" />
+                          <img src={prod.imageUrl} alt={prod.name} className="w-full h-20 sm:h-24 object-cover rounded-xl mb-1.5" />
                         ) : (
-                          <div className="w-full h-20 bg-amber-100 rounded-xl mb-1.5 flex items-center justify-center text-amber-700">
+                          <div className="w-full h-20 sm:h-24 bg-amber-100 rounded-xl mb-1.5 flex items-center justify-center text-amber-700">
                             <Utensils className="w-7 h-7" />
                           </div>
                         )}
                         {!isAvailable && (
                           <div className="absolute inset-0 bg-slate-950/40 rounded-xl mb-1.5 flex items-center justify-center">
                             <span className="bg-rose-600 text-white font-extrabold px-2 py-0.5 rounded text-[8.5px] uppercase shadow">
-                              Habis
+                              Stok Habis
                             </span>
+                          </div>
+                        )}
+                        {isAvailable && prod.isBestSeller && inCartQty === 0 && (
+                          <div className="absolute top-1 right-1 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-1.5 py-0.5 rounded text-[8px] font-black uppercase shadow flex items-center gap-0.5">
+                            <Flame className="w-2.5 h-2.5 text-amber-200 fill-amber-200" /> Best Seller
+                          </div>
+                        )}
+                        {isAvailable && inCartQty > 0 && (
+                          <div className="absolute top-1 right-1 bg-emerald-600 text-white font-bold px-1.5 py-0.5 rounded text-[8.5px] shadow flex items-center gap-1 border border-emerald-300">
+                            <span>{inCartQty}x</span>
                           </div>
                         )}
                       </div>
@@ -689,7 +750,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                             : 'bg-slate-200 text-slate-500 cursor-not-allowed'
                         }`}
                       >
-                        {isAvailable ? '+ Tambah Menu' : 'Stok Habis'}
+                        {isAvailable ? (inCartQty > 0 ? `+ Tambah (${inCartQty}x)` : '+ Pilih Menu') : 'Stok Habis'}
                       </button>
                     </div>
                   );
@@ -724,13 +785,28 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                   </div>
                 ) : (
                   newOrderCart.map((item, idx) => (
-                    <div key={idx} className="bg-amber-50/50 p-2.5 rounded-xl border border-amber-200/80 flex items-center justify-between gap-2 shadow-sm">
+                    <div key={idx} className="bg-amber-50/50 p-2.5 rounded-xl border border-amber-200/80 flex items-start justify-between gap-2 shadow-sm">
                       <div className="flex-1 min-w-0">
-                        <h5 className="text-[11px] font-black text-gray-900 truncate">{item.productName}</h5>
-                        <span className="text-[10px] font-mono text-amber-800 font-bold">{formatRupiah(item.subtotal)}</span>
+                        <div className="flex items-center gap-1">
+                          <h5 className="text-[11px] font-black text-gray-900 truncate">{item.productName}</h5>
+                          <span className="text-[9.5px] font-mono text-gray-500">(@{formatRupiah(item.unitPrice)})</span>
+                        </div>
+                        {item.selectedVariants && item.selectedVariants.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-0.5">
+                            {item.selectedVariants.map((v, vIdx) => (
+                              <span key={vIdx} className="text-[8.5px] bg-amber-100 text-amber-900 font-semibold px-1.5 py-0.2 rounded border border-amber-200">
+                                {v}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {item.notes && (
+                          <p className="text-[9px] text-gray-500 italic mt-0.5 truncate">"{item.notes}"</p>
+                        )}
+                        <span className="text-[10.5px] font-mono text-amber-900 font-extrabold block mt-0.5">{formatRupiah(item.subtotal)}</span>
                       </div>
 
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
                         <button
                           onClick={() => handleUpdateNewCartQty(idx, -1)}
                           className="w-6 h-6 rounded-lg bg-white hover:bg-amber-200 border border-amber-300 font-bold text-gray-700 text-xs flex items-center justify-center transition active:scale-95"
@@ -864,6 +940,147 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                   <span>Simpan dan Kirim Ke Dapur</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PRODUCT CUSTOMIZATION MODAL (POS TERMINAL - IDENTICAL TO CUSTOMER ORDER VIEW) */}
+      {activeProduct && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white text-gray-900 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl space-y-4 max-h-[90vh] flex flex-col border border-amber-500/20">
+            
+            {/* Modal Image Header */}
+            <div className="relative h-44 sm:h-52 overflow-hidden shrink-0">
+              {activeProduct.imageUrl ? (
+                <img src={activeProduct.imageUrl} alt={activeProduct.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-amber-100 flex items-center justify-center text-amber-700">
+                  <Utensils className="w-12 h-12" />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 via-gray-900/30 to-transparent" />
+              <button
+                type="button"
+                onClick={() => setActiveProduct(null)}
+                className="absolute top-4 right-4 bg-white/80 hover:bg-white p-2 rounded-full text-gray-800 shadow-md transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="absolute bottom-4 left-5 right-5 space-y-1">
+                <h3 className="text-xl sm:text-2xl font-black text-white drop-shadow">{activeProduct.name}</h3>
+                <p className="text-xs text-amber-300 font-extrabold font-mono drop-shadow">
+                  Harga dasar: {formatRupiah(activeProduct.price)}
+                </p>
+              </div>
+            </div>
+
+            {/* Options List */}
+            <div className="p-4 sm:p-5 space-y-4 sm:space-y-5 overflow-y-auto flex-1 text-xs">
+              {activeProduct.variants && activeProduct.variants.length > 0 ? (
+                activeProduct.variants.map((vGroup, idx) => {
+                  const isOptionalGroup = vGroup.group.toLowerCase().includes('topping') || vGroup.required === false;
+                  
+                  return (
+                    <div key={idx} className="space-y-2">
+                      <label className="font-extrabold text-gray-900 block text-xs tracking-wide uppercase flex items-center justify-between">
+                        <span>{vGroup.name}</span>
+                        <span className={`text-[10px] font-semibold ${isOptionalGroup ? 'text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300' : 'text-amber-700 font-normal'}`}>
+                          {isOptionalGroup ? 'Opsional (Bisa dilewati)' : 'Pilih salah satu'}
+                        </span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {vGroup.options.map((opt, optIdx) => {
+                          const isSelected = selectedVariants[vGroup.group]?.label === opt.label;
+                          return (
+                            <button
+                              key={optIdx}
+                              type="button"
+                              onClick={() => {
+                                if (isSelected && isOptionalGroup) {
+                                  const updated = { ...selectedVariants };
+                                  delete updated[vGroup.group];
+                                  setSelectedVariants(updated);
+                                } else {
+                                  setSelectedVariants({ ...selectedVariants, [vGroup.group]: opt });
+                                }
+                              }}
+                              className={`p-2.5 rounded-xl border text-left flex flex-col items-start justify-center gap-0.5 transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-amber-600 text-white font-extrabold shadow-md border-amber-700 scale-[1.02]'
+                                  : 'bg-amber-50/40 border-amber-500/20 text-gray-800 hover:bg-amber-100/60'
+                              }`}
+                            >
+                              <span className="font-bold text-xs leading-tight">{opt.label}</span>
+                              {opt.extraPrice > 0 ? (
+                                <span className={`text-[10px] font-mono font-bold ${isSelected ? 'text-amber-100' : 'text-amber-800'}`}>
+                                  +{formatRupiah(opt.extraPrice)}
+                                </span>
+                              ) : (
+                                <span className={`text-[9.5px] ${isSelected ? 'text-amber-100/80' : 'text-gray-400'}`}>
+                                  +Rp 0
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-xs text-gray-500 italic">Menu ini siap disajikan tanpa opsi varian tambahan.</p>
+              )}
+
+              {/* Notes */}
+              <div className="space-y-2 pt-3 border-t border-gray-100">
+                <label className="font-extrabold text-gray-900 block text-xs uppercase tracking-wide">
+                  Catatan Khusus (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Misal: Kurangi es, gula pisah, tanpa sedotan..."
+                  value={itemNotes}
+                  onChange={e => setItemNotes(e.target.value)}
+                  className="w-full rounded-2xl p-3 text-xs text-gray-900 bg-amber-50/40 border border-amber-500/20 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer with Clear Quantity Selector */}
+            <div className="p-4 sm:p-5 bg-amber-50/70 border-t border-amber-500/20 flex flex-col gap-3 shrink-0">
+              
+              {/* Quantity Selector Header */}
+              <div className="flex items-center justify-between bg-white p-2.5 rounded-2xl border border-amber-500/20 shadow-sm">
+                <span className="text-xs font-extrabold text-gray-900 uppercase tracking-wider">Jumlah Pesanan (Qty):</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setItemQty(Math.max(1, itemQty - 1))}
+                    className="w-8 h-8 rounded-xl bg-amber-100 hover:bg-amber-600 hover:text-white text-amber-900 flex items-center justify-center font-black text-sm transition-all border border-amber-300"
+                  >
+                    -
+                  </button>
+                  <span className="font-black text-sm w-6 text-center text-amber-900 font-mono text-base">{itemQty}</span>
+                  <button
+                    type="button"
+                    onClick={() => setItemQty(itemQty + 1)}
+                    className="w-8 h-8 rounded-xl bg-amber-100 hover:bg-amber-600 hover:text-white text-amber-900 flex items-center justify-center font-black text-sm transition-all border border-amber-300"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Add to Cart Submit Button */}
+              <button
+                type="button"
+                onClick={handleAddCustomizedToCart}
+                className="w-full flex items-center justify-between bg-gradient-to-r from-amber-600 via-amber-700 to-orange-600 text-white font-black py-3.5 px-5 rounded-2xl text-xs sm:text-sm shadow-xl shadow-amber-600/25 transition transform active:scale-95"
+              >
+                <span>Tambah {itemQty}x ke Keranjang POS</span>
+                <span className="font-mono text-sm">{formatRupiah(calculateCustomizedPrice() * itemQty)}</span>
+              </button>
             </div>
           </div>
         </div>

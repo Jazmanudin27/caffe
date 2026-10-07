@@ -134,7 +134,20 @@ CREATE TABLE IF NOT EXISTS payments (
 export async function runMigration() {
   try {
     console.log('🚀 Running MySQL Migration...');
-    await pool.query(schemaDDL);
+    
+    // Split and run DDL statements individually
+    const statements = schemaDDL
+      .split(';')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+
+    for (const stmt of statements) {
+      try {
+        await pool.query(stmt);
+      } catch (e) {
+        console.warn('Migration DDL statement warning:', e.message);
+      }
+    }
 
     // Ensure store_id exists on all tables (for existing DBs)
     const tablesToAlter = ['users', 'categories', 'products', 'tables', 'orders'];
@@ -148,7 +161,8 @@ export async function runMigration() {
 
     // Seed Stores if empty
     const [storeRows] = await pool.query('SELECT COUNT(*) as count FROM stores');
-    if (storeRows[0].count === 0) {
+    const storeCount = storeRows && storeRows[0] ? storeRows[0].count : 0;
+    if (storeCount === 0) {
       console.log('🌱 Seeding Stores...');
       await pool.query(`
         INSERT INTO stores (id, name, code, address, phone) VALUES

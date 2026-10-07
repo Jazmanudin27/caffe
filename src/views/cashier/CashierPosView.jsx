@@ -274,7 +274,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                           setCashModalOrder(order);
                           setCashReceived(formatRupiahInput(order.total));
                         }}
-                        className="flex-1 bg-gradient-to-r from-amber-600 via-amber-700 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-black py-3 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-600/30 transition transform active:scale-95"
+                        className="flex-1 bg-gradient-to-r from-amber-600 via-amber-700 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-black py-3.5 min-h-[44px] rounded-2xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-600/30 transition transform active:scale-95"
                       >
                         <DollarSign className="w-4 h-4 text-amber-300" />
                         <span>Terima Cash</span>
@@ -284,17 +284,17 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
 
                     <button
                       onClick={() => setReceiptOrder(order)}
-                      className="p-3 bg-white hover:bg-amber-100 text-amber-900 rounded-2xl text-xs font-black flex items-center justify-center gap-1.5 border border-amber-400 shadow-sm transition active:scale-95"
+                      className="px-3.5 py-3.5 min-h-[44px] bg-white hover:bg-amber-100 text-amber-900 rounded-2xl text-xs font-black flex items-center justify-center gap-1.5 border border-amber-400 shadow-sm transition active:scale-95"
                       title="Cetak Struk"
                     >
                       <Printer className="w-4 h-4 text-amber-700" />
-                      <span className="hidden sm:inline">Struk</span>
+                      <span className="text-xs font-bold">Struk</span>
                     </button>
 
                     {order.status === 'ready' && (
                       <button
                         onClick={() => updateOrderStatus(order.id, 'completed')}
-                        className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/30 transition active:scale-95"
+                        className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-3.5 min-h-[44px] rounded-2xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/30 transition active:scale-95"
                       >
                         <CheckCircle className="w-4 h-4" />
                         <span>Tandai Selesai</span>

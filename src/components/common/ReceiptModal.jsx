@@ -2,8 +2,26 @@ import React from 'react';
 import { X, Printer, CheckCircle, Coffee } from 'lucide-react';
 import { formatRupiah, formatDateTime } from '../../utils/formatters';
 
-export default function ReceiptModal({ order, onClose }) {
+export default function ReceiptModal({ order, onClose, appSettings }) {
   if (!order) return null;
+
+  // Fallback to localStorage if appSettings not passed directly
+  const settings = appSettings || (() => {
+    try {
+      const saved = localStorage.getItem('caffe_app_settings');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  })();
+
+  const brandName = settings.appName || 'CAFFE POS';
+  const brandAddress = settings.caffeAddress || 'Jl. Kopi Harapan No. 8, Jakarta';
+  const brandPhone = settings.caffePhone || '0812-3456-7890';
+  const wifiName = settings.wifiName;
+  const wifiPassword = settings.wifiPassword;
+  const footerNote = settings.receiptFooterNote || 'Terima kasih atas kunjungan Anda!';
+  const taxRate = settings.taxRate || 10;
 
   const handlePrint = () => {
     window.print();
@@ -19,12 +37,12 @@ export default function ReceiptModal({ order, onClose }) {
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1 bg-amber-500 hover:bg-amber-400 text-gray-950 px-3 py-1 rounded-lg text-xs font-semibold font-sans transition"
+              className="flex items-center gap-1 bg-amber-500 hover:bg-amber-400 text-gray-950 px-3 py-1 rounded-lg text-xs font-semibold font-sans transition cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               Cetak Resi
             </button>
-            <button onClick={onClose} className="p-1 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white">
+            <button onClick={onClose} className="p-1 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white cursor-pointer">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -34,10 +52,15 @@ export default function ReceiptModal({ order, onClose }) {
         <div className="p-6 space-y-4">
           <div className="text-center space-y-1 pb-3 border-b border-dashed border-gray-300">
             <div className="flex justify-center items-center gap-1 font-bold text-lg font-sans text-amber-700">
-              <Coffee className="w-5 h-5" /> CAFFE POS
+              <Coffee className="w-5 h-5" /> {brandName}
             </div>
-            <p className="text-xs text-gray-500">Jl. Kopi Harapan No. 8, Jakarta</p>
-            <p className="text-xs text-gray-500">Telp: 0812-3456-7890</p>
+            <p className="text-xs text-gray-500">{brandAddress}</p>
+            {brandPhone && <p className="text-xs text-gray-500">Telp/WA: {brandPhone}</p>}
+            {wifiName && (
+              <p className="text-[10px] text-amber-800 bg-amber-50 rounded py-0.5 mt-1">
+                Wi-Fi: <span className="font-bold">{wifiName}</span> {wifiPassword ? `(Pass: ${wifiPassword})` : ''}
+              </p>
+            )}
           </div>
 
           <div className="text-xs space-y-1 pb-3 border-b border-dashed border-gray-300">
@@ -50,8 +73,10 @@ export default function ReceiptModal({ order, onClose }) {
               <span>{formatDateTime(order.createdAt)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Meja:</span>
-              <span className="font-bold text-amber-700">{order.tableNumber}</span>
+              <span className="text-gray-500">Meja / Tipe:</span>
+              <span className="font-bold text-amber-700">
+                {order.tableNumber ? `Meja ${order.tableNumber}` : 'Takeaway'} ({order.orderType === 'takeaway' ? 'Bungkus' : 'Dine-In'})
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Pelanggan:</span>
@@ -69,7 +94,7 @@ export default function ReceiptModal({ order, onClose }) {
               <div key={idx} className="space-y-0.5">
                 <div className="flex justify-between font-bold">
                   <span>{item.productName}</span>
-                  <span>{formatRupiah(item.subtotal)}</span>
+                  <span>{formatRupiah(item.subtotal || (item.quantity * item.unitPrice))}</span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500">
                   <span>{item.quantity} x {formatRupiah(item.unitPrice)}</span>
@@ -92,21 +117,23 @@ export default function ReceiptModal({ order, onClose }) {
           <div className="space-y-1 text-xs">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
-              <span>{formatRupiah(order.subtotal)}</span>
+              <span>{formatRupiah(order.subtotal || 0)}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
-              <span>Pajak (PB1 10%)</span>
-              <span>{formatRupiah(order.tax)}</span>
-            </div>
+            {order.tax > 0 ? (
+              <div className="flex justify-between text-gray-600">
+                <span>Pajak (PB1 {taxRate}%)</span>
+                <span>{formatRupiah(order.tax)}</span>
+              </div>
+            ) : null}
             <div className="flex justify-between font-bold text-sm text-gray-900 pt-2 border-t border-gray-300">
               <span>TOTAL</span>
               <span className="text-amber-700">{formatRupiah(order.total)}</span>
             </div>
             <div className="flex justify-between text-xs pt-1 text-gray-600">
               <span>Metode Pembayaran</span>
-              <span className="uppercase font-semibold">{order.paymentMethod}</span>
+              <span className="uppercase font-semibold">{order.paymentMethod || 'CASH'}</span>
             </div>
-            {order.amountPaid && (
+            {order.amountPaid && order.amountPaid > 0 ? (
               <>
                 <div className="flex justify-between text-xs text-gray-600">
                   <span>Tunai / Bayar</span>
@@ -117,15 +144,15 @@ export default function ReceiptModal({ order, onClose }) {
                   <span>{formatRupiah(order.changeAmount || 0)}</span>
                 </div>
               </>
-            )}
+            ) : null}
           </div>
 
           <div className="text-center pt-4 border-t border-dashed border-gray-300 space-y-1">
             <div className="inline-flex items-center gap-1 text-emerald-600 text-xs font-sans font-bold">
-              <CheckCircle className="w-3.5 h-3.5" /> LUNAS / TERBAYAR
+              <CheckCircle className="w-3.5 h-3.5" /> {order.paymentStatus === 'paid' || order.status === 'completed' ? 'LUNAS / TERBAYAR' : 'BELUM LUNAS'}
             </div>
-            <p className="text-[11px] text-gray-400 italic">Terima kasih atas kunjungan Anda!</p>
-            <p className="text-[10px] text-gray-400">Powered by CaffePOS QR System</p>
+            <p className="text-[11px] text-gray-500 italic">{footerNote}</p>
+            <p className="text-[10px] text-gray-400">{brandName} QR Order System</p>
           </div>
         </div>
 

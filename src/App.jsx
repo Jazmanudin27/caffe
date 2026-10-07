@@ -47,6 +47,39 @@ export default function App() {
     }
   };
   
+  const DEFAULT_SETTINGS = {
+    appName: 'CaffePOS Resto',
+    caffeTagline: 'QR Order & Cashier POS System',
+    caffeAddress: 'Jl. Malioboro No. 12, Yogyakarta',
+    caffePhone: '0812-3456-7890',
+    wifiName: 'Caffe_Guest_5G',
+    wifiPassword: 'kopienakbanget',
+    enableTax: true,
+    taxRate: 10,
+    enableServiceCharge: false,
+    serviceChargeRate: 5,
+    receiptFooterNote: 'Terima kasih atas kunjungan Anda! Silakan berkunjung kembali.',
+    autoPrintReceipt: false,
+    currencySymbol: 'Rp'
+  };
+
+  const [appSettings, setAppSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('caffe_app_settings');
+      return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
+    } catch (e) {
+      return DEFAULT_SETTINGS;
+    }
+  });
+
+  const updateAppSettings = (newSettings) => {
+    setAppSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+      localStorage.setItem('caffe_app_settings', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   // Products State
   const [products, setProducts] = useState(() => storageService.getProducts());
 
@@ -256,6 +289,7 @@ export default function App() {
           openCart={() => setCartOpen(true)}
           staffUser={staffUser}
           onLogoutStaff={handleLogoutStaff}
+          appSettings={appSettings}
         />
       ) : null}
 
@@ -274,6 +308,7 @@ export default function App() {
             createOrder={createOrder}
             cartOpen={cartOpen}
             setCartOpen={setCartOpen}
+            appSettings={appSettings}
           />
         )}
 
@@ -282,6 +317,7 @@ export default function App() {
           <StaffLoginView
             targetView={activeView === 'login' ? 'cashier' : activeView}
             onLoginSuccess={handleStaffLoginSuccess}
+            appSettings={appSettings}
           />
         )}
 
@@ -294,6 +330,7 @@ export default function App() {
             products={products}
             createOrder={createOrder}
             tables={tables}
+            appSettings={appSettings}
           />
         )}
 
@@ -301,6 +338,7 @@ export default function App() {
           <KitchenDisplayView
             orders={orders}
             updateOrderStatus={updateOrderStatus}
+            appSettings={appSettings}
           />
         )}
 
@@ -316,6 +354,8 @@ export default function App() {
             tables={tables}
             staffUser={staffUser}
             onLogoutStaff={handleLogoutStaff}
+            appSettings={appSettings}
+            updateAppSettings={updateAppSettings}
           />
         )}
       </main>

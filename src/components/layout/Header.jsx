@@ -1,8 +1,9 @@
 import React from 'react';
 import { Coffee, ShoppingBag, Sparkles, CircleDot, ShieldCheck, LogOut, UserCheck } from 'lucide-react';
 
-export default function Header({ activeView, selectedTable, setSelectedTable, tables, cartCount, openCart, staffUser, onLogoutStaff }) {
+export default function Header({ activeView, selectedTable, setSelectedTable, tables, cartCount, openCart, staffUser, onLogoutStaff, appSettings }) {
   const isDarkHeader = activeView === 'cashier' || activeView === 'kitchen';
+  const displayAppName = appSettings?.appName || 'CAFFEPOS';
 
   return (
     <header className={`sticky top-0 z-40 px-4 py-3.5 transition-all duration-300 ${
@@ -27,10 +28,10 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
 
           <div>
             <div className="flex items-center gap-2">
-              <h1 className={`text-xl font-extrabold tracking-tight flex items-center gap-1.5 ${
+              <h1 className={`text-xl font-black tracking-tight flex items-center gap-1.5 font-heading ${
                 isDarkHeader ? 'text-white' : 'text-gray-900'
               }`}>
-                CAFFE<span className="text-amber-500">POS</span>
+                {displayAppName}
               </h1>
               {activeView !== 'customer' && (
                 <span className={`text-[10px] font-black px-3 py-0.5 rounded-full flex items-center gap-1 shadow-sm ${

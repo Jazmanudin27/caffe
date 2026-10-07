@@ -19,7 +19,8 @@ export default function CustomerOrderView({
   orders,
   createOrder,
   cartOpen,
-  setCartOpen
+  setCartOpen,
+  appSettings
 }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -226,9 +227,11 @@ export default function CustomerOrderView({
     }, 3000);
   };
 
-  // Cart Totals
+  // Cart Totals with Dynamic Tax Settings
+  const isTaxEnabled = appSettings ? appSettings.enableTax !== false : true;
+  const taxRatePercent = appSettings?.taxRate ?? 10;
   const cartSubtotal = cart.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);
-  const cartTax = Math.round(cartSubtotal * 0.1);
+  const cartTax = isTaxEnabled ? Math.round(cartSubtotal * (taxRatePercent / 100)) : 0;
   const cartTotal = cartSubtotal + cartTax;
 
   // Submit Order
@@ -938,10 +941,12 @@ export default function CustomerOrderView({
                     <span>Subtotal</span>
                     <span className="font-mono text-gray-900 font-semibold">{formatRupiah(cartSubtotal)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Pajak Restoran (PB1 10%)</span>
-                    <span className="font-mono text-gray-900 font-semibold">{formatRupiah(cartTax)}</span>
-                  </div>
+                  {isTaxEnabled && taxRatePercent > 0 ? (
+                    <div className="flex justify-between">
+                      <span>Pajak Restoran (PB1 {taxRatePercent}%)</span>
+                      <span className="font-mono text-gray-900 font-semibold">{formatRupiah(cartTax)}</span>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between font-black text-base text-gray-900 pt-2 border-t border-amber-500/20">
                     <span>Total Pembayaran</span>
                     <span className="text-amber-800 font-black font-mono text-xl">{formatRupiah(cartTotal)}</span>

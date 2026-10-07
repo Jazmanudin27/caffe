@@ -3,7 +3,8 @@ import {
   BarChart3, Package, DollarSign, Plus, Edit3, Trash2, 
   CheckCircle, XCircle, TrendingUp, Coffee, FileSpreadsheet, Sparkles, QrCode,
   LayoutDashboard, Layers, Table as TableIcon, Receipt, Users, Menu, Bell, ChevronDown, RefreshCw, Search, LogOut, Clock,
-  Upload, Image as ImageIcon, FileUp, Camera, Check, X, Printer, Wallet, CreditCard, ArrowUpRight, Calendar, Eye
+  Upload, Image as ImageIcon, FileUp, Camera, Check, X, Printer, Wallet, CreditCard, ArrowUpRight, Calendar, Eye,
+  Settings, Sliders, Store, Wifi, Percent, CheckCircle2, Shield
 } from 'lucide-react';
 import { CATEGORIES } from '../../data/mockData';
 import { formatRupiah, formatDateTime } from '../../utils/formatters';
@@ -28,16 +29,48 @@ export default function AdminDashboardView({
   orders = [],
   tables = [],
   staffUser,
-  onLogoutStaff
+  onLogoutStaff,
+  appSettings,
+  updateAppSettings
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeMenu, setActiveMenu] = useState('dashboard'); // 'dashboard' | 'products' | 'categories' | 'tables' | 'orders' | 'financial'
+  const [activeMenu, setActiveMenu] = useState('dashboard'); // 'dashboard' | 'products' | 'categories' | 'tables' | 'orders' | 'financial' | 'settings'
   const [periodFilter, setPeriodFilter] = useState('all'); // 'today' | '7days' | 'month' | 'all'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [profileDropdown, setProfileDropdown] = useState(false);
+
+  // System Settings Form State
+  const [settingsForm, setSettingsForm] = useState(() => ({
+    appName: appSettings?.appName || 'CaffePOS Resto',
+    caffeTagline: appSettings?.caffeTagline || 'QR Order & Cashier POS System',
+    caffeAddress: appSettings?.caffeAddress || 'Jl. Malioboro No. 12, Yogyakarta',
+    caffePhone: appSettings?.caffePhone || '0812-3456-7890',
+    wifiName: appSettings?.wifiName || 'Caffe_Guest_5G',
+    wifiPassword: appSettings?.wifiPassword || 'kopienakbanget',
+    enableTax: appSettings ? appSettings.enableTax !== false : true,
+    taxRate: appSettings?.taxRate ?? 10,
+    enableServiceCharge: appSettings?.enableServiceCharge || false,
+    serviceChargeRate: appSettings?.serviceChargeRate || 5,
+    receiptFooterNote: appSettings?.receiptFooterNote || 'Terima kasih atas kunjungan Anda! Silakan berkunjung kembali.',
+    autoPrintReceipt: appSettings?.autoPrintReceipt || false,
+    currencySymbol: appSettings?.currencySymbol || 'Rp'
+  }));
+
+  const [settingsSavedToast, setSettingsSavedToast] = useState(false);
+
+  const handleSaveSettings = (e) => {
+    if (e) e.preventDefault();
+    if (updateAppSettings) {
+      updateAppSettings(settingsForm);
+    }
+    setSettingsSavedToast(true);
+    setTimeout(() => {
+      setSettingsSavedToast(false);
+    }, 3000);
+  };
 
   // Orders / Riwayat Transaksi Filter States (Default: 3 hari kebelakang)
   const [orderStartDate, setOrderStartDate] = useState(() => {
@@ -545,6 +578,25 @@ export default function AdminDashboardView({
               >
                 <BarChart3 className="w-4 h-4" />
                 <span>Laporan Keuangan</span>
+              </button>
+            </div>
+
+            {/* PENGATURAN & SISTEM */}
+            <div className="space-y-1 pt-2 border-t border-slate-800">
+              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest px-3 block mb-2">
+                PENGATURAN & SISTEM
+              </span>
+
+              <button
+                onClick={() => setActiveMenu('settings')}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                  activeMenu === 'settings'
+                    ? 'bg-blue-600 text-white font-extrabold shadow-md'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                }`}
+              >
+                <Settings className="w-4 h-4" />
+                <span>Pengaturan Kafe & PPN</span>
               </button>
             </div>
 
@@ -1934,6 +1986,326 @@ export default function AdminDashboardView({
               </div>
             );
           })()}
+
+          {/* SECTION 6: PENGATURAN KAFE & PPN / PAJAK (SETTINGS) */}
+          {activeMenu === 'settings' && (
+            <div className="space-y-6 max-w-5xl">
+              
+              {/* Top Title Bar Card */}
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                <div>
+                  <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 font-heading tracking-tight">
+                    <Settings className="w-5 h-5 text-blue-600" />
+                    Pengaturan Kafe, PPN & Sistem POS
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                    Atur identitas kafe, persentase pajak PPN/PB1, biaya layanan, Wi-Fi, dan template struk pembayaran.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSaveSettings}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-black px-4 py-2.5 rounded-xl text-xs shadow-md shadow-blue-600/20 flex items-center gap-2 transition active:scale-95"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Simpan Perubahan</span>
+                </button>
+              </div>
+
+              {/* Toast Notification */}
+              {settingsSavedToast && (
+                <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-2xl flex items-center gap-3 text-emerald-900 animate-fade-in shadow-sm">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <Check className="w-5 h-5 stroke-[3]" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-xs text-emerald-950">Pengaturan Berhasil Disimpan!</h4>
+                    <p className="text-[11px] text-emerald-800">
+                      Nama kafe, aturan pajak PPN, dan konfigurasi struk telah diperbarui secara langsung di seluruh sistem.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <form onSubmit={handleSaveSettings} className="space-y-6">
+                
+                {/* GRID: Identitas Kafe & Pajak/PPN */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
+                  {/* CARD 1: Identitas & Branding Kafe */}
+                  <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-4">
+                    <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                      <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                        <Store className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h3 className="font-black text-sm text-slate-900">Identitas Kafe & Branding</h3>
+                        <p className="text-[10px] text-slate-400">Ditampilkan pada header menu, login, dan struk</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 text-xs">
+                      <div>
+                        <label className="font-extrabold text-slate-800 block mb-1">
+                          Nama Aplikasi / Kafe <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={settingsForm.appName}
+                          onChange={e => setSettingsForm({ ...settingsForm, appName: e.target.value })}
+                          placeholder="Contoh: CaffePOS Resto / Kopi Kenangan"
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="font-extrabold text-slate-800 block mb-1">
+                          Slogan / Tagline
+                        </label>
+                        <input
+                          type="text"
+                          value={settingsForm.caffeTagline}
+                          onChange={e => setSettingsForm({ ...settingsForm, caffeTagline: e.target.value })}
+                          placeholder="Contoh: Premium Artisan Coffee & Eatery"
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="font-extrabold text-slate-800 block mb-1">
+                          Alamat Lengkap Kafe
+                        </label>
+                        <textarea
+                          rows="2"
+                          value={settingsForm.caffeAddress}
+                          onChange={e => setSettingsForm({ ...settingsForm, caffeAddress: e.target.value })}
+                          placeholder="Contoh: Jl. Malioboro No. 12, Yogyakarta"
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="font-extrabold text-slate-800 block mb-1">
+                          Nomor Telepon / WhatsApp Kafe
+                        </label>
+                        <input
+                          type="text"
+                          value={settingsForm.caffePhone}
+                          onChange={e => setSettingsForm({ ...settingsForm, caffePhone: e.target.value })}
+                          placeholder="Contoh: 0812-3456-7890"
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CARD 2: Pajak Restoran (PPN / PB1) & Biaya Layanan */}
+                  <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-4">
+                    <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                      <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                        <Percent className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h3 className="font-black text-sm text-slate-900">Pajak Restoran (PPN / PB1)</h3>
+                        <p className="text-[10px] text-slate-400">Pengaturan penambahan pajak ke tagihan pesanan</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 text-xs">
+                      
+                      {/* Toggle PPN Switch */}
+                      <div 
+                        onClick={() => setSettingsForm(prev => ({ ...prev, enableTax: !prev.enableTax }))}
+                        className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition cursor-pointer"
+                      >
+                        <div>
+                          <p className="font-extrabold text-xs text-slate-900">Aktifkan Pajak (PPN / PB1)</p>
+                          <p className="text-[10px] text-slate-500">
+                            {settingsForm.enableTax ? 'Pajak dihitung otomatis pada pesanan POS & QR Order' : 'Pajak dinonaktifkan (Tagihan tanpa pajak)'}
+                          </p>
+                        </div>
+                        <div className={`w-12 h-6.5 rounded-full p-1 transition-colors ${settingsForm.enableTax ? 'bg-blue-600' : 'bg-slate-300'}`}>
+                          <div className={`w-4.5 h-4.5 rounded-full bg-white transition-transform ${settingsForm.enableTax ? 'translate-x-5.5' : 'translate-x-0'}`} />
+                        </div>
+                      </div>
+
+                      {/* Tax Rate Input (Only shown if enabled) */}
+                      {settingsForm.enableTax && (
+                        <div className="p-3.5 bg-blue-50/60 rounded-2xl border border-blue-100 space-y-2">
+                          <label className="font-extrabold text-blue-950 block">
+                            Persentase Pajak Resto (%)
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.5"
+                              value={settingsForm.taxRate}
+                              onChange={e => setSettingsForm({ ...settingsForm, taxRate: parseFloat(e.target.value) || 0 })}
+                              className="w-28 bg-white border border-blue-200 rounded-xl px-3 py-2 text-sm font-mono font-bold text-slate-900 text-center focus:outline-none focus:border-blue-600"
+                            />
+                            <span className="font-extrabold text-blue-900 text-sm">%</span>
+                            <div className="flex gap-1 ml-auto">
+                              <button
+                                type="button"
+                                onClick={() => setSettingsForm({ ...settingsForm, taxRate: 10 })}
+                                className={`px-2.5 py-1 rounded-lg font-mono font-bold text-[10.5px] border ${settingsForm.taxRate === 10 ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200'}`}
+                              >
+                                10% (PB1)
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setSettingsForm({ ...settingsForm, taxRate: 11 })}
+                                className={`px-2.5 py-1 rounded-lg font-mono font-bold text-[10.5px] border ${settingsForm.taxRate === 11 ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200'}`}
+                              >
+                                11% (PPN)
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-blue-700">
+                            Contoh: Subtotal Rp 100.000 + Pajak {settingsForm.taxRate}% = Total <strong>{formatRupiah(100000 + (100000 * (settingsForm.taxRate / 100)))}</strong>
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Wi-Fi Hotspot Info */}
+                      <div className="pt-2 border-t border-slate-100 space-y-3">
+                        <div className="flex items-center gap-2 text-slate-800 font-extrabold text-xs">
+                          <Wifi className="w-4 h-4 text-emerald-600" />
+                          <span>Informasi Wi-Fi Tamu (Dicetak di Struk)</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 block mb-1">Nama SSID Wi-Fi</label>
+                            <input
+                              type="text"
+                              value={settingsForm.wifiName}
+                              onChange={e => setSettingsForm({ ...settingsForm, wifiName: e.target.value })}
+                              placeholder="Caffe_Guest_5G"
+                              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 block mb-1">Password Wi-Fi</label>
+                            <input
+                              type="text"
+                              value={settingsForm.wifiPassword}
+                              onChange={e => setSettingsForm({ ...settingsForm, wifiPassword: e.target.value })}
+                              placeholder="kopienakbanget"
+                              className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* CARD 3: Pengaturan Struk & Catatan Kaki */}
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-4">
+                  <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                    <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+                      <Printer className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-sm text-slate-900">Kustomisasi Struk Pembayaran Kasir</h3>
+                      <p className="text-[10px] text-slate-400">Pesan penutup dan ucapan terima kasih pada struk belanja</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="font-extrabold text-slate-800 block mb-1">
+                          Catatan Kaki Struk (Footer Greeting)
+                        </label>
+                        <textarea
+                          rows="3"
+                          value={settingsForm.receiptFooterNote}
+                          onChange={e => setSettingsForm({ ...settingsForm, receiptFooterNote: e.target.value })}
+                          placeholder="Terima kasih atas kunjungan Anda! Silakan berkunjung kembali."
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                        />
+                      </div>
+
+                      <div 
+                        onClick={() => setSettingsForm(prev => ({ ...prev, autoPrintReceipt: !prev.autoPrintReceipt }))}
+                        className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition cursor-pointer"
+                      >
+                        <div>
+                          <p className="font-bold text-xs text-slate-900">Cetak Otomatis Setelah Bayar (POS)</p>
+                          <p className="text-[10px] text-slate-500">Tampilkan dialog cetak struk otomatis saat pembayaran sukses</p>
+                        </div>
+                        <div className={`w-10 h-5.5 rounded-full p-0.5 transition-colors ${settingsForm.autoPrintReceipt ? 'bg-blue-600' : 'bg-slate-300'}`}>
+                          <div className={`w-4.5 h-4.5 rounded-full bg-white transition-transform ${settingsForm.autoPrintReceipt ? 'translate-x-4.5' : 'translate-x-0'}`} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Live Preview Struk Mini */}
+                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col justify-between font-mono text-[11px] space-y-2">
+                      <div className="text-center border-b border-dashed border-slate-300 pb-2">
+                        <p className="font-black text-xs uppercase text-slate-900">{settingsForm.appName || 'NAMA KAFE'}</p>
+                        <p className="text-[9.5px] text-slate-500">{settingsForm.caffeTagline || 'Tagline Kafe'}</p>
+                        <p className="text-[9px] text-slate-400 leading-tight mt-0.5">{settingsForm.caffeAddress || 'Alamat Kafe'}</p>
+                        <p className="text-[9px] text-slate-400">Telp: {settingsForm.caffePhone || '-'}</p>
+                      </div>
+
+                      <div className="space-y-1 py-1 border-b border-dashed border-slate-300 text-[10px]">
+                        <div className="flex justify-between">
+                          <span>1x Cappuccino Latte</span>
+                          <span className="font-bold">Rp 35.000</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>1x Croissant Butter</span>
+                          <span className="font-bold">Rp 25.000</span>
+                        </div>
+                        <div className="flex justify-between pt-1 text-slate-600">
+                          <span>Subtotal</span>
+                          <span className="font-bold">Rp 60.000</span>
+                        </div>
+                        {settingsForm.enableTax && (
+                          <div className="flex justify-between text-slate-600">
+                            <span>Pajak ({settingsForm.taxRate}%)</span>
+                            <span className="font-bold">{formatRupiah(60000 * (settingsForm.taxRate / 100))}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between font-black text-slate-900 pt-1 text-xs">
+                          <span>TOTAL</span>
+                          <span>{formatRupiah(settingsForm.enableTax ? 60000 + (60000 * (settingsForm.taxRate / 100)) : 60000)}</span>
+                        </div>
+                      </div>
+
+                      <div className="text-center pt-1 text-[9px] text-slate-500 space-y-0.5">
+                        {settingsForm.wifiName && (
+                          <p className="font-bold text-slate-700">Wi-Fi: {settingsForm.wifiName} | Pass: {settingsForm.wifiPassword}</p>
+                        )}
+                        <p className="italic">"{settingsForm.receiptFooterNote || 'Terima kasih!'}"</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Button Bottom Bar */}
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs shadow-lg shadow-blue-600/30 flex items-center gap-2 transition active:scale-95"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Simpan Pengaturan Kafe & PPN</span>
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          )}
 
         </main>
       </div>

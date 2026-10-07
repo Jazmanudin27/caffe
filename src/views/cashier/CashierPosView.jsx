@@ -8,7 +8,7 @@ import { CATEGORIES } from '../../data/mockData';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import { formatRupiah, formatRupiahInput, getNumericValue, formatDateTime } from '../../utils/formatters';
 
-export default function CashierPosView({ orders, updateOrderStatus, updateOrderPayment, selectedTable, products = [], createOrder, tables = [] }) {
+export default function CashierPosView({ orders, updateOrderStatus, updateOrderPayment, selectedTable, products = [], createOrder, tables = [], appSettings }) {
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -167,8 +167,10 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
     setNewOrderCart(prev => prev.filter((_, i) => i !== idx));
   };
 
+  const isTaxEnabled = appSettings ? appSettings.enableTax !== false : true;
+  const taxRatePercent = appSettings?.taxRate ?? 10;
   const newOrderTotals = newOrderCart.reduce((sum, item) => sum + item.subtotal, 0);
-  const newOrderTax = newOrderTotals * 0.1;
+  const newOrderTax = isTaxEnabled ? Math.round(newOrderTotals * (taxRatePercent / 100)) : 0;
   const newOrderGrandTotal = newOrderTotals + newOrderTax;
 
   const newNumericCash = getNumericValue(newCashReceived);
@@ -839,10 +841,12 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                     <span>Subtotal:</span>
                     <span className="font-mono font-bold">{formatRupiah(newOrderTotals)}</span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>PB1 Tax (10%):</span>
-                    <span className="font-mono font-bold">{formatRupiah(newOrderTax)}</span>
-                  </div>
+                  {isTaxEnabled && taxRatePercent > 0 ? (
+                    <div className="flex justify-between text-gray-600">
+                      <span>PB1 Tax ({taxRatePercent}%):</span>
+                      <span className="font-mono font-bold">{formatRupiah(newOrderTax)}</span>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between text-sm font-black text-amber-950 pt-1 border-t border-amber-200/60">
                     <span>Total Tagihan:</span>
                     <span className="font-mono text-base font-black text-amber-900">{formatRupiah(newOrderGrandTotal)}</span>
@@ -1088,7 +1092,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
 
       {/* PRINT RECEIPT MODAL */}
       {receiptOrder && (
-        <ReceiptModal order={receiptOrder} onClose={() => setReceiptOrder(null)} />
+        <ReceiptModal order={receiptOrder} onClose={() => setReceiptOrder(null)} appSettings={appSettings} />
       )}
 
     </div>

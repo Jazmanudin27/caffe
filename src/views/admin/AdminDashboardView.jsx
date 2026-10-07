@@ -387,35 +387,17 @@ export default function AdminDashboardView({
             </div>
           </div>
 
-          {/* Sub-Brand Admin Card & Multi-Store Selector */}
-          <div className="p-3 space-y-2">
-            <div className="bg-[#1e293b] p-3 rounded-2xl border border-slate-700/60 shadow-inner space-y-2">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-amber-600/30 border border-amber-500/40 flex items-center justify-center text-amber-400 font-black shrink-0">
-                  <Coffee className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="font-extrabold text-xs text-white truncate">{currentStore.name}</h2>
-                  <span className="inline-block text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-600 text-white mt-0.5">
-                    OUTLET: {currentStore.code}
-                  </span>
-                </div>
+          {/* Logged-in Staff User & Outlet Info */}
+          <div className="p-3">
+            <div className="bg-[#1e293b] p-3 rounded-2xl border border-slate-700/60 shadow-inner flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-600/30 border border-amber-500/40 flex items-center justify-center text-amber-400 font-black shrink-0">
+                <Coffee className="w-5 h-5" />
               </div>
-
-              {/* Outlet Dropdown Selector for Multi-Tenant ERP */}
-              <div className="pt-1">
-                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
-                  Pilih Outlet Caffe (ERP):
-                </label>
-                <select
-                  value={selectedStoreId}
-                  onChange={e => setSelectedStoreId(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-amber-300 font-bold focus:outline-none focus:border-amber-500 cursor-pointer"
-                >
-                  {storesList.map(s => (
-                    <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
-                  ))}
-                </select>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-extrabold text-xs text-white truncate">{staffUser?.storeName || 'CaffePOS Resto'}</h2>
+                <span className="inline-block text-[9px] font-black uppercase px-2 py-0.5 rounded bg-amber-600 text-white mt-0.5">
+                  OUTLET: {staffUser?.storeCode || 'PUSAT'}
+                </span>
               </div>
             </div>
           </div>

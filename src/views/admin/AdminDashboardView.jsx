@@ -3,7 +3,7 @@ import {
   BarChart3, Package, DollarSign, Plus, Edit3, Trash2, 
   CheckCircle, XCircle, TrendingUp, Coffee, FileSpreadsheet, Sparkles, QrCode,
   LayoutDashboard, Layers, Table as TableIcon, Receipt, Users, Menu, Bell, ChevronDown, RefreshCw, Search, LogOut, Clock,
-  Upload, Image as ImageIcon, FileUp, Camera, Check, X, Printer
+  Upload, Image as ImageIcon, FileUp, Camera, Check, X, Printer, Wallet, CreditCard, ArrowUpRight, Calendar
 } from 'lucide-react';
 import { CATEGORIES } from '../../data/mockData';
 import { formatRupiah, formatDateTime } from '../../utils/formatters';
@@ -22,7 +22,8 @@ export default function AdminDashboardView({
   onLogoutStaff
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeMenu, setActiveMenu] = useState('products'); // 'dashboard' | 'products' | 'categories' | 'tables' | 'orders' | 'financial'
+  const [activeMenu, setActiveMenu] = useState('dashboard'); // 'dashboard' | 'products' | 'categories' | 'tables' | 'orders' | 'financial'
+  const [periodFilter, setPeriodFilter] = useState('all'); // 'today' | '7days' | 'month' | 'all'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -444,6 +445,18 @@ export default function AdminDashboardView({
               <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest px-3 block mb-2">
                 MAIN MENU
               </span>
+
+              <button
+                onClick={() => setActiveMenu('dashboard')}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                  activeMenu === 'dashboard'
+                    ? 'bg-blue-600 text-white font-extrabold shadow-md'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                }`}
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Dashboard & Rekap</span>
+              </button>
 
               <button
                 onClick={() => setActiveMenu('products')}
@@ -1051,48 +1064,496 @@ export default function AdminDashboardView({
             </div>
           )}
 
-          {/* SECTION 4: RIWAYAT TRANSAKSI */}
-          {activeMenu === 'orders' && (
-            <div className="space-y-6">
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2 font-heading">
-                  <Receipt className="w-6 h-6 text-blue-600" />
-                  Riwayat Seluruh Transaksi Pesanan
-                </h2>
-              </div>
+          {/* SECTION 0 & 5: DASHBOARD OVERVIEW & REKAPAN PENJUALAN + GRAFIK */}
+          {(activeMenu === 'dashboard' || activeMenu === 'financial') && (() => {
+            // Filter orders by period
+            const filteredOrdersByPeriod = orders.filter(o => {
+              if (periodFilter === 'all') return true;
+              const orderDate = new Date(o.createdAt);
+              const now = new Date();
+              if (periodFilter === 'today') {
+                return orderDate.toDateString() === now.toDateString();
+              }
+              if (periodFilter === '7days') {
+                const diffDays = (now - orderDate) / (1000 * 60 * 60 * 24);
+                return diffDays <= 7;
+              }
+              if (periodFilter === 'month') {
+                return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+              }
+              return true;
+            });
 
-              <div className="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
-                <table className="w-full text-left text-xs text-slate-700 border-collapse border border-slate-300">
-                  <thead className="bg-slate-100 text-slate-700 font-extrabold text-[10px] uppercase">
-                    <tr>
-                      <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">NO NOTA</th>
-                      <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">MEJA</th>
-                      <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">PELANGGAN</th>
-                      <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">TOTAL</th>
-                      <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">STATUS</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.map(ord => (
-                      <tr key={ord.id} className="hover:bg-blue-50/40 transition odd:bg-white even:bg-slate-50/50">
-                        <td className="py-2 px-3 font-mono font-bold text-blue-600 border border-slate-200">{ord.orderNumber}</td>
-                        <td className="py-2 px-3 font-bold border border-slate-200">Meja {ord.tableNumber}</td>
-                        <td className="py-2 px-3 border border-slate-200">{ord.customerName}</td>
-                        <td className="py-2 px-3 font-mono font-bold text-slate-900 border border-slate-200">{formatRupiah(ord.total)}</td>
-                        <td className="py-2 px-3 border border-slate-200">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                            ord.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-300/80' : 'bg-amber-50 text-amber-700 border border-amber-300/80'
-                          }`}>
-                            {ord.paymentStatus === 'paid' ? 'LUNAS' : 'MENUNGGU BAYAR'}
+            // Financial Calculations
+            const paidOrders = filteredOrdersByPeriod.filter(o => o.paymentStatus === 'paid' || o.status === 'completed');
+            const pendingOrders = filteredOrdersByPeriod.filter(o => o.paymentStatus === 'unpaid' && o.status !== 'completed');
+            const periodRevenue = paidOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            const periodSubtotal = paidOrders.reduce((sum, o) => sum + (parseFloat(o.subtotal) || 0), 0);
+            const periodTax = paidOrders.reduce((sum, o) => sum + (parseFloat(o.tax) || 0), 0);
+            const periodOrdersCount = filteredOrdersByPeriod.length;
+            const periodPaidCount = paidOrders.length;
+            const periodAov = periodPaidCount > 0 ? Math.round(periodRevenue / periodPaidCount) : 0;
+
+            // Payment Breakdown
+            const cashOrders = paidOrders.filter(o => (o.paymentMethod || '').toLowerCase() === 'cash');
+            const qrisOrders = paidOrders.filter(o => (o.paymentMethod || '').toLowerCase() === 'qris');
+            const cashAmount = cashOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            const qrisAmount = qrisOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+            const cashPercentage = periodRevenue > 0 ? Math.round((cashAmount / periodRevenue) * 100) : 0;
+            const qrisPercentage = periodRevenue > 0 ? Math.round((qrisAmount / periodRevenue) * 100) : 0;
+
+            // Top Products Calculation
+            const periodProductSales = {};
+            paidOrders.forEach(o => {
+              (o.items || []).forEach(item => {
+                const name = item.productName || 'Menu';
+                if (!periodProductSales[name]) {
+                  periodProductSales[name] = {
+                    name,
+                    qty: 0,
+                    revenue: 0,
+                    imageUrl: products.find(p => p.name === name)?.imageUrl
+                  };
+                }
+                periodProductSales[name].qty += (item.quantity || 1);
+                periodProductSales[name].revenue += (item.subtotal || (item.unitPrice * (item.quantity || 1)) || 0);
+              });
+            });
+            const topProductsList = Object.values(periodProductSales)
+              .sort((a, b) => b.qty - a.qty)
+              .slice(0, 5);
+            const maxProductQty = topProductsList.length > 0 ? Math.max(...topProductsList.map(p => p.qty), 1) : 1;
+
+            // 7-Day Chart Data
+            const last7DaysData = Array.from({ length: 7 }, (_, i) => {
+              const d = new Date();
+              d.setDate(d.getDate() - (6 - i));
+              const dateStr = d.toISOString().split('T')[0];
+              const dayLabel = d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' });
+              const dayOrders = orders.filter(o => {
+                const isPaid = o.paymentStatus === 'paid' || o.status === 'completed';
+                return isPaid && (o.createdAt || '').startsWith(dateStr);
+              });
+              const dayRevenue = dayOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+              const dayCount = dayOrders.length;
+              return { date: dateStr, label: dayLabel, revenue: dayRevenue, count: dayCount };
+            });
+            const maxDailyRevenue = Math.max(...last7DaysData.map(d => d.revenue), 100000);
+
+            // Table occupancy
+            const occupiedTablesCount = tables.filter(t => t.status === 'occupied').length;
+
+            return (
+              <div className="space-y-6 animate-fade-in">
+                
+                {/* Top Title & Period Filter Card */}
+                <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 font-heading tracking-tight">
+                      <LayoutDashboard className="w-5 h-5 text-blue-600" />
+                      Dashboard & Rekapan Penjualan
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                      Ringkasan pendapatan kasir, grafik tren omzet, dan menu terlaris restoran.
+                    </p>
+                  </div>
+
+                  {/* Filter Period Pills & Print Button */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <div className="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center gap-1 font-bold">
+                      <button
+                        onClick={() => setPeriodFilter('today')}
+                        className={`px-3 py-1.5 rounded-lg transition ${
+                          periodFilter === 'today' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Hari Ini
+                      </button>
+                      <button
+                        onClick={() => setPeriodFilter('7days')}
+                        className={`px-3 py-1.5 rounded-lg transition ${
+                          periodFilter === '7days' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        7 Hari
+                      </button>
+                      <button
+                        onClick={() => setPeriodFilter('month')}
+                        className={`px-3 py-1.5 rounded-lg transition ${
+                          periodFilter === 'month' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Bulan Ini
+                      </button>
+                      <button
+                        onClick={() => setPeriodFilter('all')}
+                        className={`px-3 py-1.5 rounded-lg transition ${
+                          periodFilter === 'all' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Semua
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => window.print()}
+                      className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition active:scale-95"
+                      title="Cetak Rekapan Laporan"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>Cetak Rekap</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4 TOP KEY METRIC STAT CARDS */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Card 1: Total Omzet */}
+                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs relative overflow-hidden flex flex-col justify-between">
+                    <div className="flex items-center justify-between pb-2">
+                      <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Total Pendapatan</span>
+                      <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                        <DollarSign className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-black text-slate-900 font-mono tracking-tight">
+                        {formatRupiah(periodRevenue)}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1.5 text-[11px]">
+                        <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          {periodPaidCount} Transaksi Lunas
+                        </span>
+                        <span className="text-slate-400 font-medium">Net: {formatRupiah(periodSubtotal)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 2: Total Transaksi */}
+                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs relative overflow-hidden flex flex-col justify-between">
+                    <div className="flex items-center justify-between pb-2">
+                      <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Volume Transaksi</span>
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                        <Receipt className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-black text-slate-900 font-mono tracking-tight">
+                        {periodOrdersCount} <span className="text-xs font-bold text-slate-500 font-sans">Pesanan</span>
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1.5 text-[11px]">
+                        <span className="text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                          {periodPaidCount} Selesai
+                        </span>
+                        {pendingOrders.length > 0 && (
+                          <span className="text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                            {pendingOrders.length} Pending
                           </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 3: Rata-rata per Pesanan (AOV) */}
+                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs relative overflow-hidden flex flex-col justify-between">
+                    <div className="flex items-center justify-between pb-2">
+                      <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Rata-rata Nota (AOV)</span>
+                      <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                        <TrendingUp className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-black text-slate-900 font-mono tracking-tight">
+                        {formatRupiah(periodAov)}
+                      </h3>
+                      <p className="text-[11px] text-slate-500 mt-1.5 font-medium">
+                        Rata-rata pengeluaran per meja/pelanggan
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Card 4: Okupansi Meja */}
+                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs relative overflow-hidden flex flex-col justify-between">
+                    <div className="flex items-center justify-between pb-2">
+                      <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Okupansi Meja</span>
+                      <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+                        <TableIcon className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-black text-slate-900 font-mono tracking-tight">
+                        {occupiedTablesCount} / {tables.length} <span className="text-xs font-bold text-slate-500 font-sans">Meja</span>
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1.5 text-[11px]">
+                        <span className="text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                          {tables.length > 0 ? Math.round((occupiedTablesCount / tables.length) * 100) : 0}% Terisi
+                        </span>
+                        <span className="text-slate-400 font-medium">{tables.length - occupiedTablesCount} Meja Kosong</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* VISUAL CHARTS ROW: GRAFIK TREN PENJUALAN & METODE PEMBAYARAN */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  
+                  {/* CHART 1: GRAFIK BATANG TREN 7 HARI TERAKHIR (COL-SPAN 2) */}
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs lg:col-span-2 space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <div>
+                        <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2 font-heading">
+                          <BarChart3 className="w-4 h-4 text-blue-600" />
+                          Grafik Tren Omzet Penjualan (7 Hari Terakhir)
+                        </h4>
+                        <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
+                          Visualisasi omzet harian berdasarkan transaksi lunas
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-extrabold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full border border-blue-200">
+                        Realtime Sync
+                      </span>
+                    </div>
+
+                    {/* SVG Interactive Bar Chart */}
+                    <div className="pt-2">
+                      <div className="h-56 flex items-end justify-between gap-2 sm:gap-4 px-2 pb-6 border-b border-slate-200 relative">
+                        {/* Dotted Grid Lines */}
+                        <div className="absolute inset-x-0 top-0 border-b border-slate-100 border-dashed" />
+                        <div className="absolute inset-x-0 top-1/2 border-b border-slate-100 border-dashed" />
+                        
+                        {last7DaysData.map((d, idx) => {
+                          const heightPct = Math.max(8, Math.round((d.revenue / maxDailyRevenue) * 100));
+                          const isHighest = d.revenue === maxDailyRevenue && d.revenue > 0;
+                          
+                          return (
+                            <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group relative">
+                              {/* Hover Value Tooltip */}
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-10 bg-slate-900 text-white text-[10px] font-mono font-bold px-2 py-1 rounded-lg pointer-events-none shadow-lg whitespace-nowrap z-20">
+                                {formatRupiah(d.revenue)} ({d.count} trx)
+                              </div>
+
+                              {/* Bar Column */}
+                              <div
+                                style={{ height: `${heightPct}%` }}
+                                className={`w-full max-w-[42px] rounded-t-xl transition-all duration-500 group-hover:scale-y-105 ${
+                                  isHighest
+                                    ? 'bg-gradient-to-t from-blue-600 to-indigo-500 shadow-md shadow-blue-500/30'
+                                    : d.revenue > 0
+                                    ? 'bg-gradient-to-t from-slate-700 to-blue-500 opacity-90 group-hover:opacity-100'
+                                    : 'bg-slate-100'
+                                }`}
+                              />
+
+                              {/* Label Day Name */}
+                              <span className="text-[10px] font-bold text-slate-600 uppercase tracking-tight absolute -bottom-5">
+                                {d.label}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Chart Legend Footer */}
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 pt-6 px-1">
+                        <span className="font-medium">Total 7 Hari: <strong className="text-slate-900 font-mono font-bold">{formatRupiah(last7DaysData.reduce((s, d) => s + d.revenue, 0))}</strong></span>
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-600 inline-block" /> Omzet Tertinggi</span>
+                          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-slate-700 inline-block" /> Omzet Harian</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CHART 2: KOMPOSISI METODE PEMBAYARAN */}
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 flex flex-col justify-between">
+                    <div>
+                      <div className="border-b border-slate-100 pb-3">
+                        <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2 font-heading">
+                          <Wallet className="w-4 h-4 text-emerald-600" />
+                          Metode Pembayaran
+                        </h4>
+                        <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
+                          Distribusi QRIS vs Tunai Kasir
+                        </p>
+                      </div>
+
+                      {/* Distribution Bars */}
+                      <div className="space-y-4 pt-4 text-xs font-medium">
+                        {/* QRIS / E-Wallet Card */}
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-extrabold text-slate-800 flex items-center gap-1.5">
+                              <QrCode className="w-3.5 h-3.5 text-blue-600" /> QRIS / Digital
+                            </span>
+                            <span className="font-mono font-bold text-blue-700">{qrisPercentage}%</span>
+                          </div>
+                          <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div style={{ width: `${qrisPercentage}%` }} className="h-full bg-blue-600 rounded-full transition-all duration-700" />
+                          </div>
+                          <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                            <span>{qrisOrders.length} transaksi</span>
+                            <span className="font-bold text-slate-800">{formatRupiah(qrisAmount)}</span>
+                          </div>
+                        </div>
+
+                        {/* Tunai / Cash Card */}
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-extrabold text-slate-800 flex items-center gap-1.5">
+                              <DollarSign className="w-3.5 h-3.5 text-emerald-600" /> Tunai di Kasir
+                            </span>
+                            <span className="font-mono font-bold text-emerald-700">{cashPercentage}%</span>
+                          </div>
+                          <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div style={{ width: `${cashPercentage}%` }} className="h-full bg-emerald-500 rounded-full transition-all duration-700" />
+                          </div>
+                          <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                            <span>{cashOrders.length} transaksi</span>
+                            <span className="font-bold text-slate-800">{formatRupiah(cashAmount)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 flex justify-between text-[11px] text-slate-500">
+                      <span>Pajak Restoran Terkumpul:</span>
+                      <strong className="font-mono text-slate-900 font-bold">{formatRupiah(periodTax)}</strong>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* BOTTOM ROW: TOP 5 MENU TERLARIS & REKAPAN TRANSAKSI TERAKHIR */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  
+                  {/* TOP 5 BEST SELLER MENU */}
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+                    <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+                      <div>
+                        <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2 font-heading">
+                          <Coffee className="w-4 h-4 text-amber-600" />
+                          Top 5 Menu Terlaris
+                        </h4>
+                        <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
+                          Berdasarkan kuantitas menu yang terjual
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 text-xs">
+                      {topProductsList.length === 0 ? (
+                        <p className="text-slate-400 italic text-center py-6 text-xs">Belum ada data penjualan pada periode ini.</p>
+                      ) : (
+                        topProductsList.map((prod, idx) => {
+                          const progressWidth = Math.round((prod.qty / maxProductQty) * 100);
+                          return (
+                            <div key={idx} className="space-y-1.5 p-2 rounded-xl hover:bg-slate-50 transition border border-slate-100">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className={`w-5 h-5 rounded-full flex items-center justify-center font-black text-[10px] shrink-0 ${
+                                    idx === 0 ? 'bg-amber-500 text-white' :
+                                    idx === 1 ? 'bg-slate-400 text-white' :
+                                    idx === 2 ? 'bg-amber-700 text-white' : 'bg-slate-100 text-slate-600'
+                                  }`}>
+                                    {idx + 1}
+                                  </span>
+                                  <span className="font-bold text-slate-800 truncate">{prod.name}</span>
+                                </div>
+                                <span className="font-mono font-extrabold text-slate-900 shrink-0">{prod.qty}x terjual</span>
+                              </div>
+
+                              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                <div style={{ width: `${progressWidth}%` }} className="h-full bg-amber-500 rounded-full transition-all duration-500" />
+                              </div>
+
+                              <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                                <span>Omzet:</span>
+                                <span className="font-bold text-slate-700">{formatRupiah(prod.revenue)}</span>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  {/* REKAPAN TRANSAKSI TERBARU (COL-SPAN 2) */}
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs lg:col-span-2 space-y-4 flex flex-col justify-between">
+                    <div>
+                      <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+                        <div>
+                          <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2 font-heading">
+                            <Receipt className="w-4 h-4 text-blue-600" />
+                            Rekap Transaksi Terbaru
+                          </h4>
+                          <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
+                            Histori live pesanan dan pembayaran kasir
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setActiveMenu('orders')}
+                          className="text-blue-600 hover:text-blue-700 font-bold text-xs hover:underline"
+                        >
+                          Lihat Semua &rarr;
+                        </button>
+                      </div>
+
+                      {/* Compact Table */}
+                      <div className="overflow-x-auto pt-2">
+                        <table className="w-full text-left text-xs text-slate-700 border-collapse">
+                          <thead className="bg-slate-50 text-slate-600 font-extrabold text-[10px] uppercase border-b border-slate-200">
+                            <tr>
+                              <th className="py-2 px-2.5">NOTA</th>
+                              <th className="py-2 px-2.5">MEJA</th>
+                              <th className="py-2 px-2.5">PELANGGAN</th>
+                              <th className="py-2 px-2.5">METODE</th>
+                              <th className="py-2 px-2.5">TOTAL</th>
+                              <th className="py-2 px-2.5 text-center">STATUS</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredOrdersByPeriod.length === 0 ? (
+                              <tr>
+                                <td colSpan="6" className="py-8 text-center text-slate-400 italic text-xs">
+                                  Belum ada transaksi pada periode ini.
+                                </td>
+                              </tr>
+                            ) : (
+                              filteredOrdersByPeriod.slice(0, 5).map((ord) => (
+                                <tr key={ord.id} className="border-b border-slate-100 hover:bg-slate-50/60 transition">
+                                  <td className="py-2.5 px-2.5 font-mono font-bold text-blue-600 text-[11px]">{ord.orderNumber}</td>
+                                  <td className="py-2.5 px-2.5 font-bold text-slate-800 text-xs">Meja {ord.tableNumber}</td>
+                                  <td className="py-2.5 px-2.5 text-slate-700 text-xs truncate max-w-[120px]">{ord.customerName}</td>
+                                  <td className="py-2.5 px-2.5 uppercase font-mono text-[10px] font-bold text-slate-600">{ord.paymentMethod || 'cash'}</td>
+                                  <td className="py-2.5 px-2.5 font-mono font-extrabold text-slate-900 text-xs">{formatRupiah(ord.total)}</td>
+                                  <td className="py-2.5 px-2.5 text-center">
+                                    <span className={`px-2 py-0.5 rounded-full text-[9.5px] font-extrabold ${
+                                      ord.paymentStatus === 'paid'
+                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-300/80'
+                                        : 'bg-amber-50 text-amber-700 border border-amber-300/80'
+                                    }`}>
+                                      {ord.paymentStatus === 'paid' ? 'LUNAS' : 'PENDING'}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 flex justify-between text-[11px] text-slate-500">
+                      <span>Total Transaksi Periode Ini: <strong className="text-slate-900 font-bold font-mono">{filteredOrdersByPeriod.length}</strong></span>
+                      <span>Total Omzet: <strong className="text-blue-700 font-bold font-mono">{formatRupiah(periodRevenue)}</strong></span>
+                    </div>
+                  </div>
+
+                </div>
+
               </div>
-            </div>
-          )}
+            );
+          })()}
 
         </main>
       </div>

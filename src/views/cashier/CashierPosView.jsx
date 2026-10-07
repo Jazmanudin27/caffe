@@ -517,24 +517,24 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
         <div className="fixed inset-0 z-50 bg-white flex flex-col w-full h-full overflow-hidden animate-fade-in">
           
           {/* Full Screen Header */}
-          <div className="p-4 sm:p-5 border-b border-amber-200/80 bg-amber-50/80 flex justify-between items-center shrink-0 shadow-sm">
+          <div className="p-4 sm:p-5 border-b border-amber-600/40 bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 text-white flex justify-between items-center shrink-0 shadow-xl">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-700 text-white flex items-center justify-center shadow-md shadow-amber-600/30">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-600 to-orange-500 text-white flex items-center justify-center shadow-lg shadow-amber-600/40 border border-amber-300/40">
                 <Plus className="w-7 h-7 stroke-[3]" />
               </div>
               <div>
-                <h3 className="font-extrabold text-base sm:text-xl text-gray-900 flex items-center gap-2">
+                <h3 className="font-extrabold text-base sm:text-xl text-white flex items-center gap-2">
                   Input Pesanan Baru (Kasir POS Terminal)
                 </h3>
-                <p className="text-xs text-gray-500">Pilih menu, meja pelanggan, & konfirmasi transaksi langsung</p>
+                <p className="text-xs text-amber-200/80">Pilih menu, meja pelanggan, &amp; konfirmasi transaksi langsung</p>
               </div>
             </div>
 
             <button 
               onClick={() => setIsNewOrderModalOpen(false)} 
-              className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-extrabold text-xs flex items-center gap-1.5 transition active:scale-95 border border-gray-300"
+              className="px-4 py-2 rounded-xl bg-amber-900/80 hover:bg-amber-800 text-amber-200 font-extrabold text-xs flex items-center gap-1.5 transition active:scale-95 border border-amber-500/40 shadow"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 text-amber-400" />
               <span>Tutup Fullscreen</span>
             </button>
           </div>

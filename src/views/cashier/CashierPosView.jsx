@@ -67,48 +67,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6 animate-fade-in pb-24 text-gray-800">
       
-      {/* Premium Cashier Dashboard Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-900 via-amber-800 to-amber-950 p-6 text-white shadow-xl border border-amber-600/30">
-        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -left-10 -top-10 w-48 h-48 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <Monitor className="w-6 h-6 text-amber-400" />
-            <span className="text-xl font-bold text-white tracking-tight">Kasir POS</span>
-          </div>
-
-          {/* Stat Cards Summary */}
-          <div className="grid grid-cols-3 gap-3 w-full lg:w-auto">
-            {/* Pending Cash Card */}
-            <div className="bg-amber-950/60 border border-amber-500/40 rounded-2xl p-3.5 flex flex-col items-center justify-center text-center shadow-inner backdrop-blur-sm relative overflow-hidden group">
-              {countPending > 0 && (
-                <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                </span>
-              )}
-              <span className="text-[11px] font-bold text-amber-300/90 uppercase tracking-wider">Bayar Cash</span>
-              <span className="text-2xl font-black text-amber-400 font-mono my-0.5">{countPending}</span>
-              <span className="text-[10px] text-amber-200/60">Perlu Kasir</span>
-            </div>
-
-            {/* Preparing Card */}
-            <div className="bg-blue-950/60 border border-blue-500/40 rounded-2xl p-3.5 flex flex-col items-center justify-center text-center shadow-inner backdrop-blur-sm">
-              <span className="text-[11px] font-bold text-blue-300/90 uppercase tracking-wider">Proses Dapur</span>
-              <span className="text-2xl font-black text-blue-400 font-mono my-0.5">{countPreparing}</span>
-              <span className="text-[10px] text-blue-200/60">Disiapkan</span>
-            </div>
-
-            {/* Completed Card */}
-            <div className="bg-emerald-950/60 border border-emerald-500/40 rounded-2xl p-3.5 flex flex-col items-center justify-center text-center shadow-inner backdrop-blur-sm">
-              <span className="text-[11px] font-bold text-emerald-300/90 uppercase tracking-wider">Selesai</span>
-              <span className="text-2xl font-black text-emerald-400 font-mono my-0.5">{countCompleted}</span>
-              <span className="text-[10px] text-emerald-200/60">Hari Ini</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Filter Tabs & Search Navigation Bar */}
       <div className="bg-white/80 backdrop-blur-md p-3 rounded-2xl border border-amber-500/20 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">

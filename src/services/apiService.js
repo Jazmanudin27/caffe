@@ -63,9 +63,9 @@ export const apiService = {
   },
 
   // Fetch Categories from API
-  getCategories: async () => {
+  getCategories: async (storeId = 'caffe-pusat') => {
     try {
-      const res = await fetch(`${API_BASE_URL}/categories`);
+      const res = await fetch(`${API_BASE_URL}/categories?store_id=${storeId}`);
       if (!res.ok) throw new Error('Failed to fetch categories');
       return await res.json();
     } catch (e) {
@@ -112,9 +112,9 @@ export const apiService = {
   },
 
   // Fetch Tables from API
-  getTables: async () => {
+  getTables: async (storeId = 'caffe-pusat') => {
     try {
-      const res = await fetch(`${API_BASE_URL}/tables`);
+      const res = await fetch(`${API_BASE_URL}/tables?store_id=${storeId}`);
       if (!res.ok) throw new Error('Failed to fetch tables');
       return await res.json();
     } catch (e) {
@@ -161,9 +161,9 @@ export const apiService = {
   },
 
   // Fetch Products from MySQL API
-  getProducts: async () => {
+  getProducts: async (storeId = 'caffe-pusat') => {
     try {
-      const res = await fetch(`${API_BASE_URL}/products`);
+      const res = await fetch(`${API_BASE_URL}/products?store_id=${storeId}`);
       if (!res.ok) throw new Error('API offline');
       const data = await res.json();
       return data;
@@ -226,9 +226,9 @@ export const apiService = {
   },
 
   // Fetch Orders
-  getOrders: async () => {
+  getOrders: async (storeId = 'caffe-pusat') => {
     try {
-      const res = await fetch(`${API_BASE_URL}/orders`);
+      const res = await fetch(`${API_BASE_URL}/orders?store_id=${storeId}`);
       if (!res.ok) throw new Error('API offline');
       return await res.json();
     } catch (e) {

@@ -6,7 +6,8 @@ const router = express.Router();
 // GET /api/categories
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM categories ORDER BY display_order ASC');
+    const storeId = req.query.store_id || 'caffe-pusat';
+    const [rows] = await pool.query('SELECT * FROM categories WHERE store_id = ? ORDER BY display_order ASC', [storeId]);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -16,17 +17,18 @@ router.get('/', async (req, res) => {
 // POST /api/categories (Create)
 router.post('/', async (req, res) => {
   try {
-    const { id, name, slug, display_order } = req.body;
+    const { id, name, slug, display_order, storeId } = req.body;
     const catId = id || 'cat-' + Date.now();
+    const store = storeId || 'caffe-pusat';
     const catSlug = slug || (name ? name.toLowerCase().replace(/\s+/g, '-') : 'kategori');
     const orderNum = parseInt(display_order) || 1;
 
     await pool.query(
-      'INSERT INTO categories (id, name, slug, display_order) VALUES (?, ?, ?, ?)',
-      [catId, name, catSlug, orderNum]
+      'INSERT INTO categories (id, store_id, name, slug, display_order) VALUES (?, ?, ?, ?, ?)',
+      [catId, store, name, catSlug, orderNum]
     );
 
-    res.json({ success: true, category: { id: catId, name, slug: catSlug, display_order: orderNum } });
+    res.json({ success: true, category: { id: catId, storeId: store, name, slug: catSlug, display_order: orderNum } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

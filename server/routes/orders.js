@@ -6,12 +6,15 @@ const router = express.Router();
 // GET /api/orders (Fetch all orders with items & variants)
 router.get('/', async (req, res) => {
   try {
+    const storeId = req.query.store_id || 'caffe-pusat';
     const [orders] = await pool.query(
       `SELECT o.*, t.table_number, p.payment_method, p.payment_status, p.amount_paid, p.change_amount
        FROM orders o
        JOIN tables t ON o.table_id = t.id
        LEFT JOIN payments p ON p.order_id = o.id
-       ORDER BY o.created_at DESC`
+       WHERE o.store_id = ?
+       ORDER BY o.created_at DESC`,
+      [storeId]
     );
 
     const [items] = await pool.query(
@@ -39,6 +42,7 @@ router.get('/', async (req, res) => {
 
       return {
         id: ord.id,
+        storeId: ord.store_id,
         orderNumber: ord.order_number,
         tableNumber: ord.table_number,
         tableToken: ord.table_id,
@@ -70,21 +74,22 @@ router.post('/', async (req, res) => {
     await connection.beginTransaction();
 
     const {
-      id, orderNumber, tableNumber, customerName, orderType,
+      id, storeId, orderNumber, tableNumber, customerName, orderType,
       status, paymentStatus, paymentMethod, subtotal, tax, total, items
     } = req.body;
 
     const ordId = id || 'ord-' + Date.now();
+    const store = storeId || 'caffe-pusat';
 
     // Resolve table_id
-    const [tbls] = await connection.query('SELECT id FROM tables WHERE table_number = ?', [tableNumber]);
+    const [tbls] = await connection.query('SELECT id FROM tables WHERE table_number = ? AND store_id = ?', [tableNumber, store]);
     const tableId = tbls.length > 0 ? tbls[0].id : 'tbl-1';
 
     // Insert Order Header
     await connection.query(
-      `INSERT INTO orders (id, order_number, table_id, customer_name, order_type, status, subtotal, tax_amount, total_amount)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [ordId, orderNumber, tableId, customerName || 'Guest', orderType || 'dine_in', status || 'pending', subtotal, tax, total]
+      `INSERT INTO orders (id, store_id, order_number, table_id, customer_name, order_type, status, subtotal, tax_amount, total_amount)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ordId, store, orderNumber, tableId, customerName || 'Guest', orderType || 'dine_in', status || 'pending', subtotal, tax, total]
     );
 
     // Insert Payment Record

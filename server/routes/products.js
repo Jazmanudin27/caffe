@@ -6,7 +6,8 @@ const router = express.Router();
 // GET /api/products (Fetch products with variants grouped)
 router.get('/', async (req, res) => {
   try {
-    const [products] = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
+    const storeId = req.query.store_id || 'caffe-pusat';
+    const [products] = await pool.query('SELECT * FROM products WHERE store_id = ? ORDER BY created_at DESC', [storeId]);
     const [variants] = await pool.query('SELECT * FROM product_variants WHERE is_available = TRUE');
 
     // Group variants by product_id
@@ -33,6 +34,7 @@ router.get('/', async (req, res) => {
 
       return {
         id: prod.id,
+        storeId: prod.store_id,
         categoryId: prod.category_id,
         name: prod.name,
         description: prod.description,
@@ -52,13 +54,14 @@ router.get('/', async (req, res) => {
 // POST /api/products (Create product)
 router.post('/', async (req, res) => {
   try {
-    const { id, categoryId, name, description, price, imageUrl, isAvailable } = req.body;
+    const { id, storeId, categoryId, name, description, price, imageUrl, isAvailable } = req.body;
     const prodId = id || 'prod-' + Date.now();
+    const store = storeId || 'caffe-pusat';
 
     await pool.query(
-      `INSERT INTO products (id, category_id, name, description, price, image_url, is_available)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [prodId, categoryId || 'coffee', name, description || '', price || 0, imageUrl || '', isAvailable !== false]
+      `INSERT INTO products (id, store_id, category_id, name, description, price, image_url, is_available)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [prodId, store, categoryId || 'coffee', name, description || '', price || 0, imageUrl || '', isAvailable !== false]
     );
 
     res.json({ success: true, id: prodId });

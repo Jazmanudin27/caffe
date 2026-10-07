@@ -6,6 +6,7 @@ const router = express.Router();
 // GET /api/reports/financial
 router.get('/financial', async (req, res) => {
   try {
+    const storeId = req.query.store_id || 'caffe-pusat';
     const [totals] = await pool.query(
       `SELECT 
         COUNT(o.id) as total_orders,
@@ -14,15 +15,17 @@ router.get('/financial', async (req, res) => {
         SUM(o.total_amount) as total_revenue
        FROM orders o
        JOIN payments p ON p.order_id = o.id
-       WHERE p.payment_status = 'paid' OR o.status = 'completed'`
+       WHERE (p.payment_status = 'paid' OR o.status = 'completed') AND o.store_id = ?`,
+      [storeId]
     );
 
     const [paymentStats] = await pool.query(
       `SELECT p.payment_method, SUM(o.total_amount) as revenue
        FROM orders o
        JOIN payments p ON p.order_id = o.id
-       WHERE p.payment_status = 'paid' OR o.status = 'completed'
-       GROUP BY p.payment_method`
+       WHERE (p.payment_status = 'paid' OR o.status = 'completed') AND o.store_id = ?
+       GROUP BY p.payment_method`,
+      [storeId]
     );
 
     const [topProducts] = await pool.query(
@@ -31,10 +34,11 @@ router.get('/financial', async (req, res) => {
        JOIN products p ON oi.product_id = p.id
        JOIN orders o ON oi.order_id = o.id
        JOIN payments pay ON pay.order_id = o.id
-       WHERE pay.payment_status = 'paid' OR o.status = 'completed'
+       WHERE (pay.payment_status = 'paid' OR o.status = 'completed') AND o.store_id = ?
        GROUP BY p.id, p.name
        ORDER BY total_qty DESC
-       LIMIT 5`
+       LIMIT 5`,
+      [storeId]
     );
 
     res.json({

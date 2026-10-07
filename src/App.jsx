@@ -96,6 +96,28 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Auto-detect QR Scan URL Parameters (?table=M-01 or ?table=01 or ?store=dago)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tableParam = params.get('table');
+    if (tableParam) {
+      const cleanParam = tableParam.trim().toLowerCase();
+      const matchedTable = tables.find(t => {
+        const numLower = t.number.toLowerCase();
+        return numLower === cleanParam || 
+               numLower === `m-${cleanParam}` || 
+               numLower.replace('m-', '') === cleanParam;
+      });
+      if (matchedTable) {
+        setSelectedTable(matchedTable);
+        const path = window.location.pathname.toLowerCase();
+        if (!path.startsWith('/admin') && !path.startsWith('/kasir') && !path.startsWith('/dapur')) {
+          setActiveView('customer');
+        }
+      }
+    }
+  }, [tables]);
+
   // Product CRUD Operations
   const addProduct = async (newProduct) => {
     setProducts(prev => [newProduct, ...prev]);

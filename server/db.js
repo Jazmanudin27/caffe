@@ -91,33 +91,34 @@ export async function testDbConnection() {
 // Smart query proxy
 const dbProxy = {
   query: async (sql, params = []) => {
-    if (isDbConnected) {
-      try {
-        return await pool.query(sql, params);
-      } catch (err) {
-        console.error('MySQL Query Error:', err.message);
-        isDbConnected = false;
+    try {
+      const res = await pool.query(sql, params);
+      isDbConnected = true;
+      return res;
+    } catch (err) {
+      // If error is duplicate column, it's normal in migration alter queries
+      if (err.code === 'ER_DUP_FIELDNAME' || err.message?.includes('duplicate column')) {
+        return [[]];
       }
+      console.warn('MySQL DB Query Fallback:', err.message);
+      return handleMockQuery(sql, params);
     }
-    // Fallback Query Execution
-    return handleMockQuery(sql, params);
   },
   getConnection: async () => {
-    if (isDbConnected) {
-      try {
-        return await pool.getConnection();
-      } catch (err) {
-        isDbConnected = false;
-      }
+    try {
+      const conn = await pool.getConnection();
+      isDbConnected = true;
+      return conn;
+    } catch (err) {
+      console.warn('MySQL DB Connection Fallback:', err.message);
+      return {
+        query: async (sql, params = []) => handleMockQuery(sql, params),
+        beginTransaction: async () => {},
+        commit: async () => {},
+        rollback: async () => {},
+        release: () => {}
+      };
     }
-    // Return Mock Connection object with transaction support
-    return {
-      query: async (sql, params = []) => handleMockQuery(sql, params),
-      beginTransaction: async () => {},
-      commit: async () => {},
-      rollback: async () => {},
-      release: () => {}
-    };
   }
 };
 

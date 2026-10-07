@@ -140,12 +140,12 @@ export default function CustomerOrderView({
   // Category Icon Resolver
   const getCategoryIcon = (iconName) => {
     switch (iconName) {
-      case 'Coffee': return <Coffee className="w-4 h-4" />;
-      case 'CupSoda': return <CupSoda className="w-4 h-4" />;
-      case 'Milk': return <Milk className="w-4 h-4" />;
-      case 'Utensils': return <Utensils className="w-4 h-4" />;
-      case 'Cookie': return <Cookie className="w-4 h-4" />;
-      default: return <Sparkles className="w-4 h-4" />;
+      case 'Coffee': return <Coffee className="w-3.5 h-3.5" />;
+      case 'CupSoda': return <CupSoda className="w-3.5 h-3.5" />;
+      case 'Milk': return <Milk className="w-3.5 h-3.5" />;
+      case 'Utensils': return <Utensils className="w-3.5 h-3.5" />;
+      case 'Cookie': return <Cookie className="w-3.5 h-3.5" />;
+      default: return <Sparkles className="w-3.5 h-3.5" />;
     }
   };
 
@@ -284,22 +284,22 @@ export default function CustomerOrderView({
         <div className="space-y-6 md:space-y-8 animate-fade-in">
 
           {/* CATEGORIES SLIDER & SEARCH BAR */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            {/* Category Pills */}
-            <div className="flex items-center gap-2.5 overflow-x-auto w-full md:w-auto pb-1.5 md:pb-0 no-scrollbar">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+            {/* Category Pills - Compact SM */}
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 no-scrollbar">
               {CATEGORIES.map(cat => {
                 const isSelected = selectedCategory === cat.id;
                 return (
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`flex items-center gap-2.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-xs sm:text-sm font-black whitespace-nowrap transition-all duration-300 tracking-tight font-heading ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 tracking-tight font-heading cursor-pointer ${
                       isSelected
-                        ? 'gradient-gold text-white shadow-lg shadow-amber-600/30 border border-amber-400 scale-[1.04]'
-                        : 'bg-white text-gray-800 border border-amber-500/25 hover:bg-amber-50 hover:text-amber-900 shadow-sm hover:border-amber-500/50'
+                        ? 'gradient-gold text-white shadow-md shadow-amber-600/20 border border-amber-400'
+                        : 'bg-white text-gray-700 border border-amber-500/20 hover:bg-amber-50 hover:text-amber-900 shadow-xs hover:border-amber-500/40'
                     }`}
                   >
-                    <div className={`p-1.5 rounded-xl transition-all ${isSelected ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-800'}`}>
+                    <div className={`p-1 rounded-lg transition-all ${isSelected ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'}`}>
                       {getCategoryIcon(cat.icon)}
                     </div>
                     <span>{cat.name}</span>
@@ -308,20 +308,20 @@ export default function CustomerOrderView({
               })}
             </div>
 
-            {/* Search Input */}
-            <div className="relative w-full md:w-72">
+            {/* Search Input - Compact */}
+            <div className="relative w-full md:w-64">
               <input
                 type="text"
                 placeholder="Cari kopi, makanan..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-amber-500/30 rounded-2xl pl-4 pr-10 py-2.5 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-600 shadow-sm"
+                className="w-full bg-white border border-amber-500/25 rounded-xl pl-3 pr-8 py-1.5 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-600 shadow-xs"
               />
             </div>
           </div>
 
           {/* PRODUCT GRID - 2 COLUMNS ON MOBILE, 4 COLUMNS ON DESKTOP */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {filteredProducts.map(product => {
               const inCartQty = cart
                 .filter(i => i.productId === product.id)
@@ -330,60 +330,62 @@ export default function CustomerOrderView({
               return (
                 <div
                   key={product.id}
-                  className="bg-white rounded-2xl overflow-hidden flex flex-col justify-between group relative border border-amber-500/20 hover:border-amber-500/50 shadow-sm hover:shadow-md transition-all duration-300"
+                  onClick={() => openCustomization(product)}
+                  className="bg-white rounded-xl overflow-hidden flex flex-col justify-between group relative border border-amber-500/20 hover:border-amber-500/60 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer select-none hover:-translate-y-0.5"
                 >
                   <div>
                     {/* Product Image Header */}
-                    <div className="relative h-32 sm:h-44 overflow-hidden">
+                    <div className="relative h-28 sm:h-36 overflow-hidden">
                       <img
                         src={product.imageUrl}
                         alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-50" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-40" />
                       
                       {/* Best Seller / Tag Badge */}
                       {inCartQty === 0 && (
-                        <div className="absolute top-2 right-2 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1 border border-amber-300/30">
+                        <div className="absolute top-1.5 right-1.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-1.5 py-0.5 rounded-md text-[8.5px] font-black uppercase tracking-wider shadow-xs flex items-center gap-0.5 border border-amber-300/30">
                           <Flame className="w-2.5 h-2.5 text-amber-200 fill-amber-200" /> Best Seller
                         </div>
                       )}
 
                       {/* Quantity In Cart Badge */}
                       {inCartQty > 0 && (
-                        <div className="absolute top-2 right-2 bg-emerald-600 text-white font-black px-2 py-0.5 rounded-lg text-[10px] shadow-sm flex items-center gap-1 border border-emerald-300 animate-pulse">
+                        <div className="absolute top-1.5 right-1.5 bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-md text-[9.5px] shadow-xs flex items-center gap-1 border border-emerald-300">
                           <span>{inCartQty}x</span> di Keranjang
                         </div>
                       )}
                     </div>
 
                     {/* Product Details */}
-                    <div className="p-3 space-y-1">
-                      <h3 className="font-extrabold text-gray-900 text-xs sm:text-sm group-hover:text-amber-700 transition-colors line-clamp-1">
+                    <div className="p-2.5 space-y-0.5">
+                      <h3 className="font-bold text-gray-900 text-xs group-hover:text-amber-700 transition-colors line-clamp-1">
                         {product.name}
                       </h3>
-                      <p className="text-[10px] sm:text-xs text-gray-500 font-medium leading-tight line-clamp-2">
+                      <p className="text-[10px] text-gray-500 font-medium leading-tight line-clamp-2">
                         {product.description}
                       </p>
                     </div>
                   </div>
 
-                  {/* Footer Price & Compact Action Button */}
-                  <div className="p-3 pt-2 flex items-center justify-between gap-1.5 border-t border-amber-500/10 mt-1">
+                  {/* Footer Price */}
+                  <div className="p-2.5 pt-1.5 flex items-center justify-between border-t border-amber-500/10 mt-1">
                     <div>
-                      <span className="text-[9px] text-gray-400 block font-semibold leading-none">Harga</span>
-                      <span className="font-black font-mono text-amber-900 text-xs sm:text-sm">
+                      <span className="text-[8.5px] text-gray-400 block font-semibold leading-none">Harga</span>
+                      <span className="font-extrabold font-mono text-amber-900 text-xs sm:text-sm">
                         {formatRupiah(product.price)}
                       </span>
                     </div>
-
-                    <button
-                      onClick={() => openCustomization(product)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl font-black text-xs gradient-gold text-white shadow-sm hover:shadow transition transform active:scale-95 border border-amber-400/30"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-white stroke-[3]" />
-                      <span>{inCartQty > 0 ? `${inCartQty}x` : 'Tambah'}</span>
-                    </button>
+                    {inCartQty > 0 ? (
+                      <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                        {inCartQty}x
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-semibold text-amber-700 group-hover:underline">
+                        Pilih Menu &rarr;
+                      </span>
+                    )}
                   </div>
                 </div>
               );

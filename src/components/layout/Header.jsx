@@ -1,7 +1,7 @@
 import React from 'react';
-import { Coffee, ShoppingBag, Sparkles, CircleDot, ShieldCheck } from 'lucide-react';
+import { Coffee, ShoppingBag, Sparkles, CircleDot, ShieldCheck, LogOut, UserCheck } from 'lucide-react';
 
-export default function Header({ activeView, selectedTable, setSelectedTable, tables, cartCount, openCart }) {
+export default function Header({ activeView, selectedTable, setSelectedTable, tables, cartCount, openCart, staffUser, onLogoutStaff }) {
   const isCashier = activeView === 'cashier';
 
   return (
@@ -56,7 +56,7 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
         </div>
 
         {/* Right Action Widgets */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {activeView === 'customer' && (
             <>
               {/* Table Selector Dropdown */}
@@ -95,24 +95,26 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
             </>
           )}
 
-          {activeView === 'cashier' && (
-            <div className="bg-gradient-to-r from-emerald-900/80 to-teal-900/80 text-emerald-300 border border-emerald-500/40 px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-inner backdrop-blur-md">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>Halaman Kasir Aktif</span>
-            </div>
-          )}
+          {/* Protected Staff Views User Badge & Logout */}
+          {activeView !== 'customer' && staffUser && (
+            <div className="flex items-center gap-2">
+              <div className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm border ${
+                isCashier
+                  ? 'bg-amber-900/80 text-amber-200 border-amber-500/40'
+                  : 'bg-amber-100 text-amber-900 border-amber-300'
+              }`}>
+                <UserCheck className="w-3.5 h-3.5 text-amber-400" />
+                <span className="hidden sm:inline font-mono">{staffUser.name}</span>
+              </div>
 
-          {activeView === 'kitchen' && (
-            <div className="bg-purple-100 text-purple-800 border border-purple-300 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-600 animate-ping" />
-              <span>Halaman Dapur Aktif</span>
-            </div>
-          )}
-
-          {activeView === 'admin' && (
-            <div className="bg-amber-100 text-amber-900 border border-amber-300 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-amber-700" />
-              <span>Session Admin</span>
+              <button
+                onClick={onLogoutStaff}
+                className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black flex items-center gap-1 shadow transition"
+                title="Keluar Sesi Staf"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline text-[11px]">Keluar</span>
+              </button>
             </div>
           )}
         </div>
@@ -121,4 +123,5 @@ export default function Header({ activeView, selectedTable, setSelectedTable, ta
     </header>
   );
 }
+
 

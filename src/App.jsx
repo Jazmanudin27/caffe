@@ -5,6 +5,7 @@ import CustomerOrderView from './views/customer/CustomerOrderView';
 import CashierPosView from './views/cashier/CashierPosView';
 import KitchenDisplayView from './views/kitchen/KitchenDisplayView';
 import AdminDashboardView from './views/admin/AdminDashboardView';
+import StaffAuthGate from './components/common/StaffAuthGate';
 import { INITIAL_TABLES } from './data/mockData';
 import { storageService } from './services/storageService';
 import { apiService } from './services/apiService';
@@ -22,6 +23,21 @@ export default function App() {
   const [activeView, setActiveView] = useState(getInitialView);
   const [tables] = useState(INITIAL_TABLES);
   const [selectedTable, setSelectedTable] = useState(INITIAL_TABLES[2]); // Default Meja M-03
+
+  // Staff Authentication State
+  const [staffUser, setStaffUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('caffe_staff_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const handleLogoutStaff = () => {
+    setStaffUser(null);
+    localStorage.removeItem('caffe_staff_user');
+  };
   
   // Products State
   const [products, setProducts] = useState(() => storageService.getProducts());
@@ -172,6 +188,8 @@ export default function App() {
         tables={tables}
         cartCount={cartItemCount}
         openCart={() => setCartOpen(true)}
+        staffUser={staffUser}
+        onLogoutStaff={handleLogoutStaff}
       />
 
       {/* Main Dynamic View Content */}
@@ -192,7 +210,15 @@ export default function App() {
           />
         )}
 
-        {activeView === 'cashier' && (
+        {/* Staff Auth Protection for Cashier, Kitchen, Admin */}
+        {activeView !== 'customer' && !staffUser && (
+          <StaffAuthGate
+            targetView={activeView}
+            onLoginSuccess={(user) => setStaffUser(user)}
+          />
+        )}
+
+        {activeView === 'cashier' && staffUser && (
           <CashierPosView
             orders={orders}
             updateOrderStatus={updateOrderStatus}
@@ -201,14 +227,14 @@ export default function App() {
           />
         )}
 
-        {activeView === 'kitchen' && (
+        {activeView === 'kitchen' && staffUser && (
           <KitchenDisplayView
             orders={orders}
             updateOrderStatus={updateOrderStatus}
           />
         )}
 
-        {activeView === 'admin' && (
+        {activeView === 'admin' && staffUser && (
           <AdminDashboardView
             products={products}
             addProduct={addProduct}

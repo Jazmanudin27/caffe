@@ -3,12 +3,20 @@ import {
   BarChart3, Package, DollarSign, Plus, Edit3, Trash2, 
   CheckCircle, XCircle, TrendingUp, Coffee, FileSpreadsheet, Sparkles, QrCode,
   LayoutDashboard, Layers, Table as TableIcon, Receipt, Users, Menu, Bell, ChevronDown, RefreshCw, Search, LogOut, Clock,
-  Upload, Image as ImageIcon, FileUp, Camera, Check, X, Printer, Wallet, CreditCard, ArrowUpRight, Calendar
+  Upload, Image as ImageIcon, FileUp, Camera, Check, X, Printer, Wallet, CreditCard, ArrowUpRight, Calendar, Eye
 } from 'lucide-react';
 import { CATEGORIES } from '../../data/mockData';
 import { formatRupiah, formatDateTime } from '../../utils/formatters';
 import { apiService } from '../../services/apiService';
 import ReceiptModal from '../../components/common/ReceiptModal';
+
+// Helper for input date YYYY-MM-DD
+const formatIsoDate = (d) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export default function AdminDashboardView({ 
   products = [], 
@@ -31,11 +39,18 @@ export default function AdminDashboardView({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [profileDropdown, setProfileDropdown] = useState(false);
 
-  // Orders / Riwayat Transaksi Filter States
+  // Orders / Riwayat Transaksi Filter States (Default: 3 hari kebelakang)
+  const [orderStartDate, setOrderStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 3);
+    return formatIsoDate(d);
+  });
+  const [orderEndDate, setOrderEndDate] = useState(() => formatIsoDate(new Date()));
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
   const [orderPaymentFilter, setOrderPaymentFilter] = useState('all');
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
   const [selectedOrderForReceipt, setSelectedOrderForReceipt] = useState(null);
+  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState(null);
 
   // Multi-Tenant Caffe Stores State
   const [storesList, setStoresList] = useState([
@@ -1088,22 +1103,16 @@ export default function AdminDashboardView({
               // Payment Status filter
               const matchesPayment = orderPaymentFilter === 'all' || ord.paymentStatus === orderPaymentFilter;
 
-              // Period filter
-              let matchesPeriod = true;
-              if (periodFilter !== 'all' && ord.createdAt) {
-                const orderDate = new Date(ord.createdAt);
-                const now = new Date();
-                if (periodFilter === 'today') {
-                  matchesPeriod = orderDate.toDateString() === now.toDateString();
-                } else if (periodFilter === '7days') {
-                  const diffDays = (now - orderDate) / (1000 * 60 * 60 * 24);
-                  matchesPeriod = diffDays <= 7;
-                } else if (periodFilter === 'month') {
-                  matchesPeriod = orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
-                }
+              // Date Range filter (Dari Tanggal - Sampai Tanggal)
+              let matchesDateRange = true;
+              if (ord.createdAt) {
+                const ordDate = new Date(ord.createdAt);
+                const ordDateStr = formatIsoDate(ordDate);
+                if (orderStartDate && ordDateStr < orderStartDate) matchesDateRange = false;
+                if (orderEndDate && ordDateStr > orderEndDate) matchesDateRange = false;
               }
 
-              return matchesSearch && matchesStatus && matchesPayment && matchesPeriod;
+              return matchesSearch && matchesStatus && matchesPayment && matchesDateRange;
             });
 
             // Summary stats for filtered orders
@@ -1112,6 +1121,24 @@ export default function AdminDashboardView({
             const unpaidOrders = filteredOrders.filter(o => o.paymentStatus === 'unpaid' && o.status !== 'completed');
             const totalRevenue = paidOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
             const totalUnpaid = unpaidOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+
+            // Quick date preset handler
+            const handleApplyDatePreset = (days) => {
+              const now = new Date();
+              if (days === 'all') {
+                setOrderStartDate('');
+                setOrderEndDate('');
+              } else if (days === 'month') {
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                setOrderStartDate(formatIsoDate(firstDay));
+                setOrderEndDate(formatIsoDate(now));
+              } else {
+                const start = new Date();
+                start.setDate(start.getDate() - days);
+                setOrderStartDate(formatIsoDate(start));
+                setOrderEndDate(formatIsoDate(now));
+              }
+            };
 
             return (
               <div className="space-y-6">
@@ -1128,26 +1155,40 @@ export default function AdminDashboardView({
                     </p>
                   </div>
 
-                  {/* Period Filter Buttons */}
+                  {/* Preset Buttons */}
                   <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
-                    {[
-                      { id: 'today', label: 'Hari Ini' },
-                      { id: '7days', label: '7 Hari' },
-                      { id: 'month', label: 'Bulan Ini' },
-                      { id: 'all', label: 'Semua' },
-                    ].map((btn) => (
-                      <button
-                        key={btn.id}
-                        onClick={() => setPeriodFilter(btn.id)}
-                        className={`px-3 py-1.5 rounded-lg transition text-xs font-bold ${
-                          periodFilter === btn.id
-                            ? 'bg-white text-blue-700 shadow-xs border border-slate-200'
-                            : 'text-slate-600 hover:text-slate-900'
-                        }`}
-                      >
-                        {btn.label}
-                      </button>
-                    ))}
+                    <button
+                      onClick={() => handleApplyDatePreset(3)}
+                      className={`px-3 py-1.5 rounded-lg transition text-xs font-bold ${
+                        orderStartDate && orderEndDate && orderStartDate === formatIsoDate(new Date(Date.now() - 3 * 86400000))
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      3 Hari (Default)
+                    </button>
+                    <button
+                      onClick={() => handleApplyDatePreset(7)}
+                      className="px-3 py-1.5 rounded-lg transition text-xs font-bold text-slate-600 hover:text-slate-900"
+                    >
+                      7 Hari
+                    </button>
+                    <button
+                      onClick={() => handleApplyDatePreset('month')}
+                      className="px-3 py-1.5 rounded-lg transition text-xs font-bold text-slate-600 hover:text-slate-900"
+                    >
+                      Bulan Ini
+                    </button>
+                    <button
+                      onClick={() => handleApplyDatePreset('all')}
+                      className={`px-3 py-1.5 rounded-lg transition text-xs font-bold ${
+                        !orderStartDate && !orderEndDate
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Semua
+                    </button>
                   </div>
                 </div>
 
@@ -1156,7 +1197,7 @@ export default function AdminDashboardView({
                   <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <span className="text-[11px] font-bold text-slate-400 block mb-1">Total Transaksi</span>
                     <h3 className="text-xl font-black text-slate-900 font-mono">{totalOrdersCount}</h3>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Sesuai filter aktif</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">Sesuai rentang tanggal aktif</p>
                   </div>
 
                   <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
@@ -1180,54 +1221,84 @@ export default function AdminDashboardView({
                   </div>
                 </div>
 
-                {/* Search & Filter Bar */}
-                <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-2.5 text-xs">
-                  {/* Search */}
-                  <div className="relative w-full md:w-72">
-                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
-                    <input
-                      type="text"
-                      placeholder="Cari No. Invoice / Pelanggan / Meja..."
-                      value={orderSearchQuery}
-                      onChange={e => setOrderSearchQuery(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition"
-                    />
+                {/* Search & Date Range Filter Bar */}
+                <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm space-y-3 text-xs">
+                  <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+                    
+                    {/* Date Range: Dari Tanggal - Sampai Tanggal */}
+                    <div className="flex flex-wrap items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                        <span className="font-extrabold text-slate-700 text-[11px]">Dari:</span>
+                        <input
+                          type="date"
+                          value={orderStartDate}
+                          onChange={e => setOrderStartDate(e.target.value)}
+                          className="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-extrabold text-slate-700 text-[11px]">Sampai:</span>
+                        <input
+                          type="date"
+                          value={orderEndDate}
+                          onChange={e => setOrderEndDate(e.target.value)}
+                          className="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Search Field */}
+                    <div className="relative flex-1 max-w-md">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                      <input
+                        type="text"
+                        placeholder="Cari No. Invoice / Pelanggan / Meja..."
+                        value={orderSearchQuery}
+                        onChange={e => setOrderSearchQuery(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                      />
+                    </div>
                   </div>
 
-                  {/* Status & Payment Filters */}
-                  <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-                    <select
-                      value={orderStatusFilter}
-                      onChange={e => setOrderStatusFilter(e.target.value)}
-                      className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none focus:border-blue-600 cursor-pointer"
-                    >
-                      <option value="all">Semua Status Dapur</option>
-                      <option value="pending_payment">Menunggu Bayar</option>
-                      <option value="preparing">Sedang Dibuat (Dapur)</option>
-                      <option value="ready">Siap Disajikan</option>
-                      <option value="completed">Selesai</option>
-                    </select>
+                  {/* Status & Payment Filters Row */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <select
+                        value={orderStatusFilter}
+                        onChange={e => setOrderStatusFilter(e.target.value)}
+                        className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none focus:border-blue-600 cursor-pointer"
+                      >
+                        <option value="all">Semua Status Dapur</option>
+                        <option value="pending_payment">Menunggu Bayar</option>
+                        <option value="preparing">Sedang Dibuat (Dapur)</option>
+                        <option value="ready">Siap Disajikan</option>
+                        <option value="completed">Selesai</option>
+                      </select>
 
-                    <select
-                      value={orderPaymentFilter}
-                      onChange={e => setOrderPaymentFilter(e.target.value)}
-                      className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none focus:border-blue-600 cursor-pointer"
-                    >
-                      <option value="all">Semua Pembayaran</option>
-                      <option value="paid">Lunas (Paid)</option>
-                      <option value="unpaid">Belum Bayar (Unpaid)</option>
-                    </select>
+                      <select
+                        value={orderPaymentFilter}
+                        onChange={e => setOrderPaymentFilter(e.target.value)}
+                        className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none focus:border-blue-600 cursor-pointer"
+                      >
+                        <option value="all">Semua Pembayaran</option>
+                        <option value="paid">Lunas (Paid)</option>
+                        <option value="unpaid">Belum Bayar (Unpaid)</option>
+                      </select>
+                    </div>
 
-                    {(orderSearchQuery || orderStatusFilter !== 'all' || orderPaymentFilter !== 'all') && (
+                    {(orderSearchQuery || orderStatusFilter !== 'all' || orderPaymentFilter !== 'all' || !orderStartDate || !orderEndDate) && (
                       <button
                         onClick={() => {
                           setOrderSearchQuery('');
                           setOrderStatusFilter('all');
                           setOrderPaymentFilter('all');
+                          handleApplyDatePreset(3);
                         }}
                         className="text-xs text-blue-600 hover:underline font-bold whitespace-nowrap px-1"
                       >
-                        Reset Filter
+                        Reset Filter (3 Hari)
                       </button>
                     )}
                   </div>
@@ -1247,7 +1318,7 @@ export default function AdminDashboardView({
                           <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">STATUS BAYAR</th>
                           <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">STATUS DAPUR</th>
                           <th className="py-2.5 px-3 text-right border border-slate-300 bg-slate-100">TOTAL TAGIHAN</th>
-                          <th className="py-2.5 px-3 text-center w-28 border border-slate-300 bg-slate-100">AKSI</th>
+                          <th className="py-2.5 px-3 text-center w-36 border border-slate-300 bg-slate-100">AKSI</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1255,7 +1326,7 @@ export default function AdminDashboardView({
                           <tr>
                             <td colSpan="9" className="py-12 text-center text-slate-400 italic text-xs border border-slate-200">
                               <Receipt className="w-8 h-8 text-slate-300 mx-auto mb-2 stroke-[1.5]" />
-                              Tidak ada riwayat transaksi yang cocok dengan filter.
+                              Tidak ada riwayat transaksi yang cocok dengan filter tanggal ({orderStartDate || 'Awal'} s/d {orderEndDate || 'Akhir'}).
                             </td>
                           </tr>
                         ) : (
@@ -1338,13 +1409,27 @@ export default function AdminDashboardView({
                                 </td>
 
                                 <td className="py-2.5 px-3 text-center border border-slate-200">
-                                  <button
-                                    onClick={() => setSelectedOrderForReceipt(ord)}
-                                    className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-extrabold shadow-2xs transition inline-flex items-center gap-1 active:scale-95"
-                                  >
-                                    <Printer className="w-3 h-3 text-amber-400" />
-                                    <span>Struk</span>
-                                  </button>
+                                  <div className="flex items-center justify-center gap-1.5">
+                                    {/* DETAIL BUTTON */}
+                                    <button
+                                      onClick={() => setSelectedOrderForDetail(ord)}
+                                      className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-extrabold shadow-2xs transition inline-flex items-center gap-1 active:scale-95 cursor-pointer"
+                                      title="Lihat Rincian Lengkap Pesanan"
+                                    >
+                                      <Eye className="w-3 h-3" />
+                                      <span>Detail</span>
+                                    </button>
+
+                                    {/* CETAK STRUK BUTTON */}
+                                    <button
+                                      onClick={() => setSelectedOrderForReceipt(ord)}
+                                      className="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-extrabold shadow-2xs transition inline-flex items-center gap-1 active:scale-95 cursor-pointer"
+                                      title="Cetak Struk Pembayaran"
+                                    >
+                                      <Printer className="w-3 h-3 text-amber-400" />
+                                      <span>Cetak</span>
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             );
@@ -2403,6 +2488,178 @@ export default function AdminDashboardView({
           order={selectedOrderForReceipt} 
           onClose={() => setSelectedOrderForReceipt(null)} 
         />
+      )}
+
+      {/* ORDER DETAIL MODAL */}
+      {selectedOrderForDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white text-slate-900 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl space-y-0 max-h-[92vh] flex flex-col border border-slate-200">
+            
+            {/* Modal Header */}
+            <div className="bg-slate-900 text-white p-4 sm:p-5 flex items-start justify-between shrink-0">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold text-amber-400">
+                    {selectedOrderForDetail.orderNumber || selectedOrderForDetail.id}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded text-[9.5px] font-extrabold uppercase ${
+                    selectedOrderForDetail.paymentStatus === 'paid' || selectedOrderForDetail.status === 'completed'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                      : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                  }`}>
+                    {selectedOrderForDetail.paymentStatus === 'paid' || selectedOrderForDetail.status === 'completed' ? '✓ Lunas' : 'Belum Bayar'}
+                  </span>
+                </div>
+                <h3 className="text-lg font-black text-white mt-1">
+                  Rincian Nota Transaksi
+                </h3>
+                <p className="text-[11px] text-slate-400">
+                  {selectedOrderForDetail.createdAt ? formatDateTime(selectedOrderForDetail.createdAt) : '-'}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedOrderForDetail(null)}
+                className="p-1.5 rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body Info */}
+            <div className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1 text-xs">
+              
+              {/* Customer & Location Details Card */}
+              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Nama Pelanggan</span>
+                  <span className="text-xs font-black text-slate-900">{selectedOrderForDetail.customerName || 'Guest Walk-In'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Meja / Lokasi</span>
+                  <span className="text-xs font-black text-amber-900">
+                    {selectedOrderForDetail.tableNumber ? `Meja ${selectedOrderForDetail.tableNumber}` : 'Takeaway'}
+                    <span className="text-[10px] font-normal text-slate-500 ml-1">
+                      ({selectedOrderForDetail.orderType === 'takeaway' ? 'Bungkus' : 'Dine-In'})
+                    </span>
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Metode Bayar</span>
+                  <span className="text-xs font-mono font-bold text-slate-800 uppercase">{selectedOrderForDetail.paymentMethod || 'CASH'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Status Dapur</span>
+                  <span className="text-xs font-extrabold text-blue-700 capitalize">
+                    {selectedOrderForDetail.status === 'completed' ? 'Selesai' :
+                     selectedOrderForDetail.status === 'ready' ? 'Siap Disajikan' :
+                     selectedOrderForDetail.status === 'preparing' ? 'Sedang Dibuat (Dapur)' : 'Menunggu Bayar'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Items Ordered List */}
+              <div className="space-y-2">
+                <span className="text-xs font-extrabold text-slate-900 block uppercase tracking-wider">
+                  Item Yang Dipesan ({selectedOrderForDetail.items ? selectedOrderForDetail.items.length : 0})
+                </span>
+
+                <div className="space-y-2">
+                  {(selectedOrderForDetail.items || []).map((item, idx) => (
+                    <div key={idx} className="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-bold text-xs text-slate-900">
+                            {item.quantity}x {item.productName}
+                          </h4>
+                          <span className="text-[10.5px] font-mono text-slate-500">
+                            @{formatRupiah(item.unitPrice)}
+                          </span>
+                        </div>
+                        <span className="font-mono font-black text-xs text-slate-900">
+                          {formatRupiah(item.subtotal || (item.quantity * item.unitPrice))}
+                        </span>
+                      </div>
+
+                      {/* Variants & Toppings */}
+                      {item.selectedVariants && item.selectedVariants.length > 0 && (
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          {item.selectedVariants.map((v, vIdx) => (
+                            <span key={vIdx} className="text-[9px] bg-amber-50 text-amber-900 font-semibold px-2 py-0.5 rounded-md border border-amber-200">
+                              {v}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Special Notes */}
+                      {item.notes && (
+                        <p className="text-[10px] text-slate-500 italic bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                          Catatan: "{item.notes}"
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Calculation Card */}
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1.5 text-xs">
+                <div className="flex justify-between text-slate-600">
+                  <span>Subtotal:</span>
+                  <span className="font-mono font-bold">{formatRupiah(selectedOrderForDetail.subtotal || 0)}</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Pajak Resto PB1 (10%):</span>
+                  <span className="font-mono font-bold">{formatRupiah(selectedOrderForDetail.tax || 0)}</span>
+                </div>
+                <div className="flex justify-between text-sm font-black text-slate-900 pt-1.5 border-t border-slate-200">
+                  <span>Total Tagihan:</span>
+                  <span className="font-mono text-blue-700 font-black">{formatRupiah(selectedOrderForDetail.total || 0)}</span>
+                </div>
+                {selectedOrderForDetail.amountPaid && selectedOrderForDetail.amountPaid > 0 && (
+                  <>
+                    <div className="flex justify-between text-slate-600 pt-1 border-t border-slate-200">
+                      <span>Uang Diterima (Cash):</span>
+                      <span className="font-mono font-bold">{formatRupiah(selectedOrderForDetail.amountPaid)}</span>
+                    </div>
+                    <div className="flex justify-between text-emerald-700 font-bold">
+                      <span>Kembalian:</span>
+                      <span className="font-mono">{formatRupiah(selectedOrderForDetail.changeAmount || 0)}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-4 bg-slate-100 border-t border-slate-200 flex items-center justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSelectedOrderForDetail(null)}
+                className="px-4 py-2 bg-white hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs border border-slate-300 transition"
+              >
+                Tutup
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const targetOrd = selectedOrderForDetail;
+                  setSelectedOrderForDetail(null);
+                  setSelectedOrderForReceipt(targetOrd);
+                }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs shadow-md shadow-blue-600/20 flex items-center gap-1.5 transition active:scale-95"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Cetak Struk</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
       )}
 
     </div>

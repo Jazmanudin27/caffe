@@ -5,7 +5,7 @@ import CustomerOrderView from './views/customer/CustomerOrderView';
 import CashierPosView from './views/cashier/CashierPosView';
 import KitchenDisplayView from './views/kitchen/KitchenDisplayView';
 import AdminDashboardView from './views/admin/AdminDashboardView';
-import StaffAuthGate from './components/common/StaffAuthGate';
+import StaffLoginView from './views/auth/StaffLoginView';
 import { INITIAL_TABLES } from './data/mockData';
 import { storageService } from './services/storageService';
 import { apiService } from './services/apiService';
@@ -17,6 +17,7 @@ export default function App() {
     if (path.startsWith('/admin')) return 'admin';
     if (path.startsWith('/kasir')) return 'cashier';
     if (path.startsWith('/dapur')) return 'kitchen';
+    if (path.startsWith('/login')) return 'login';
     return 'customer';
   };
 
@@ -37,6 +38,14 @@ export default function App() {
   const handleLogoutStaff = () => {
     setStaffUser(null);
     localStorage.removeItem('caffe_staff_user');
+  };
+
+  const handleStaffLoginSuccess = (user, role) => {
+    setStaffUser(user);
+    if (role) {
+      setActiveView(role);
+      window.history.pushState(null, '', `/${role === 'cashier' ? 'kasir' : role}`);
+    }
   };
   
   // Products State
@@ -180,17 +189,19 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-gray-800 flex flex-col font-sans selection:bg-amber-500 selection:text-white">
       
-      {/* Global Navigation Header */}
-      <Header
-        activeView={activeView}
-        selectedTable={selectedTable}
-        setSelectedTable={setSelectedTable}
-        tables={tables}
-        cartCount={cartItemCount}
-        openCart={() => setCartOpen(true)}
-        staffUser={staffUser}
-        onLogoutStaff={handleLogoutStaff}
-      />
+      {/* Global Navigation Header (Hidden in Admin Portal View for full desktop portal experience) */}
+      {activeView !== 'admin' || !staffUser ? (
+        <Header
+          activeView={activeView}
+          selectedTable={selectedTable}
+          setSelectedTable={setSelectedTable}
+          tables={tables}
+          cartCount={cartItemCount}
+          openCart={() => setCartOpen(true)}
+          staffUser={staffUser}
+          onLogoutStaff={handleLogoutStaff}
+        />
+      ) : null}
 
       {/* Main Dynamic View Content */}
       <main className="flex-1">
@@ -210,11 +221,11 @@ export default function App() {
           />
         )}
 
-        {/* Staff Auth Protection for Cashier, Kitchen, Admin */}
-        {activeView !== 'customer' && !staffUser && (
-          <StaffAuthGate
-            targetView={activeView}
-            onLoginSuccess={(user) => setStaffUser(user)}
+        {/* Unified Staff Login Portal View */}
+        {(activeView === 'login' || (activeView !== 'customer' && !staffUser)) && (
+          <StaffLoginView
+            targetView={activeView === 'login' ? 'cashier' : activeView}
+            onLoginSuccess={handleStaffLoginSuccess}
           />
         )}
 
@@ -243,12 +254,14 @@ export default function App() {
             toggleProductAvailability={toggleProductAvailability}
             orders={orders}
             tables={tables}
+            staffUser={staffUser}
+            onLogoutStaff={handleLogoutStaff}
           />
         )}
       </main>
 
-      {/* Global Footer */}
-      <Footer />
+      {/* Global Footer (Hidden on Admin Portal Page) */}
+      {activeView !== 'admin' || !staffUser ? <Footer /> : null}
 
     </div>
   );

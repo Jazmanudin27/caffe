@@ -1,22 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, Package, DollarSign, Plus, Edit3, Trash2, 
-  CheckCircle, XCircle, TrendingUp, Coffee, FileSpreadsheet, Sparkles, QrCode
+  CheckCircle, XCircle, TrendingUp, Coffee, FileSpreadsheet, Sparkles, QrCode,
+  LayoutDashboard, Layers, Table as TableIcon, Receipt, Users, Menu, Bell, ChevronDown, RefreshCw, Search, LogOut, Clock
 } from 'lucide-react';
 import { CATEGORIES } from '../../data/mockData';
 import { formatRupiah, formatDateTime } from '../../utils/formatters';
 
 export default function AdminDashboardView({ 
-  products, 
+  products = [], 
   addProduct, 
   updateProduct, 
   deleteProduct, 
   toggleProductAvailability,
-  orders
+  orders = [],
+  tables = [],
+  staffUser,
+  onLogoutStaff
 }) {
-  const [adminTab, setAdminTab] = useState('financial'); // 'financial' | 'products'
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeMenu, setActiveMenu] = useState('products'); // 'dashboard' | 'products' | 'categories' | 'tables' | 'orders' | 'financial'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [profileDropdown, setProfileDropdown] = useState(false);
+
+  // Live Clock State
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format date display matching portal header: "7 Oktober 2026 • 09:35:05"
+  const formattedDateString = currentTime.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  }) + ' • ' + currentTime.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
 
   // Product Modal State
   const [productModal, setProductModal] = useState(false);
@@ -54,6 +81,12 @@ export default function AdminDashboardView({
     });
   });
   const topProducts = Object.values(itemSalesMap).sort((a, b) => b.qty - a.qty).slice(0, 5);
+
+  // Refresh handler
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
 
   // Form Handlers
   const openAddModal = () => {
@@ -114,385 +147,535 @@ export default function AdminDashboardView({
   // Filter Products List
   const filteredProducts = products.filter(p => {
     const matchesCat = selectedCategory === 'all' || p.categoryId === selectedCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesSearch;
+    const matchesStatus = selectedStatus === 'all' || 
+      (selectedStatus === 'available' && p.isAvailable) || 
+      (selectedStatus === 'unavailable' && !p.isAvailable);
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesCat && matchesStatus && matchesSearch;
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-fade-in pb-28 text-gray-800">
+    <div className="min-h-screen bg-[#f1f5f9] flex text-slate-800 font-sans selection:bg-blue-600 selection:text-white">
       
-      {/* Admin Dashboard Header Banner */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-amber-500/20 shadow-sm">
+      {/* LEFT SIDEBAR (DARK NAVY PORTAL MENU) */}
+      <aside className={`bg-[#0f172a] text-slate-300 w-64 min-h-screen shrink-0 transition-all duration-300 z-30 flex flex-col justify-between ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-64 hidden lg:block'
+      }`}>
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs font-bold uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-amber-700" /> Admin Control Panel (/admin)
-          </div>
-          <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-            Kelola Produk, Harga & Laporan Keuangan
-          </h2>
-          <p className="text-xs text-gray-500 mt-1">
-            Pantau omset harian, atur harga menu, dan ketersediaan stok cafe secara terpusat.
-          </p>
-        </div>
-
-        {/* Admin Navigation Tabs */}
-        <div className="flex items-center gap-2 bg-amber-50/70 p-1.5 rounded-2xl border border-amber-500/20 w-full md:w-auto overflow-x-auto no-scrollbar">
-          <button
-            onClick={() => setAdminTab('financial')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-              adminTab === 'financial'
-                ? 'gradient-gold text-white font-black shadow-md'
-                : 'text-gray-600 hover:text-amber-800 hover:bg-white'
-            }`}
-          >
-            <BarChart3 className="w-4 h-4" />
-            <span>Laporan Keuangan</span>
-          </button>
-
-          <button
-            onClick={() => setAdminTab('products')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-              adminTab === 'products'
-                ? 'gradient-gold text-white font-black shadow-md'
-                : 'text-gray-600 hover:text-amber-800 hover:bg-white'
-            }`}
-          >
-            <Package className="w-4 h-4" />
-            <span>Kelola Produk ({products.length})</span>
-          </button>
-        </div>
-      </div>
-
-      {/* TAB 1: FINANCIAL REPORTS & ANALYTICS */}
-      {adminTab === 'financial' && (
-        <div className="space-y-6">
-          
-          {/* Top Summary Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="bg-white p-5 rounded-3xl border border-amber-500/20 space-y-2 shadow-sm">
-              <div className="flex justify-between items-center text-xs text-gray-600 font-semibold">
-                <span>Total Omset / Pendapatan</span>
-                <div className="p-2 rounded-xl bg-amber-100 text-amber-800 border border-amber-300">
-                  <DollarSign className="w-4 h-4" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-black text-amber-800 font-mono">
-                {formatRupiah(totalRevenue)}
-              </h3>
-              <p className="text-[11px] text-gray-500 font-medium">Dari {totalOrdersCount} transaksi terverifikasi</p>
+          {/* Top Portal Brand Header */}
+          <div className="p-4 border-b border-slate-800 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-xl shadow-lg">
+              P
             </div>
-
-            <div className="bg-white p-5 rounded-3xl border border-blue-500/20 space-y-2 shadow-sm">
-              <div className="flex justify-between items-center text-xs text-gray-600 font-semibold">
-                <span>Rata-Rata Transaksi</span>
-                <div className="p-2 rounded-xl bg-blue-100 text-blue-800 border border-blue-300">
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-black text-blue-800 font-mono">
-                {formatRupiah(avgOrderValue)}
-              </h3>
-              <p className="text-[11px] text-gray-500 font-medium">Rerata pembelanjaan per meja</p>
-            </div>
-
-            <div className="bg-white p-5 rounded-3xl border border-emerald-500/20 space-y-2 shadow-sm">
-              <div className="flex justify-between items-center text-xs text-gray-600 font-semibold">
-                <span>Pembayaran Tunai (Cash)</span>
-                <div className="p-2 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  <DollarSign className="w-4 h-4" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-black text-emerald-800 font-mono">
-                {formatRupiah(cashRevenue)}
-              </h3>
-              <p className="text-[11px] text-gray-500 font-medium">Pemasukan cash via Kasir</p>
-            </div>
-
-            <div className="bg-white p-5 rounded-3xl border border-purple-500/20 space-y-2 shadow-sm">
-              <div className="flex justify-between items-center text-xs text-gray-600 font-semibold">
-                <span>Pembayaran Digital (QRIS)</span>
-                <div className="p-2 rounded-xl bg-purple-100 text-purple-800 border border-purple-300">
-                  <QrCode className="w-4 h-4" />
-                </div>
-              </div>
-              <h3 className="text-2xl font-black text-purple-800 font-mono">
-                {formatRupiah(qrisRevenue)}
-              </h3>
-              <p className="text-[11px] text-gray-500 font-medium">Pemasukan e-wallet / QRIS</p>
+            <div>
+              <h1 className="font-extrabold text-sm text-white tracking-wider font-heading uppercase">
+                PORTAL
+              </h1>
+              <p className="text-[10px] text-slate-400 font-mono">CAFFE POS SYSTEM</p>
             </div>
           </div>
 
-          {/* Payment Breakdown & Top Selling Products */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Sub-Brand Admin Card */}
+          <div className="p-3">
+            <div className="bg-[#1e293b] p-3 rounded-2xl border border-slate-700/60 flex items-center gap-3 shadow-inner">
+              <div className="w-9 h-9 rounded-xl bg-amber-600/30 border border-amber-500/40 flex items-center justify-center text-amber-400 font-black">
+                <Coffee className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-extrabold text-xs text-white truncate">CAFFE POS RESTO</h2>
+                <span className="inline-block text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-600 text-white mt-0.5">
+                  ADMIN
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar Navigation Menu List */}
+          <nav className="p-3 space-y-5 text-xs font-semibold">
             
-            {/* Top Selling Menu Card */}
-            <div className="bg-white p-6 rounded-3xl border border-amber-500/20 space-y-4 lg:col-span-2 shadow-sm">
-              <div className="flex justify-between items-center pb-3 border-b border-gray-100">
-                <h3 className="font-extrabold text-gray-900 text-base flex items-center gap-2">
-                  <Coffee className="w-5 h-5 text-amber-600" /> Menu Terlaris (Top Selling Items)
-                </h3>
-                <span className="text-xs text-amber-800 font-bold">Total Terjual</span>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                {topProducts.length === 0 ? (
-                  <p className="text-gray-400 italic py-6 text-center">Belum ada data penjualan menu.</p>
-                ) : (
-                  topProducts.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center bg-amber-50/40 p-3.5 rounded-2xl border border-amber-500/15">
-                      <div className="flex items-center gap-3">
-                        <span className="w-7 h-7 rounded-xl gradient-gold text-white font-black flex items-center justify-center text-xs shadow-sm">
-                          #{idx + 1}
-                        </span>
-                        <div>
-                          <h4 className="font-bold text-gray-900 text-sm">{item.name}</h4>
-                          <span className="text-[11px] text-gray-500">{item.qty} porsi terjual</span>
-                        </div>
-                      </div>
-
-                      <span className="font-mono font-black text-amber-900 text-sm">
-                        {formatRupiah(item.total)}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Tax & Financial Summary */}
-            <div className="bg-white p-6 rounded-3xl border border-amber-500/20 space-y-4 shadow-sm">
-              <h3 className="font-extrabold text-gray-900 text-base flex items-center gap-2 border-b border-gray-100 pb-3">
-                <FileSpreadsheet className="w-5 h-5 text-amber-600" /> Ringkasan Kas
-              </h3>
-
-              <div className="space-y-3 text-xs text-gray-700">
-                <div className="flex justify-between py-1 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">Total Penjualan Kotor (Subtotal)</span>
-                  <span className="font-mono text-gray-900 font-bold">{formatRupiah(totalSubtotal)}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">Total Pajak Restoran (PB1 10%)</span>
-                  <span className="font-mono text-amber-800 font-bold">{formatRupiah(totalTax)}</span>
-                </div>
-                <div className="flex justify-between py-2 font-black text-sm text-gray-900 border-t border-amber-500/20 pt-3">
-                  <span>Pemasukan Bersih Resto</span>
-                  <span className="text-amber-800 font-black font-mono text-base">{formatRupiah(totalRevenue)}</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Transactions History Table */}
-          <div className="bg-white p-6 rounded-3xl border border-amber-500/20 space-y-4 shadow-sm">
-            <div className="flex justify-between items-center pb-3 border-b border-gray-100">
-              <h3 className="font-extrabold text-gray-900 text-base flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-amber-600" /> Riwayat Seluruh Transaksi ({orders.length})
-              </h3>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-gray-800">
-                <thead className="bg-amber-100/70 text-amber-950 uppercase font-mono text-[10px] tracking-wider border-b border-amber-500/20">
-                  <tr>
-                    <th className="p-3.5">No. Nota</th>
-                    <th className="p-3.5">Tanggal & Waktu</th>
-                    <th className="p-3.5">Meja</th>
-                    <th className="p-3.5">Pelanggan</th>
-                    <th className="p-3.5">Metode</th>
-                    <th className="p-3.5">Total Tagihan</th>
-                    <th className="p-3.5">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {orders.map(ord => (
-                    <tr key={ord.id} className="hover:bg-amber-50/50 transition">
-                      <td className="p-3.5 font-mono font-bold text-amber-800">{ord.orderNumber}</td>
-                      <td className="p-3.5 text-gray-500 font-medium">{formatDateTime(ord.createdAt)}</td>
-                      <td className="p-3.5 font-bold text-gray-900">Meja {ord.tableNumber}</td>
-                      <td className="p-3.5 font-bold text-gray-900">{ord.customerName}</td>
-                      <td className="p-3.5 uppercase font-mono text-[11px] font-bold text-amber-900">{ord.paymentMethod}</td>
-                      <td className="p-3.5 font-mono font-black text-gray-900">{formatRupiah(ord.total)}</td>
-                      <td className="p-3.5">
-                        {ord.paymentStatus === 'paid' ? (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            LUNAS
-                          </span>
-                        ) : (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300">
-                            MENUNGGU BAYAR
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-        </div>
-      )}
-
-      {/* TAB 2: PRODUCT & PRICING MANAGEMENT */}
-      {adminTab === 'products' && (
-        <div className="space-y-6">
-          
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
-              {CATEGORIES.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-4.5 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all font-heading tracking-tight ${
-                    selectedCategory === cat.id
-                      ? 'gradient-gold text-white shadow-md border border-amber-400'
-                      : 'bg-white text-gray-800 border border-amber-500/25 hover:bg-amber-50 hover:text-amber-900 shadow-sm'
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <input
-                type="text"
-                placeholder="Cari nama produk..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full md:w-64 bg-white border border-amber-500/30 rounded-2xl px-4 py-2.5 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-amber-600 shadow-sm"
-              />
+            {/* MAIN MENU */}
+            <div className="space-y-1">
+              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest px-3 block mb-2">
+                MAIN MENU
+              </span>
 
               <button
-                onClick={openAddModal}
-                className="gradient-gold text-white font-black px-5 py-2.5 rounded-2xl text-xs shadow-md flex items-center gap-2 whitespace-nowrap transition transform active:scale-95"
+                onClick={() => setActiveMenu('products')}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                  activeMenu === 'products'
+                    ? 'bg-blue-600 text-white font-extrabold shadow-md'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                }`}
               >
-                <Plus className="w-4 h-4" />
-                <span>Tambah Produk Baru</span>
+                <Package className="w-4 h-4" />
+                <span>Kelola Produk / Menu</span>
+              </button>
+
+              <button
+                onClick={() => setActiveMenu('categories')}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                  activeMenu === 'categories'
+                    ? 'bg-blue-600 text-white font-extrabold shadow-md'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                }`}
+              >
+                <Layers className="w-4 h-4" />
+                <span>Kategori Menu</span>
+              </button>
+
+              <button
+                onClick={() => setActiveMenu('tables')}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                  activeMenu === 'tables'
+                    ? 'bg-blue-600 text-white font-extrabold shadow-md'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                }`}
+              >
+                <TableIcon className="w-4 h-4" />
+                <span>Kelola Meja ({tables.length})</span>
+              </button>
+
+              <button
+                onClick={() => setActiveMenu('orders')}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                  activeMenu === 'orders'
+                    ? 'bg-blue-600 text-white font-extrabold shadow-md'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                }`}
+              >
+                <Receipt className="w-4 h-4" />
+                <span>Riwayat Transaksi</span>
               </button>
             </div>
+
+            {/* LAPORAN & REKAP */}
+            <div className="space-y-1 pt-2 border-t border-slate-800">
+              <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest px-3 block mb-2">
+                LAPORAN & REKAP
+              </span>
+
+              <button
+                onClick={() => setActiveMenu('financial')}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                  activeMenu === 'financial'
+                    ? 'bg-blue-600 text-white font-extrabold shadow-md'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                }`}
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span>Laporan Keuangan</span>
+              </button>
+            </div>
+
+          </nav>
+        </div>
+
+        {/* Sidebar Footer Logout */}
+        <div className="p-3 border-t border-slate-800">
+          <button
+            onClick={onLogoutStaff}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-500/10 transition"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Keluar Sesi Admin</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* RIGHT MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col min-w-0">
+        
+        {/* TOP NAVBAR HEADER */}
+        <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between shadow-sm sticky top-0 z-20">
+          {/* Left: Sidebar Toggle Button */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 border border-slate-200 transition"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
           </div>
 
-          <div className="bg-white rounded-3xl overflow-hidden border border-amber-500/20 shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-gray-800">
-                <thead className="bg-amber-100/70 text-amber-950 uppercase font-mono text-[10px] tracking-wider border-b border-amber-500/20">
-                  <tr>
-                    <th className="p-4">Produk</th>
-                    <th className="p-4">Kategori</th>
-                    <th className="p-4">Harga (Rp)</th>
-                    <th className="p-4">Status Stok</th>
-                    <th className="p-4 text-center">Aksi Edit / Hapus</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredProducts.map(prod => (
-                    <tr key={prod.id} className="hover:bg-amber-50/50 transition">
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={prod.imageUrl}
-                            alt={prod.name}
-                            className="w-12 h-12 rounded-2xl object-cover border border-amber-500/20 shadow-sm"
-                          />
-                          <div>
-                            <h4 className="font-bold text-gray-900 text-sm">{prod.name}</h4>
-                            <p className="text-[11px] text-gray-500 line-clamp-1">{prod.description}</p>
-                          </div>
-                        </div>
-                      </td>
+          {/* Middle: Real-time Date/Clock Badge */}
+          <div className="hidden md:flex items-center gap-2 bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200 text-xs font-bold text-slate-700">
+            <Clock className="w-3.5 h-3.5 text-blue-600" />
+            <span className="font-mono">{formattedDateString}</span>
+          </div>
 
-                      <td className="p-4 uppercase font-mono text-[11px] text-amber-800 font-bold">
-                        {prod.categoryId}
-                      </td>
+          {/* Right: Notifications & Profile Pill */}
+          <div className="flex items-center gap-3">
+            <button className="relative p-2 rounded-xl text-slate-600 hover:bg-slate-100 border border-slate-200 transition">
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white font-bold text-[9px] rounded-full flex items-center justify-center">
+                3
+              </span>
+            </button>
 
-                      <td className="p-4 font-mono font-black text-amber-900 text-sm">
-                        {formatRupiah(prod.price)}
-                      </td>
+            {/* Admin Profile Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setProfileDropdown(!profileDropdown)}
+                className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 px-3 py-1.5 rounded-full transition text-xs font-extrabold text-slate-800"
+              >
+                <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-black">
+                  A
+                </div>
+                <span>CAFFE POS ADMIN</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+              </button>
 
-                      <td className="p-4">
-                        <button
-                          onClick={() => toggleProductAvailability(prod.id)}
-                          className={`px-3 py-1.5 rounded-full text-[11px] font-extrabold flex items-center gap-1.5 transition ${
-                            prod.isAvailable
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                              : 'bg-red-100 text-red-800 border border-red-300'
-                          }`}
-                        >
-                          {prod.isAvailable ? <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> : <XCircle className="w-3.5 h-3.5 text-red-600" />}
-                          <span>{prod.isAvailable ? 'Tersedia' : 'Stok Habis'}</span>
-                        </button>
-                      </td>
-
-                      <td className="p-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => openEditModal(prod)}
-                            className="p-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl transition"
-                            title="Edit Produk & Harga"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          
-                          <button
-                            onClick={() => {
-                              if (window.confirm(`Yakin ingin menghapus produk "${prod.name}"?`)) {
-                                deleteProduct(prod.id);
-                              }
-                            }}
-                            className="p-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-300 rounded-xl transition"
-                            title="Hapus Produk"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {profileDropdown && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 text-xs z-50 animate-fade-in">
+                  <div className="px-4 py-2 border-b border-slate-100">
+                    <p className="font-bold text-slate-900">{staffUser ? staffUser.name : 'Administrator'}</p>
+                    <p className="text-[10px] text-slate-500 font-mono">admin@caffe.com</p>
+                  </div>
+                  <button
+                    onClick={onLogoutStaff}
+                    className="w-full text-left px-4 py-2.5 text-rose-600 hover:bg-rose-50 font-bold flex items-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Keluar Sesi</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+        </header>
 
-        </div>
-      )}
+        {/* MAIN BODY CONTAINER */}
+        <main className="p-4 sm:p-6 space-y-6 flex-1">
+          
+          {/* SECTION 1: KELOLA PRODUK / MENU */}
+          {activeMenu === 'products' && (
+            <div className="space-y-6">
+              
+              {/* Top Title Bar Card */}
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2 font-heading">
+                    <Package className="w-6 h-6 text-blue-600" />
+                    Kelola Produk & Menu CaffePOS
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1 font-medium">
+                    Total <strong className="text-slate-800">{products.length}</strong> produk menu makanan & minuman aktif di katalog.
+                  </p>
+                </div>
+
+                <button
+                  onClick={openAddModal}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md shadow-blue-600/20 flex items-center gap-2 transition active:scale-95"
+                >
+                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <span>Tambah Produk Baru</span>
+                </button>
+              </div>
+
+              {/* Search & Filter Controls Bar */}
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                {/* Search Field */}
+                <div className="relative w-full sm:w-80">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
+                  <input
+                    type="text"
+                    placeholder="Cari agenda kegiatan / produk..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 font-medium placeholder-slate-400 focus:outline-none focus:border-blue-600 transition"
+                  />
+                </div>
+
+                {/* Filter Dropdowns */}
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <select
+                    value={selectedCategory}
+                    onChange={e => setSelectedCategory(e.target.value)}
+                    className="bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-bold focus:outline-none focus:border-blue-600 cursor-pointer"
+                  >
+                    <option value="all">Semua Kategori</option>
+                    {CATEGORIES.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={selectedStatus}
+                    onChange={e => setSelectedStatus(e.target.value)}
+                    className="bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 font-bold focus:outline-none focus:border-blue-600 cursor-pointer"
+                  >
+                    <option value="all">Semua Status</option>
+                    <option value="available">Tersedia</option>
+                    <option value="unavailable">Stok Habis</option>
+                  </select>
+
+                  <button
+                    onClick={handleRefresh}
+                    className={`p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-xl transition ${isRefreshing ? 'animate-spin' : ''}`}
+                    title="Refresh Data"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Exact Data Table Layout matching Screenshot */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-800">
+                    <thead className="bg-[#f8fafc] text-slate-700 font-black text-[11px] uppercase tracking-wider border-b border-slate-200">
+                      <tr>
+                        <th className="py-3.5 px-4 text-center w-12">NO</th>
+                        <th className="py-3.5 px-4">NAMA PRODUK / MENU</th>
+                        <th className="py-3.5 px-4 text-center">KATEGORI</th>
+                        <th className="py-3.5 px-4">HARGA</th>
+                        <th className="py-3.5 px-4 text-center">STATUS</th>
+                        <th className="py-3.5 px-4">KETERANGAN</th>
+                        <th className="py-3.5 px-4 text-center w-24">AKSI</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredProducts.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="py-12 text-center text-slate-400 italic">
+                            Tidak ada data produk ditemukan.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredProducts.map((prod, idx) => (
+                          <tr key={prod.id} className="hover:bg-slate-50 transition font-medium">
+                            <td className="py-3.5 px-4 text-center font-bold text-slate-500">{idx + 1}</td>
+                            
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={prod.imageUrl}
+                                  alt={prod.name}
+                                  className="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-sm shrink-0"
+                                />
+                                <div>
+                                  <h4 className="font-extrabold text-slate-900 text-xs">{prod.name}</h4>
+                                  <span className="text-[10px] text-slate-400 font-mono">ID: {prod.id}</span>
+                                </div>
+                              </div>
+                            </td>
+
+                            <td className="py-3.5 px-4 text-center">
+                              <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg text-[11px] font-bold inline-block">
+                                {prod.categoryId}
+                              </span>
+                            </td>
+
+                            <td className="py-3.5 px-4 font-mono font-black text-slate-900 text-xs">
+                              {formatRupiah(prod.price)}
+                            </td>
+
+                            <td className="py-3.5 px-4 text-center">
+                              <button
+                                onClick={() => toggleProductAvailability(prod.id)}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                                  prod.isAvailable
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                                    : 'bg-rose-50 text-rose-700 border border-rose-300'
+                                }`}
+                              >
+                                {prod.isAvailable ? 'Tersedia' : 'Stok Habis'}
+                              </button>
+                            </td>
+
+                            <td className="py-3.5 px-4 text-slate-500 text-[11px] max-w-xs truncate">
+                              {prod.description || '-'}
+                            </td>
+
+                            {/* Action Buttons Column matching screenshot: Blue Edit & Red Delete */}
+                            <td className="py-3.5 px-4 text-center">
+                              <div className="flex items-center justify-center gap-1.5">
+                                <button
+                                  onClick={() => openEditModal(prod)}
+                                  className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition"
+                                  title="Edit Produk"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                
+                                <button
+                                  onClick={() => {
+                                    if (window.confirm(`Yakin ingin menghapus "${prod.name}"?`)) {
+                                      deleteProduct(prod.id);
+                                    }
+                                  }}
+                                  className="p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-sm transition"
+                                  title="Hapus Produk"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* SECTION 2: LAPORAN KEUANGAN */}
+          {activeMenu === 'financial' && (
+            <div className="space-y-6">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2 font-heading">
+                  <BarChart3 className="w-6 h-6 text-blue-600" />
+                  Laporan Keuangan & Ringkasan Kas
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Ringkasan pendapatan dari pesanan yang telah diselesaikan.
+                </p>
+              </div>
+
+              {/* Financial Stats Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                  <span className="text-xs text-slate-500 font-bold">Total Omset Penjualan</span>
+                  <h3 className="text-2xl font-black text-blue-600 font-mono">{formatRupiah(totalRevenue)}</h3>
+                  <p className="text-[11px] text-slate-400">Dari {totalOrdersCount} transaksi lunas</p>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                  <span className="text-xs text-slate-500 font-bold">Rata-Rata Transaksi</span>
+                  <h3 className="text-2xl font-black text-amber-600 font-mono">{formatRupiah(avgOrderValue)}</h3>
+                  <p className="text-[11px] text-slate-400">Per nota pemesanan</p>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                  <span className="text-xs text-slate-500 font-bold">Pemasukan Cash</span>
+                  <h3 className="text-2xl font-black text-emerald-600 font-mono">{formatRupiah(cashRevenue)}</h3>
+                  <p className="text-[11px] text-slate-400">Pembayaran tunai kasir</p>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                  <span className="text-xs text-slate-500 font-bold">Pemasukan QRIS</span>
+                  <h3 className="text-2xl font-black text-purple-600 font-mono">{formatRupiah(qrisRevenue)}</h3>
+                  <p className="text-[11px] text-slate-400">Pembayaran digital</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SECTION 3: KELOLA MEJA */}
+          {activeMenu === 'tables' && (
+            <div className="space-y-6">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2 font-heading">
+                  <TableIcon className="w-6 h-6 text-blue-600" />
+                  Kelola Meja & Kode QR Pelanggan
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {tables.map(tbl => (
+                  <div key={tbl.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center">
+                    <div>
+                      <h3 className="font-extrabold text-lg text-slate-900">Meja {tbl.number}</h3>
+                      <p className="text-xs text-slate-500">Kapasitas: {tbl.capacity} Kursi</p>
+                      <span className="text-[10px] font-mono text-blue-600 font-bold mt-1 block">{tbl.token}</span>
+                    </div>
+
+                    <span className={`px-3 py-1 rounded-full text-xs font-black ${
+                      tbl.status === 'available' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      {tbl.status === 'available' ? 'Kosong' : 'Terisi'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* SECTION 4: RIWAYAT TRANSAKSI */}
+          {activeMenu === 'orders' && (
+            <div className="space-y-6">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2 font-heading">
+                  <Receipt className="w-6 h-6 text-blue-600" />
+                  Riwayat Seluruh Transaksi Pesanan
+                </h2>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <table className="w-full text-left text-xs text-slate-800">
+                  <thead className="bg-[#f8fafc] text-slate-700 font-black text-[11px] uppercase border-b border-slate-200">
+                    <tr>
+                      <th className="p-3.5">NO NOTA</th>
+                      <th className="p-3.5">MEJA</th>
+                      <th className="p-3.5">PELANGGAN</th>
+                      <th className="p-3.5">TOTAL</th>
+                      <th className="p-3.5">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {orders.map(ord => (
+                      <tr key={ord.id} className="hover:bg-slate-50">
+                        <td className="p-3.5 font-mono font-bold text-blue-600">{ord.orderNumber}</td>
+                        <td className="p-3.5 font-bold">Meja {ord.tableNumber}</td>
+                        <td className="p-3.5">{ord.customerName}</td>
+                        <td className="p-3.5 font-mono font-black">{formatRupiah(ord.total)}</td>
+                        <td className="p-3.5">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
+                            ord.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            {ord.paymentStatus === 'paid' ? 'LUNAS' : 'MENUNGGU BAYAR'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+        </main>
+      </div>
 
       {/* ADD / EDIT PRODUCT MODAL */}
       {productModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white border border-amber-500/30 text-gray-900 w-full max-w-lg rounded-3xl p-6 space-y-5 shadow-2xl">
+          <div className="bg-white text-slate-900 w-full max-w-lg rounded-3xl p-6 space-y-5 shadow-2xl border border-slate-200">
             
-            <div className="flex justify-between items-center pb-3 border-b border-gray-100">
-              <h3 className="font-black text-lg text-gray-900 flex items-center gap-2">
-                <Package className="w-5 h-5 text-amber-600" />
-                {editingProduct ? 'Edit Data Produk & Harga' : 'Tambah Produk Baru'}
+            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+              <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                <Package className="w-5 h-5 text-blue-600" />
+                {editingProduct ? 'Edit Data Produk & Harga' : 'Tambah Agenda Produk Baru'}
               </h3>
-              <button onClick={() => setProductModal(false)} className="text-gray-400 hover:text-gray-900 p-1 font-bold">
+              <button onClick={() => setProductModal(false)} className="text-slate-400 hover:text-slate-900 font-bold p-1">
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveProduct} className="space-y-4 text-xs font-medium">
               <div>
-                <label className="font-extrabold text-gray-800 block mb-1">Nama Produk / Menu</label>
+                <label className="font-extrabold text-slate-800 block mb-1">Nama Produk / Menu</label>
                 <input
                   type="text"
                   required
                   placeholder="Contoh: Caramel Latte Special"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-white border border-amber-500/30 rounded-2xl p-3 text-xs text-gray-900"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-extrabold text-gray-800 block mb-1">Kategori</label>
+                  <label className="font-extrabold text-slate-800 block mb-1">Kategori</label>
                   <select
                     value={formData.categoryId}
                     onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
-                    className="w-full bg-white border border-amber-500/30 rounded-2xl p-3 text-xs text-gray-900 font-medium focus:outline-none focus:border-amber-600"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-bold"
                   >
                     <option value="coffee">Espresso & Coffee</option>
                     <option value="non-coffee">Non-Coffee</option>
@@ -502,64 +685,64 @@ export default function AdminDashboardView({
                 </div>
 
                 <div>
-                  <label className="font-extrabold text-gray-800 block mb-1">Harga (Rp)</label>
+                  <label className="font-extrabold text-slate-800 block mb-1">Harga (Rp)</label>
                   <input
                     type="number"
                     required
                     placeholder="Contoh: 35000"
                     value={formData.price}
                     onChange={e => setFormData({ ...formData, price: e.target.value })}
-                    className="w-full bg-white border border-amber-500/30 rounded-2xl p-3 text-xs text-amber-900 font-mono font-bold"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 font-mono font-bold"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-extrabold text-gray-800 block mb-1">Deskripsi Singkat</label>
+                <label className="font-extrabold text-slate-800 block mb-1">Deskripsi Singkat</label>
                 <textarea
                   rows="2"
-                  placeholder="Deskripsi bahan dan cita rasa menu..."
+                  placeholder="Deskripsi menu..."
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-white border border-amber-500/30 rounded-2xl p-3 text-xs text-gray-900"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900"
                 />
               </div>
 
               <div>
-                <label className="font-extrabold text-gray-800 block mb-1">URL Gambar (Unsplash / Online Image)</label>
+                <label className="font-extrabold text-slate-800 block mb-1">URL Gambar (Unsplash / Online)</label>
                 <input
                   type="text"
                   placeholder="https://images.unsplash.com/..."
                   value={formData.imageUrl}
                   onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                  className="w-full bg-white border border-amber-500/30 rounded-2xl p-3 text-xs text-gray-900"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900"
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-2 pt-1">
                 <input
                   type="checkbox"
                   id="availCheck"
                   checked={formData.isAvailable}
                   onChange={e => setFormData({ ...formData, isAvailable: e.target.checked })}
-                  className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
                 />
-                <label htmlFor="availCheck" className="text-xs font-bold text-gray-800">
+                <label htmlFor="availCheck" className="text-xs font-bold text-slate-800">
                   Produk Tersedia (Stok Ready)
                 </label>
               </div>
 
-              <div className="pt-3 border-t border-gray-100 flex justify-end gap-3">
+              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setProductModal(false)}
-                  className="px-4 py-2.5 rounded-2xl bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 font-bold"
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 font-bold"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="gradient-gold text-white font-black px-5 py-2.5 rounded-2xl shadow-md"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-5 py-2.5 rounded-xl shadow-md"
                 >
                   Simpan Produk
                 </button>

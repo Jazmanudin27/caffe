@@ -24,6 +24,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
   const [newTableNumber, setNewTableNumber] = useState('M-01');
   const [newOrderType, setNewOrderType] = useState('dine_in');
   const [newPaymentNow, setNewPaymentNow] = useState(true);
+  const [newCashReceived, setNewCashReceived] = useState('');
   const [newOrderCart, setNewOrderCart] = useState([]);
   const [productSearch, setProductSearch] = useState('');
 
@@ -115,8 +116,14 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
   const newOrderTax = newOrderTotals * 0.1;
   const newOrderGrandTotal = newOrderTotals + newOrderTax;
 
+  const newNumericCash = getNumericValue(newCashReceived);
+  const newChangeAmount = Math.max(0, newNumericCash - newOrderGrandTotal);
+  const isNewEnoughCash = !newPaymentNow || (newNumericCash >= newOrderGrandTotal);
+
   const handleSubmitNewOrder = async () => {
     if (newOrderCart.length === 0) return;
+    if (newPaymentNow && newNumericCash < newOrderGrandTotal) return;
+
     const ordNumber = 'INV-' + Math.floor(1000 + Math.random() * 9000);
     const newOrd = {
       id: 'ord-' + Date.now(),
@@ -127,6 +134,8 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
       status: newPaymentNow ? 'preparing' : 'pending_payment',
       paymentStatus: newPaymentNow ? 'paid' : 'unpaid',
       paymentMethod: 'cash',
+      amountPaid: newPaymentNow ? newNumericCash : 0,
+      changeAmount: newPaymentNow ? newChangeAmount : 0,
       subtotal: newOrderTotals,
       tax: newOrderTax,
       total: newOrderGrandTotal,
@@ -140,6 +149,7 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
     setIsNewOrderModalOpen(false);
     setNewOrderCart([]);
     setNewCustomerName('Pelanggan Walk-In');
+    setNewCashReceived('');
   };
 
   const countPending = orders.filter(o => o.status === 'pending_payment').length;
@@ -693,7 +703,13 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                   <span className="font-bold text-gray-700">Status Pembayaran:</span>
                   <button
                     type="button"
-                    onClick={() => setNewPaymentNow(!newPaymentNow)}
+                    onClick={() => {
+                      const nextPay = !newPaymentNow;
+                      setNewPaymentNow(nextPay);
+                      if (nextPay && !newCashReceived) {
+                        setNewCashReceived(formatRupiahInput(newOrderGrandTotal));
+                      }
+                    }}
                     className={`px-3 py-1 rounded-lg font-black text-[11px] transition shadow-sm ${
                       newPaymentNow ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'
                     }`}
@@ -702,11 +718,69 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                   </button>
                 </div>
 
+                {/* Cash Input & Change Calculation */}
+                {newPaymentNow && (
+                  <div className="space-y-2 bg-amber-50/40 p-2.5 rounded-2xl border border-amber-200">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[11px] font-extrabold text-amber-900">Uang Tunai Diterima (Rp)</label>
+                      <button
+                        type="button"
+                        onClick={() => setNewCashReceived(formatRupiahInput(newOrderGrandTotal))}
+                        className="text-[10px] font-bold text-amber-700 hover:underline"
+                      >
+                        Set Uang Pas
+                      </button>
+                    </div>
+
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-amber-800 font-black font-mono text-xs pointer-events-none">Rp</span>
+                      <input
+                        type="text"
+                        placeholder="0"
+                        value={newCashReceived}
+                        onChange={e => setNewCashReceived(formatRupiahInput(e.target.value))}
+                        className="w-full bg-white border border-amber-300 rounded-xl pl-9 pr-3 py-1.5 text-xs font-black font-mono text-amber-950 text-right focus:outline-none focus:ring-2 focus:ring-amber-500/40 shadow-xs"
+                      />
+                    </div>
+
+                    {/* Presets */}
+                    <div className="grid grid-cols-4 gap-1">
+                      {[
+                        { label: 'Uang Pas', val: newOrderGrandTotal },
+                        { label: '50.000', val: 50000 },
+                        { label: '100.000', val: 100000 },
+                        { label: '200.000', val: 200000 },
+                      ].map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setNewCashReceived(formatRupiahInput(preset.val))}
+                          className="py-1 px-1 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg text-[10px] font-black text-amber-900 transition active:scale-95 text-center truncate"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Kembalian Status Badge */}
+                    <div className={`p-2 rounded-xl border flex justify-between items-center text-xs font-extrabold transition ${
+                      newNumericCash >= newOrderGrandTotal
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
+                        : 'bg-rose-50 border-rose-300 text-rose-950'
+                    }`}>
+                      <span>Uang Kembalian:</span>
+                      <span className={`font-mono text-xs font-black ${newNumericCash >= newOrderGrandTotal ? 'text-emerald-700' : 'text-rose-600'}`}>
+                        {newNumericCash >= newOrderGrandTotal ? formatRupiah(newChangeAmount) : 'Uang Kurang!'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <button
-                  disabled={newOrderCart.length === 0}
+                  disabled={newOrderCart.length === 0 || !isNewEnoughCash}
                   onClick={handleSubmitNewOrder}
                   className={`w-full py-3 rounded-2xl font-black text-xs shadow-lg transition flex items-center justify-center gap-2 ${
-                    newOrderCart.length > 0
+                    newOrderCart.length > 0 && isNewEnoughCash
                       ? 'bg-gradient-to-r from-amber-600 via-amber-700 to-orange-600 hover:brightness-110 text-white shadow-amber-600/30 active:scale-95'
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'
                   }`}

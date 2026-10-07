@@ -22,7 +22,7 @@ export default function App() {
   };
 
   const [activeView, setActiveView] = useState(getInitialView);
-  const [tables] = useState(INITIAL_TABLES);
+  const [tables, setTables] = useState(INITIAL_TABLES);
   const [selectedTable, setSelectedTable] = useState(INITIAL_TABLES[2]); // Default Meja M-03
 
   // Staff Authentication State
@@ -58,24 +58,29 @@ export default function App() {
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
 
-  // Fetch initial products and orders from Express/MySQL API
+  // Fetch initial products, tables, and orders from Express/MySQL API
   useEffect(() => {
     const loadData = async () => {
       try {
-        const fetchedProducts = await apiService.getProducts();
+        const activeStoreId = staffUser?.storeId || 'caffe-pusat';
+        const fetchedProducts = await apiService.getProducts(activeStoreId);
         if (fetchedProducts && fetchedProducts.length > 0) {
           setProducts(fetchedProducts);
         }
-        const fetchedOrders = await apiService.getOrders();
+        const fetchedOrders = await apiService.getOrders(activeStoreId);
         if (fetchedOrders && fetchedOrders.length > 0) {
           setOrders(fetchedOrders);
+        }
+        const fetchedTables = await apiService.getTables(activeStoreId);
+        if (fetchedTables && fetchedTables.length > 0) {
+          setTables(fetchedTables);
         }
       } catch (err) {
         console.warn('Menggunakan fallback data lokal', err);
       }
     };
     loadData();
-  }, []);
+  }, [staffUser?.storeId]);
 
   // Sync products to localStorage fallback
   useEffect(() => {

@@ -512,119 +512,122 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
         </div>
       )}
 
-      {/* NEW ORDER CREATION MODAL (DIRECT KASIR POS ORDER) */}
+      {/* NEW ORDER CREATION MODAL (FULL SCREEN KASIR POS DIRECT ORDER) */}
       {isNewOrderModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-md animate-fade-in overflow-y-auto">
-          <div className="bg-white border-2 border-amber-500/40 text-gray-900 w-full max-w-4xl rounded-3xl p-5 sm:p-6 space-y-5 shadow-2xl my-auto relative max-h-[92vh] flex flex-col">
-            
-            {/* Modal Header */}
-            <div className="flex justify-between items-center pb-4 border-b border-amber-100 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-amber-600 text-white flex items-center justify-center shadow-md">
-                  <Plus className="w-6 h-6 stroke-[3]" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-base sm:text-lg text-gray-900">Input Pesanan Baru (Kasir POS)</h3>
-                  <p className="text-[11px] text-gray-500">Pilih menu, meja pelanggan, & status pembayaran</p>
-                </div>
+        <div className="fixed inset-0 z-50 bg-white flex flex-col w-full h-full overflow-hidden animate-fade-in">
+          
+          {/* Full Screen Header */}
+          <div className="p-4 sm:p-5 border-b border-amber-200/80 bg-amber-50/80 flex justify-between items-center shrink-0 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-700 text-white flex items-center justify-center shadow-md shadow-amber-600/30">
+                <Plus className="w-7 h-7 stroke-[3]" />
               </div>
-              <button 
-                onClick={() => setIsNewOrderModalOpen(false)} 
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center transition"
-              >
-                ✕
-              </button>
+              <div>
+                <h3 className="font-extrabold text-base sm:text-xl text-gray-900 flex items-center gap-2">
+                  Input Pesanan Baru (Kasir POS Terminal)
+                </h3>
+                <p className="text-xs text-gray-500">Pilih menu, meja pelanggan, & konfirmasi transaksi langsung</p>
+              </div>
             </div>
 
-            {/* Modal Body: Split Grid layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 overflow-y-auto flex-1 pr-1">
+            <button 
+              onClick={() => setIsNewOrderModalOpen(false)} 
+              className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-extrabold text-xs flex items-center gap-1.5 transition active:scale-95 border border-gray-300"
+            >
+              <X className="w-4 h-4" />
+              <span>Tutup Fullscreen</span>
+            </button>
+          </div>
+
+          {/* Full Screen Body: Split Grid layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 sm:p-6 overflow-y-auto flex-1 bg-[#FAF7F2]">
+            
+            {/* Left Column: Metadata & Menu Selector (7 cols) */}
+            <div className="lg:col-span-7 flex flex-col space-y-4">
               
-              {/* Left Column: Metadata & Menu Selector (7 cols) */}
-              <div className="lg:col-span-7 space-y-4">
-                
-                {/* Customer & Table Setup */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-amber-50/50 p-3.5 rounded-2xl border border-amber-200/70">
-                  <div>
-                    <label className="text-[11px] font-extrabold text-amber-900 block mb-1">Nama Pelanggan</label>
-                    <input
-                      type="text"
-                      value={newCustomerName}
-                      onChange={(e) => setNewCustomerName(e.target.value)}
-                      placeholder="Contoh: Pak Budi"
-                      className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[11px] font-extrabold text-amber-900 block mb-1">Pilih Meja / Lokasi</label>
-                    <select
-                      value={newTableNumber}
-                      onChange={(e) => setNewTableNumber(e.target.value)}
-                      className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-bold text-amber-950 focus:outline-none focus:ring-2 focus:ring-amber-500/40 cursor-pointer"
-                    >
-                      {tables.map(t => (
-                        <option key={t.id} value={t.number}>Meja {t.number} ({t.capacity} Kursi)</option>
-                      ))}
-                      <option value="Takeaway">Bungkus / Takeaway</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Search Menu Input */}
-                <div className="relative">
-                  <Search className="w-4 h-4 text-amber-600 absolute left-3 top-3" />
+              {/* Customer & Table Setup */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-4 rounded-2xl border border-amber-200/80 shadow-sm">
+                <div>
+                  <label className="text-xs font-extrabold text-amber-900 block mb-1.5">Nama Pelanggan</label>
                   <input
                     type="text"
-                    placeholder="Cari nama menu / makanan..."
-                    value={productSearch}
-                    onChange={(e) => setProductSearch(e.target.value)}
-                    className="w-full bg-white border border-amber-300 rounded-xl pl-9 pr-3 py-2 text-xs font-semibold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                    value={newCustomerName}
+                    onChange={(e) => setNewCustomerName(e.target.value)}
+                    placeholder="Contoh: Pak Budi / Walk-In"
+                    className="w-full bg-amber-50/40 border border-amber-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                   />
                 </div>
 
-                {/* Product Grid List */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-64 overflow-y-auto pr-1">
-                  {filteredProductsForNewOrder.map(prod => (
-                    <div
-                      key={prod.id}
-                      onClick={() => handleAddProductToCart(prod)}
-                      className="bg-white border border-amber-200/80 rounded-2xl p-2.5 flex flex-col justify-between hover:border-amber-500 hover:shadow-md cursor-pointer transition active:scale-95 group"
-                    >
-                      {prod.imageUrl ? (
-                        <img src={prod.imageUrl} alt={prod.name} className="w-full h-16 object-cover rounded-xl mb-1.5" />
-                      ) : (
-                        <div className="w-full h-16 bg-amber-100 rounded-xl mb-1.5 flex items-center justify-center text-amber-700">
-                          <Utensils className="w-6 h-6" />
-                        </div>
-                      )}
-                      <div>
-                        <h4 className="text-[11px] font-black text-gray-900 line-clamp-1 group-hover:text-amber-700">{prod.name}</h4>
-                        <span className="text-xs font-mono font-bold text-amber-800">{formatRupiah(prod.price)}</span>
-                      </div>
-                      <button className="mt-2 w-full bg-amber-100 group-hover:bg-amber-600 group-hover:text-white text-amber-900 font-extrabold text-[10px] py-1 rounded-lg transition">
-                        + Tambah
-                      </button>
-                    </div>
-                  ))}
+                <div>
+                  <label className="text-xs font-extrabold text-amber-900 block mb-1.5">Pilih Meja / Lokasi</label>
+                  <select
+                    value={newTableNumber}
+                    onChange={(e) => setNewTableNumber(e.target.value)}
+                    className="w-full bg-amber-50/40 border border-amber-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-amber-950 focus:outline-none focus:ring-2 focus:ring-amber-500/40 cursor-pointer"
+                  >
+                    {tables.map(t => (
+                      <option key={t.id} value={t.number}>Meja {t.number} ({t.capacity} Kursi)</option>
+                    ))}
+                    <option value="Takeaway">Bungkus / Takeaway</option>
+                  </select>
                 </div>
-
               </div>
 
-              {/* Right Column: Cart Summary & Checkout (5 cols) */}
-              <div className="lg:col-span-5 bg-amber-50/40 p-4 rounded-2xl border border-amber-200/70 flex flex-col justify-between space-y-4">
-                
-                <div>
-                  <div className="flex justify-between items-center pb-2 border-b border-amber-200/60 mb-2">
-                    <span className="text-xs font-extrabold text-amber-900 flex items-center gap-1.5">
-                      <ShoppingBag className="w-4 h-4 text-amber-700" />
-                      Daftar Pesanan ({newOrderCart.length})
-                    </span>
-                    {newOrderCart.length > 0 && (
-                      <button onClick={() => setNewOrderCart([])} className="text-[10px] text-red-600 hover:underline font-bold">
-                        Hapus Semua
-                      </button>
+              {/* Search Menu Input */}
+              <div className="relative">
+                <Search className="w-4.5 h-4.5 text-amber-600 absolute left-3.5 top-3.5" />
+                <input
+                  type="text"
+                  placeholder="Cari nama menu / makanan di katalog..."
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  className="w-full bg-white border border-amber-300 rounded-2xl pl-10 pr-4 py-3 text-xs font-semibold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 shadow-sm"
+                />
+              </div>
+
+              {/* Product Grid List */}
+              <div className="flex-1 overflow-y-auto min-h-[300px] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pr-1">
+                {filteredProductsForNewOrder.map(prod => (
+                  <div
+                    key={prod.id}
+                    onClick={() => handleAddProductToCart(prod)}
+                    className="bg-white border border-amber-200/80 rounded-2xl p-3 flex flex-col justify-between hover:border-amber-500 hover:shadow-lg cursor-pointer transition active:scale-95 group"
+                  >
+                    {prod.imageUrl ? (
+                      <img src={prod.imageUrl} alt={prod.name} className="w-full h-24 object-cover rounded-xl mb-2" />
+                    ) : (
+                      <div className="w-full h-24 bg-amber-100 rounded-xl mb-2 flex items-center justify-center text-amber-700">
+                        <Utensils className="w-8 h-8" />
+                      </div>
                     )}
+                    <div>
+                      <h4 className="text-xs font-black text-gray-900 line-clamp-1 group-hover:text-amber-700">{prod.name}</h4>
+                      <span className="text-xs font-mono font-bold text-amber-800">{formatRupiah(prod.price)}</span>
+                    </div>
+                    <button className="mt-2.5 w-full bg-amber-100 group-hover:bg-amber-600 group-hover:text-white text-amber-900 font-extrabold text-[11px] py-1.5 rounded-xl transition shadow-sm">
+                      + Tambah Menu
+                    </button>
                   </div>
+                ))}
+              </div>
+
+            </div>
+
+            {/* Right Column: Cart Summary & Checkout (5 cols) */}
+            <div className="lg:col-span-5 bg-white p-5 rounded-3xl border border-amber-300/80 flex flex-col justify-between space-y-4 shadow-sm">
+              
+              <div className="flex flex-col flex-1 min-h-0">
+                <div className="flex justify-between items-center pb-3 border-b border-amber-200 mb-3 shrink-0">
+                  <span className="text-xs font-extrabold text-amber-900 flex items-center gap-2">
+                    <ShoppingBag className="w-4 h-4 text-amber-700" />
+                    Keranjang Pesanan ({newOrderCart.length})
+                  </span>
+                  {newOrderCart.length > 0 && (
+                    <button onClick={() => setNewOrderCart([])} className="text-xs text-red-600 hover:underline font-extrabold">
+                      Hapus Semua
+                    </button>
+                  )}
+                </div>
 
                   {/* Cart Items List */}
                   {newOrderCart.length === 0 ? (
@@ -708,17 +711,13 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
                     }`}
                   >
                     <CheckCircle className="w-4 h-4" />
-                    <span>Simpan & Kirim Ke Dapur</span>
+                    <span>Simpan dan Kirim Ke Dapur</span>
                   </button>
                 </div>
-
               </div>
-
             </div>
-
           </div>
-        </div>
-      )}
+        )}
 
       {/* PRINT RECEIPT MODAL */}
       {receiptOrder && (

@@ -3,7 +3,7 @@ import {
   BarChart3, Package, DollarSign, Plus, Edit3, Trash2, 
   CheckCircle, XCircle, TrendingUp, Coffee, FileSpreadsheet, Sparkles, QrCode,
   LayoutDashboard, Layers, Table as TableIcon, Receipt, Users, Menu, Bell, ChevronDown, RefreshCw, Search, LogOut, Clock,
-  Upload, Image as ImageIcon, FileUp, Camera, Check, X
+  Upload, Image as ImageIcon, FileUp, Camera, Check, X, Printer
 } from 'lucide-react';
 import { CATEGORIES } from '../../data/mockData';
 import { formatRupiah, formatDateTime } from '../../utils/formatters';
@@ -106,6 +106,106 @@ export default function AdminDashboardView({
       setCategoriesList(prev => prev.filter(c => c.id !== catId));
       await apiService.deleteCategory(catId);
     }
+  };
+
+  // Tables State
+  const [tablesList, setTablesList] = useState(tables && tables.length > 0 ? tables : [
+    { id: 'tbl-1', number: 'M-01', token: 'QR-CAFFE-M01', status: 'available', capacity: 2 },
+    { id: 'tbl-2', number: 'M-02', token: 'QR-CAFFE-M02', status: 'occupied', capacity: 4 },
+    { id: 'tbl-3', number: 'M-03', token: 'QR-CAFFE-M03', status: 'available', capacity: 4 },
+    { id: 'tbl-4', number: 'M-04', token: 'QR-CAFFE-M04', status: 'available', capacity: 6 },
+    { id: 'tbl-5', number: 'M-05', token: 'QR-CAFFE-M05', status: 'available', capacity: 2 },
+    { id: 'tbl-6', number: 'M-06', token: 'QR-CAFFE-M06', status: 'occupied', capacity: 4 }
+  ]);
+
+  useEffect(() => {
+    const fetchTbls = async () => {
+      const fetched = await apiService.getTables();
+      if (fetched && Array.isArray(fetched) && fetched.length > 0) {
+        setTablesList(fetched);
+      }
+    };
+    fetchTbls();
+  }, []);
+
+  // Table Add/Edit Modal State
+  const [tableModal, setTableModal] = useState(false);
+  const [editingTable, setEditingTable] = useState(null);
+  const [tblFormData, setTblFormData] = useState({
+    number: '',
+    capacity: '4',
+    status: 'available'
+  });
+
+  // QR Code Print Modal State
+  const [qrModal, setQrModal] = useState(false);
+  const [selectedQrTable, setSelectedQrTable] = useState(null);
+
+  const openAddTableModal = () => {
+    setEditingTable(null);
+    const nextNum = (tablesList.length + 1).toString().padStart(2, '0');
+    setTblFormData({
+      number: `M-${nextNum}`,
+      capacity: '4',
+      status: 'available'
+    });
+    setTableModal(true);
+  };
+
+  const openEditTableModal = (tbl) => {
+    setEditingTable(tbl);
+    setTblFormData({
+      number: tbl.number,
+      capacity: tbl.capacity ? tbl.capacity.toString() : '4',
+      status: tbl.status || 'available'
+    });
+    setTableModal(true);
+  };
+
+  const handleSaveTable = async (e) => {
+    e.preventDefault();
+    const rawNum = tblFormData.number.trim();
+    const cleanNum = rawNum.startsWith('M-') ? rawNum : `M-${rawNum.padStart(2, '0')}`;
+    const capNum = parseInt(tblFormData.capacity) || 4;
+    const qrToken = `QR-CAFFE-${cleanNum.replace('-', '')}`;
+
+    if (editingTable) {
+      const updatedTbl = {
+        number: cleanNum,
+        token: qrToken,
+        capacity: capNum,
+        status: tblFormData.status
+      };
+      setTablesList(prev => prev.map(t => t.id === editingTable.id ? { ...t, ...updatedTbl } : t));
+      await apiService.updateTable(editingTable.id, updatedTbl);
+    } else {
+      const newTbl = {
+        id: 'tbl-' + Date.now(),
+        number: cleanNum,
+        token: qrToken,
+        capacity: capNum,
+        status: tblFormData.status
+      };
+      setTablesList(prev => [...prev, newTbl]);
+      await apiService.createTable(newTbl);
+    }
+    setTableModal(false);
+  };
+
+  const handleDeleteTable = async (tblId) => {
+    if (window.confirm('Yakin ingin menghapus meja ini dari sistem?')) {
+      setTablesList(prev => prev.filter(t => t.id !== tblId));
+      await apiService.deleteTable(tblId);
+    }
+  };
+
+  const openQrModal = (tbl) => {
+    setSelectedQrTable(tbl);
+    setQrModal(true);
+  };
+
+  const handlePrintQrCode = () => {
+    window.print();
   };
 
   // Live Clock State
@@ -777,33 +877,119 @@ export default function AdminDashboardView({
             </div>
           )}
 
-          {/* SECTION 3: KELOLA MEJA */}
+          {/* SECTION: KELOLA MEJA & KODE QR */}
           {activeMenu === 'tables' && (
             <div className="space-y-6">
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2 font-heading">
-                  <TableIcon className="w-6 h-6 text-blue-600" />
-                  Kelola Meja & Kode QR Pelanggan
-                </h2>
+              
+              {/* Title Card */}
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                <div>
+                  <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 font-heading tracking-tight">
+                    <TableIcon className="w-5 h-5 text-blue-600" />
+                    Kelola Meja & Kode QR Pelanggan
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                    Total <strong className="text-slate-800">{tablesList.length}</strong> meja terdaftar di restoran untuk pemesanan QR Self-Service.
+                  </p>
+                </div>
+
+                <button
+                  onClick={openAddTableModal}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3.5 py-2 rounded-lg text-xs shadow-sm flex items-center gap-1.5 transition active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>Tambah Meja Baru</span>
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {tables.map(tbl => (
-                  <div key={tbl.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center">
-                    <div>
-                      <h3 className="font-extrabold text-lg text-slate-900">Meja {tbl.number}</h3>
-                      <p className="text-xs text-slate-500">Kapasitas: {tbl.capacity} Kursi</p>
-                      <span className="text-[10px] font-mono text-blue-600 font-bold mt-1 block">{tbl.token}</span>
-                    </div>
+              {/* Table Data View (table-bordered / table-sm / btn-sm) */}
+              <div className="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-700 border-collapse border border-slate-300">
+                    <thead className="bg-slate-100 text-slate-700 font-extrabold text-[10px] uppercase tracking-wider">
+                      <tr>
+                        <th className="py-2.5 px-3 text-center w-10 border border-slate-300 bg-slate-100">NO</th>
+                        <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">NOMOR MEJA</th>
+                        <th className="py-2.5 px-3 border border-slate-300 bg-slate-100">KODE QR TOKEN</th>
+                        <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">KAPASITAS</th>
+                        <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">STATUS MEJA</th>
+                        <th className="py-2.5 px-3 text-center border border-slate-300 bg-slate-100">CETAK KODE QR</th>
+                        <th className="py-2.5 px-3 text-center w-20 border border-slate-300 bg-slate-100">AKSI</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tablesList.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="py-10 text-center text-slate-400 italic text-xs border border-slate-200">
+                            Belum ada meja terdaftar.
+                          </td>
+                        </tr>
+                      ) : (
+                        tablesList.map((tbl, idx) => (
+                          <tr key={tbl.id || idx} className="hover:bg-blue-50/40 transition odd:bg-white even:bg-slate-50/50">
+                            <td className="py-2.5 px-3 text-center font-bold text-slate-500 text-[11px] border border-slate-200">{idx + 1}</td>
+                            
+                            <td className="py-2.5 px-3 font-extrabold text-slate-900 border border-slate-200 text-xs">
+                              Meja {tbl.number}
+                            </td>
 
-                    <span className={`px-3 py-1 rounded-full text-xs font-black ${
-                      tbl.status === 'available' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                    }`}>
-                      {tbl.status === 'available' ? 'Kosong' : 'Terisi'}
-                    </span>
-                  </div>
-                ))}
+                            <td className="py-2.5 px-3 font-mono text-xs border border-slate-200">
+                              <span className="bg-blue-50 text-blue-700 border border-blue-200/80 px-2 py-0.5 rounded font-bold">
+                                {tbl.token}
+                              </span>
+                            </td>
+
+                            <td className="py-2.5 px-3 text-center font-bold text-slate-700 text-xs border border-slate-200">
+                              {tbl.capacity} Kursi
+                            </td>
+
+                            <td className="py-2.5 px-3 text-center border border-slate-200">
+                              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                                tbl.status === 'available'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-300/80'
+                                  : 'bg-amber-50 text-amber-700 border border-amber-300/80'
+                              }`}>
+                                {tbl.status === 'available' ? 'Kosong' : 'Terisi'}
+                              </span>
+                            </td>
+
+                            <td className="py-2.5 px-3 text-center border border-slate-200">
+                              <button
+                                onClick={() => openQrModal(tbl)}
+                                className="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-extrabold shadow-2xs transition inline-flex items-center gap-1.5 active:scale-95"
+                              >
+                                <QrCode className="w-3.5 h-3.5 text-amber-400" />
+                                <span>Cetak Kode QR</span>
+                              </button>
+                            </td>
+
+                            <td className="py-2.5 px-3 text-center border border-slate-200">
+                              <div className="flex items-center justify-center gap-1">
+                                <button
+                                  onClick={() => openEditTableModal(tbl)}
+                                  className="p-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-2xs transition"
+                                  title="Edit Meja"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                
+                                <button
+                                  onClick={() => handleDeleteTable(tbl.id)}
+                                  className="p-1 bg-rose-600 hover:bg-rose-700 text-white rounded-md shadow-2xs transition"
+                                  title="Hapus Meja"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+
             </div>
           )}
 
@@ -1172,6 +1358,197 @@ export default function AdminDashboardView({
                 </button>
               </div>
             </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* ADD / EDIT TABLE MODAL */}
+      {tableModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in">
+          <div className="bg-white text-slate-900 w-full max-w-md rounded-3xl space-y-5 shadow-2xl border border-slate-200 overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="bg-slate-900 text-white p-5 flex justify-between items-center relative overflow-hidden">
+              <div className="flex items-center gap-3 relative z-10">
+                <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-blue-500/30">
+                  <TableIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-white tracking-tight leading-tight font-heading">
+                    {editingTable ? 'Edit Data Meja Restoran' : 'Tambah Meja Baru'}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">Restoran CaffePOS Multi-Role System</p>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setTableModal(false)} 
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTable} className="p-6 pt-2 space-y-4 text-xs font-medium">
+              <div>
+                <label className="font-extrabold text-slate-800 uppercase tracking-wider text-[11px] block mb-1">
+                  Nomor / Label Meja <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Contoh: M-07 atau 07"
+                  value={tblFormData.number}
+                  onChange={e => setTblFormData({ ...tblFormData, number: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-600/20 transition"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-extrabold text-slate-800 uppercase tracking-wider text-[11px] block mb-1">
+                    Kapasitas Kursi <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    placeholder="4"
+                    value={tblFormData.capacity}
+                    onChange={e => setTblFormData({ ...tblFormData, capacity: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-mono font-bold focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-extrabold text-slate-800 uppercase tracking-wider text-[11px] block mb-1">
+                    Status Meja
+                  </label>
+                  <select
+                    value={tblFormData.status}
+                    onChange={e => setTblFormData({ ...tblFormData, status: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-blue-600 focus:bg-white transition cursor-pointer"
+                  >
+                    <option value="available">Kosong (Available)</option>
+                    <option value="occupied">Terisi (Occupied)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setTableModal(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition text-xs"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-6 py-2.5 rounded-xl shadow-md shadow-blue-600/20 flex items-center gap-1.5 transition active:scale-95 text-xs"
+                >
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>Simpan Meja</span>
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* PRINT QR CODE MODAL */}
+      {qrModal && selectedQrTable && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-white text-slate-900 w-full max-w-sm rounded-3xl p-6 space-y-5 shadow-2xl border border-slate-200 text-center relative overflow-hidden">
+            
+            <button
+              onClick={() => setQrModal(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition print:hidden"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Print Container Card */}
+            <div id="printable-qr-card" className="space-y-4 p-4 border-2 border-slate-900 rounded-2xl bg-white shadow-inner">
+              
+              {/* Header Resto Brand */}
+              <div className="space-y-1">
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white font-black text-xl flex items-center justify-center mx-auto shadow-md">
+                  P
+                </div>
+                <h2 className="font-black text-base text-slate-900 uppercase tracking-wider font-heading">
+                  CAFFE POS RESTO
+                </h2>
+                <p className="text-[10px] text-slate-500 font-mono">Scan untuk Pesan Menu Restoran</p>
+              </div>
+
+              {/* QR Code Graphics Card */}
+              <div className="bg-slate-950 p-6 rounded-2xl border-4 border-amber-500 shadow-xl inline-block relative mx-auto my-2">
+                <svg viewBox="0 0 100 100" className="w-40 h-40 text-white fill-current">
+                  <rect x="5" y="5" width="30" height="30" rx="4" fill="none" stroke="currentColor" strokeWidth="4" />
+                  <rect x="12" y="12" width="16" height="16" fill="currentColor" />
+                  
+                  <rect x="65" y="5" width="30" height="30" rx="4" fill="none" stroke="currentColor" strokeWidth="4" />
+                  <rect x="72" y="12" width="16" height="16" fill="currentColor" />
+
+                  <rect x="5" y="65" width="30" height="30" rx="4" fill="none" stroke="currentColor" strokeWidth="4" />
+                  <rect x="12" y="72" width="16" height="16" fill="currentColor" />
+
+                  <rect x="42" y="8" width="6" height="6" />
+                  <rect x="52" y="16" width="6" height="6" />
+                  <rect x="42" y="24" width="6" height="6" />
+                  <rect x="8" y="42" width="6" height="6" />
+                  <rect x="18" y="48" width="6" height="6" />
+                  <rect x="28" y="42" width="6" height="6" />
+
+                  <rect x="42" y="42" width="16" height="16" fill="#3b82f6" rx="3" />
+                  <rect x="68" y="42" width="8" height="8" />
+                  <rect x="80" y="48" width="8" height="8" />
+
+                  <rect x="42" y="68" width="8" height="8" />
+                  <rect x="54" y="78" width="10" height="10" />
+                  <rect x="72" y="68" width="20" height="20" rx="3" fill="#f59e0b" />
+                </svg>
+
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="bg-slate-900 border-2 border-amber-400 text-amber-400 rounded-full px-2 py-0.5 text-[9px] font-mono font-bold shadow-lg">
+                    {selectedQrTable.token}
+                  </div>
+                </div>
+              </div>
+
+              {/* Table Number Title Badge */}
+              <div className="space-y-1">
+                <span className="inline-block bg-slate-900 text-white font-black text-xl px-5 py-1.5 rounded-xl uppercase tracking-widest shadow-md">
+                  MEJA {selectedQrTable.number}
+                </span>
+                <p className="text-[10px] text-slate-600 font-medium max-w-xs mx-auto pt-1 leading-snug">
+                  Imbas (scan) Kode QR ini dengan kamera smartphone Anda untuk membuka menu digital & memesan langsung.
+                </p>
+              </div>
+
+            </div>
+
+            {/* Modal Print Action Bar */}
+            <div className="flex items-center gap-2 pt-2 border-t border-slate-100 print:hidden">
+              <button
+                type="button"
+                onClick={() => setQrModal(false)}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition"
+              >
+                Tutup
+              </button>
+              <button
+                type="button"
+                onClick={handlePrintQrCode}
+                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-extrabold text-xs shadow-md shadow-blue-600/20 flex items-center justify-center gap-1.5 transition active:scale-95"
+              >
+                <Printer className="w-4 h-4" />
+                <span>Cetak QR Code</span>
+              </button>
+            </div>
 
           </div>
         </div>

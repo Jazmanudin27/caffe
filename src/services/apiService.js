@@ -111,6 +111,55 @@ export const apiService = {
     }
   },
 
+  // Fetch Tables from API
+  getTables: async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/tables`);
+      if (!res.ok) throw new Error('Failed to fetch tables');
+      return await res.json();
+    } catch (e) {
+      console.warn('API Offline, using default tables', e);
+      return null;
+    }
+  },
+
+  createTable: async (tbl) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/tables`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tbl)
+      });
+      return await res.json();
+    } catch (e) {
+      console.warn('Backend API offline for createTable', e);
+    }
+  },
+
+  updateTable: async (id, tbl) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/tables/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tbl)
+      });
+      return await res.json();
+    } catch (e) {
+      console.warn('Backend API offline for updateTable', e);
+    }
+  },
+
+  deleteTable: async (id) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/tables/${id}`, {
+        method: 'DELETE'
+      });
+      return await res.json();
+    } catch (e) {
+      console.warn('Backend API offline for deleteTable', e);
+    }
+  },
+
   // Fetch Products from MySQL API
   getProducts: async () => {
     try {

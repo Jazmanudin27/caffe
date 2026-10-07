@@ -539,31 +539,31 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
             </button>
           </div>
 
-          {/* Full Screen Body: Split Grid layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 sm:p-6 overflow-y-auto flex-1 bg-[#FAF7F2]">
+          {/* Full Screen Body: Split Grid layout (No parent scroll) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 sm:p-6 flex-1 min-h-0 overflow-hidden bg-[#FAF7F2]">
             
             {/* Left Column: Metadata & Menu Selector (7 cols) */}
-            <div className="lg:col-span-7 flex flex-col space-y-4">
+            <div className="lg:col-span-7 flex flex-col min-h-0 space-y-3.5">
               
               {/* Customer & Table Setup */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-4 rounded-2xl border border-amber-200/80 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-3.5 rounded-2xl border border-amber-200/80 shadow-sm shrink-0">
                 <div>
-                  <label className="text-xs font-extrabold text-amber-900 block mb-1.5">Nama Pelanggan</label>
+                  <label className="text-xs font-extrabold text-amber-900 block mb-1">Nama Pelanggan</label>
                   <input
                     type="text"
                     value={newCustomerName}
                     onChange={(e) => setNewCustomerName(e.target.value)}
                     placeholder="Contoh: Pak Budi / Walk-In"
-                    className="w-full bg-amber-50/40 border border-amber-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                    className="w-full bg-amber-50/40 border border-amber-300 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-extrabold text-amber-900 block mb-1.5">Pilih Meja / Lokasi</label>
+                  <label className="text-xs font-extrabold text-amber-900 block mb-1">Pilih Meja / Lokasi</label>
                   <select
                     value={newTableNumber}
                     onChange={(e) => setNewTableNumber(e.target.value)}
-                    className="w-full bg-amber-50/40 border border-amber-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-amber-950 focus:outline-none focus:ring-2 focus:ring-amber-500/40 cursor-pointer"
+                    className="w-full bg-amber-50/40 border border-amber-300 rounded-xl px-3 py-2 text-xs font-bold text-amber-950 focus:outline-none focus:ring-2 focus:ring-amber-500/40 cursor-pointer"
                   >
                     {tables.map(t => (
                       <option key={t.id} value={t.number}>Meja {t.number} ({t.capacity} Kursi)</option>
@@ -574,37 +574,37 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
               </div>
 
               {/* Search Menu Input */}
-              <div className="relative">
-                <Search className="w-4.5 h-4.5 text-amber-600 absolute left-3.5 top-3.5" />
+              <div className="relative shrink-0">
+                <Search className="w-4 h-4 text-amber-600 absolute left-3 top-3" />
                 <input
                   type="text"
                   placeholder="Cari nama menu / makanan di katalog..."
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
-                  className="w-full bg-white border border-amber-300 rounded-2xl pl-10 pr-4 py-3 text-xs font-semibold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 shadow-sm"
+                  className="w-full bg-white border border-amber-300 rounded-xl pl-9 pr-4 py-2.5 text-xs font-semibold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 shadow-sm"
                 />
               </div>
 
-              {/* Product Grid List */}
-              <div className="flex-1 overflow-y-auto min-h-[300px] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pr-1">
+              {/* Product Grid List (ONLY THIS SCROLLS) */}
+              <div className="flex-1 overflow-y-auto pr-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 auto-rows-max">
                 {filteredProductsForNewOrder.map(prod => (
                   <div
                     key={prod.id}
                     onClick={() => handleAddProductToCart(prod)}
-                    className="bg-white border border-amber-200/80 rounded-2xl p-3 flex flex-col justify-between hover:border-amber-500 hover:shadow-lg cursor-pointer transition active:scale-95 group"
+                    className="bg-white border border-amber-200/80 rounded-2xl p-2.5 flex flex-col justify-between hover:border-amber-500 hover:shadow-md cursor-pointer transition active:scale-95 group"
                   >
                     {prod.imageUrl ? (
-                      <img src={prod.imageUrl} alt={prod.name} className="w-full h-24 object-cover rounded-xl mb-2" />
+                      <img src={prod.imageUrl} alt={prod.name} className="w-full h-20 object-cover rounded-xl mb-1.5" />
                     ) : (
-                      <div className="w-full h-24 bg-amber-100 rounded-xl mb-2 flex items-center justify-center text-amber-700">
-                        <Utensils className="w-8 h-8" />
+                      <div className="w-full h-20 bg-amber-100 rounded-xl mb-1.5 flex items-center justify-center text-amber-700">
+                        <Utensils className="w-7 h-7" />
                       </div>
                     )}
                     <div>
-                      <h4 className="text-xs font-black text-gray-900 line-clamp-1 group-hover:text-amber-700">{prod.name}</h4>
-                      <span className="text-xs font-mono font-bold text-amber-800">{formatRupiah(prod.price)}</span>
+                      <h4 className="text-[11px] font-black text-gray-900 line-clamp-1 group-hover:text-amber-700">{prod.name}</h4>
+                      <span className="text-[11px] font-mono font-bold text-amber-800">{formatRupiah(prod.price)}</span>
                     </div>
-                    <button className="mt-2.5 w-full bg-amber-100 group-hover:bg-amber-600 group-hover:text-white text-amber-900 font-extrabold text-[11px] py-1.5 rounded-xl transition shadow-sm">
+                    <button className="mt-2 w-full bg-amber-100 group-hover:bg-amber-600 group-hover:text-white text-amber-900 font-extrabold text-[10px] py-1 rounded-lg transition shadow-sm">
                       + Tambah Menu
                     </button>
                   </div>
@@ -613,17 +613,17 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
 
             </div>
 
-            {/* Right Column: Cart Summary & Checkout (5 cols) */}
-            <div className="lg:col-span-5 bg-white p-5 rounded-3xl border border-amber-300/80 flex flex-col justify-between space-y-4 shadow-sm">
+            {/* Right Column: Fixed Cart Summary & Checkout (5 cols - NO PARENT SCROLL) */}
+            <div className="lg:col-span-5 bg-white p-4 sm:p-5 rounded-3xl border border-amber-300/80 flex flex-col justify-between min-h-0 overflow-hidden shadow-sm space-y-3">
               
               <div className="flex flex-col flex-1 min-h-0">
-                <div className="flex justify-between items-center pb-3 border-b border-amber-200 mb-3 shrink-0">
+                <div className="flex justify-between items-center pb-2.5 border-b border-amber-200 mb-2.5 shrink-0">
                   <span className="text-xs font-extrabold text-amber-900 flex items-center gap-2">
                     <ShoppingBag className="w-4 h-4 text-amber-700" />
                     Keranjang Pesanan ({newOrderCart.length})
                   </span>
                   {newOrderCart.length > 0 && (
-                    <button onClick={() => setNewOrderCart([])} className="text-xs text-red-600 hover:underline font-extrabold">
+                    <button onClick={() => setNewOrderCart([])} className="text-[11px] text-red-600 hover:underline font-extrabold">
                       Hapus Semua
                     </button>
                   )}

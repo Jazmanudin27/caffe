@@ -73,18 +73,9 @@ export default function CashierPosView({ orders, updateOrderStatus, updateOrderP
         <div className="absolute -left-10 -top-10 w-48 h-48 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 backdrop-blur-md text-amber-300 text-xs font-bold mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Sistem Kasir POS Realtime</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3 tracking-tight">
-              <Monitor className="w-7 h-7 text-amber-400" />
-              Kasir & Pemrosesan Pembayaran
-            </h1>
-            <p className="text-xs sm:text-sm text-amber-200/80 mt-1 max-w-xl">
-              Verifikasi pembayaran tunai meja, pantau pesanan dapur, dan cetak struk pelanggan secara langsung.
-            </p>
+          <div className="flex items-center gap-3">
+            <Monitor className="w-6 h-6 text-amber-400" />
+            <span className="text-xl font-bold text-white tracking-tight">Kasir POS</span>
           </div>
 
           {/* Stat Cards Summary */}
